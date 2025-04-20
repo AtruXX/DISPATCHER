@@ -1,12 +1,8 @@
-import { AppRegistry } from 'react-native';
+import { registerRootComponent } from 'expo';
+
 import App from './App';
 
-// Register the app
-AppRegistry.registerComponent('Atrux', () => App);
-
-// Web-specific code
-if (window.document) {
-  AppRegistry.runApplication('Atrux', {
-    rootTag: document.getElementById('root')
-  });
-}
+// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
+// It also ensures that whether you load the app in Expo Go or in a native build,
+// the environment is set up appropriately
+registerRootComponent(App);
