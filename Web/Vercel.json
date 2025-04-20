@@ -1,7 +1,0 @@
-{
-  "buildCommand": "npm install && npm run web",
-  "outputDirectory": "build",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
