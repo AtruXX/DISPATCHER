@@ -1,0 +1,15 @@
+{
+    "builds": [
+      { "src": "public/**", "use": "@vercel/static" },
+      { 
+        "src": "package.json", 
+        "use": "@vercel/node",
+        "config": {
+          "entrypoint": "index.js"
+        }
+      }
+    ],
+    "routes": [
+      { "src": "/(.*)", "dest": "/public/index.html" }
+    ]
+  }
