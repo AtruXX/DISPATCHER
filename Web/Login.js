@@ -34,15 +34,19 @@ function LoginScreen() {
         if (data.auth_token) {
           localStorage.setItem('auth_token', data.auth_token);
           console.log('Token stored successfully');
-          try{
+          
+          // Print navigation object for debugging
+          console.log('Navigation object details:', Object.keys(navigation));
+          
+          try {
             navigation.navigate('Main');
-
-          }catch(navError){
+            console.log('Navigation execute completed');
+          } catch (navError) {
             console.error('Navigation failed:', navError);
             // Fallback navigation method
+            console.log('Attempting fallback navigation');
             window.location.href = '/main';
           }
-          navigation.navigate('Main');
         } else {
           setError('Invalid');
         }
