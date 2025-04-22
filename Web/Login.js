@@ -9,7 +9,7 @@ function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
-  
+  const [error, setError] = useState(null);
   const handleLogin = async () => {
     if (!email || !password) {
       alert('Please enter both email and password');
@@ -36,14 +36,14 @@ function LoginScreen() {
           console.log('Token stored successfully');
           navigation.navigate('Main');
         } else {
-          alert('Invalid response from server. Missing token.');
+          setError('Invalid');
         }
       } else {
-        alert('Login failed. Please check your credentials.');
+        setError('Invalid credentials.');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      alert('Network error. Please try again later.');
+      console.error('Login error:', err);
+      setError('Network error.');
     } finally {
       setIsLoading(false);
     }
@@ -55,8 +55,8 @@ function LoginScreen() {
       style={styles.container}
     >
       <View style={styles.card}>
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
+        <Text style={styles.title}>Bine ai venit!</Text>
+        <Text style={styles.subtitle}>Logheaza-te pentru a continua!</Text>
         
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
@@ -74,7 +74,7 @@ function LoginScreen() {
         </View>
         
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>Parola</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
@@ -91,7 +91,7 @@ function LoginScreen() {
           style={styles.forgotPassword}
           onPress={() => alert('Password reset functionality')}
         >
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          <Text style={styles.forgotPasswordText}>Ai uitat parola?</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
@@ -112,9 +112,9 @@ function LoginScreen() {
         </TouchableOpacity>
         
         <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>Don't have an account? </Text>
+          <Text style={styles.registerText}>Nu ai cont? </Text>
           <TouchableOpacity onPress={() => alert('Register functionality')}>
-            <Text style={styles.registerLink}>Register</Text>
+            <Text style={styles.registerLink}>Inregistrare</Text>
           </TouchableOpacity>
         </View>
       </View>
