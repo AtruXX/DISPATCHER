@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Modern color palette inspired by the Axiom design
 const COLORS = {
@@ -40,7 +39,8 @@ const DispatcherDashboard = () => {
   useEffect(() => {
     const getAuthToken = () => {
       try {
-        const token = localStorage.getItem('authToken');
+        localStorage.setItem('authToken', data.auth_token);
+
         if (token) {
           setAuthToken(token);
         } else {
