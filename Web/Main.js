@@ -29,7 +29,8 @@ const DispatcherDashboard = () => {
   const [currentDate] = useState(new Date());
   const [authToken, setAuthToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+  const [error, setError] = useState(null);
+
   const [stats, setStats] = useState({
     activeShipments: 18,
     delayedShipments: 4,
@@ -37,10 +38,9 @@ const DispatcherDashboard = () => {
     completionRate: 84,
   });
   useEffect(() => {
-    const getAuthToken = async () => {
+    const getAuthToken = () => {
       try {
         const token = localStorage.getItem('authToken');
-
         if (token) {
           setAuthToken(token);
         } else {
