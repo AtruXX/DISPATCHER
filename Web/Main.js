@@ -39,7 +39,8 @@ const DispatcherDashboard = () => {
   useEffect(() => {
     const getAuthToken = async () => {
       try {
-        const token = await AsyncStorage.getItem('authToken');
+        const token = localStorage.getItem('authToken');
+
         if (token) {
           setAuthToken(token);
         } else {

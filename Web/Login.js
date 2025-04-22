@@ -42,7 +42,7 @@ function LoginScreen() {
         setError('Invalid credentials.');
       }
     } catch (error) {
-      console.error('Login error:', err);
+      console.error('Login error:', error);
       setError('Network error.');
     } finally {
       setIsLoading(false);
