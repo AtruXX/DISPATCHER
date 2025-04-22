@@ -32,7 +32,7 @@ function LoginScreen() {
         const data = await response.json();
         // Store the auth token
         if (data.auth_token) {
-          await AsyncStorage.setItem('auth_token', data.auth_token);
+          localStorage.setItem('auth_token', data.auth_token);
           console.log('Token stored successfully');
           navigation.navigate('Main');
         } else {
