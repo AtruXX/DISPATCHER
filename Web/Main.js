@@ -39,16 +39,22 @@ const DispatcherDashboard = () => {
   useEffect(() => {
     const getAuthToken = () => {
       try {
-        localStorage.setItem('authToken', data.auth_token);
-
+        console.log("Attempting to get auth token from localStorage");
+        const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
+        console.log("Token from localStorage:", token ? "Token exists" : "No token found");
+        
         if (token) {
           setAuthToken(token);
+          console.log("Auth token set in state");
         } else {
+          console.log("No token found, setting error");
           setError('Authentication required. Please log in first.');
         }
       } catch (err) {
+        console.error("Error getting auth token:", err);
         setError('Failed to load authentication token.');
       } finally {
+        console.log("Setting loading to false");
         setLoading(false);
       }
     };
