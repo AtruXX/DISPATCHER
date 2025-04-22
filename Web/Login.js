@@ -32,19 +32,12 @@ function LoginScreen() {
         const data = await response.json();
         // Store the auth token
         if (data.auth_token) {
-          localStorage.setItem('auth_token', data.auth_token);
+          localStorage.setItem('authToken', data.auth_token);
           console.log('Token stored successfully');
-          
-          // Print navigation object for debugging
-          console.log('Navigation object details:', Object.keys(navigation));
-          
-          try {
+          try{
             navigation.navigate('Main');
-            console.log('Navigation execute completed');
-          } catch (navError) {
+          }catch(navError){
             console.error('Navigation failed:', navError);
-            // Fallback navigation method
-            console.log('Attempting fallback navigation');
             window.location.href = '/main';
           }
         } else {
