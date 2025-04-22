@@ -10,32 +10,42 @@ import {
   Alert,
   TouchableOpacity
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 const TrucksScreen = () => {
   const [trucks, setTrucks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [authToken, setAuthToken] = useState(null);
-  
+  const navigation = useNavigation(); // Add this line to get the navigation object
+
   // Load auth token on component mount
   useEffect(() => {
-    const getAuthToken = async () => {
+    const getAuthToken = () => {
       try {
-        const token = await AsyncStorage.getItem('authToken');
+        console.log("Attempting to get auth token from localStorage");
+        const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
+        console.log("Token from localStorage:", token ? "Token exists" : "No token found");
+        
         if (token) {
           setAuthToken(token);
+          console.log("Auth token set in state");
         } else {
+          console.log("No token found, setting error");
           setError('Authentication required. Please log in first.');
         }
       } catch (err) {
+        console.error("Error getting auth token:", err);
         setError('Failed to load authentication token.');
       } finally {
+        console.log("Setting loading to false");
         setLoading(false);
       }
     };
+    
     getAuthToken();
   }, []);
   
@@ -162,11 +172,11 @@ const TrucksScreen = () => {
               
               <View style={styles.detailRow}>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Last Service</Text>
+                  <Text style={styles.detailLabel}>Ultima vizita la service</Text>
                   <Text style={styles.detailValue}>{formatDate(item.last_service_date)}</Text>
                 </View>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Next Service</Text>
+                  <Text style={styles.detailLabel}>Urmatoarea vizita la service</Text>
                   <Text style={[styles.detailValue, { color: serviceStatus.color }]}>
                     {formatDate(item.next_service_date)}
                   </Text>
@@ -193,9 +203,9 @@ const TrucksScreen = () => {
 
   const renderHeader = () => (
     <View style={styles.headerCard}>
-      <Text style={styles.headerTitle}>Fleet</Text>
+      <Text style={styles.headerTitle}>Flota</Text>
       <Text style={styles.headerSubtitle}>
-        {trucks.length} vehicles in fleet
+        {trucks.length} vehicule in flota
       </Text>
     </View>
   );
@@ -205,7 +215,7 @@ const TrucksScreen = () => {
       <SafeAreaView style={styles.loadingContainer}>
         <View style={styles.loadingCard}>
           <ActivityIndicator size="large" color="#6E78F7" />
-          <Text style={styles.loadingText}>Loading trucks...</Text>
+          <Text style={styles.loadingText}>Se incarca...</Text>
         </View>
       </SafeAreaView>
     );
@@ -218,7 +228,7 @@ const TrucksScreen = () => {
           <Text style={styles.errorTitle}>Oops!</Text>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => authToken && fetchTrucks()}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
+            <Text style={styles.retryButtonText}>Incearca din nou</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -228,13 +238,33 @@ const TrucksScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
+      <View style={styles.navigationHeader}>
+      <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate("Main"); // or your fallback screen
+            }
+          }}
+        >
+          <Ionicons name="arrow-back" size={24} color="#303F9F" />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.refreshButton}
+          onPress={fetchTrucks}
+        >
+          <Ionicons name="refresh" size={24} color="#303F9F" />
+        </TouchableOpacity>
+      </View>
       {trucks.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No Trucks Found</Text>
-            <Text style={styles.emptyText}>There are currently no trucks registered in the system.</Text>
+            <Text style={styles.emptyTitle}>Nu s-au gasit camioane</Text>
+            <Text style={styles.emptyText}>Nu exista camioane inregistrate in sistem.</Text>
             <TouchableOpacity style={styles.refreshButton} onPress={fetchTrucks}>
-              <Text style={styles.refreshButtonText}>Refresh</Text>
+              <Text style={styles.refreshButtonText}>Reincarca</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -492,6 +522,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 16,
+  },
+  navigationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  backButton: {
+    padding: 8,
+  },
+  refreshButton: {
+    padding: 8,
   },
 });
 

@@ -111,7 +111,7 @@ function LoginScreen() {
             end={{ x: 1, y: 0 }}
           >
             <Text style={styles.loginButtonText}>
-              {isLoading ? 'SIGNING IN...' : 'SIGN IN'}
+              {isLoading ? 'LOGARE...' : 'LOGHEAZA-TE'}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

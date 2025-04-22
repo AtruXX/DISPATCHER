@@ -11,6 +11,9 @@ import {
   TouchableOpacity,
   Image
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -19,23 +22,32 @@ const DriversScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [authToken, setAuthToken] = useState(null);
-  
+  const navigation = useNavigation(); // Add this line to get the navigation object
+
   // Load auth token on component mount
   useEffect(() => {
-    const getAuthToken = async () => {
+    const getAuthToken = () => {
       try {
-        const token = await AsyncStorage.getItem('authToken');
+        console.log("Attempting to get auth token from localStorage");
+        const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
+        console.log("Token from localStorage:", token ? "Token exists" : "No token found");
+        
         if (token) {
           setAuthToken(token);
+          console.log("Auth token set in state");
         } else {
+          console.log("No token found, setting error");
           setError('Authentication required. Please log in first.');
         }
       } catch (err) {
+        console.error("Error getting auth token:", err);
         setError('Failed to load authentication token.');
       } finally {
+        console.log("Setting loading to false");
         setLoading(false);
       }
     };
+    
     getAuthToken();
   }, []);
   
@@ -112,15 +124,15 @@ const DriversScreen = () => {
           </View>
           
           <View style={styles.driverInfo}>
-            <Text style={styles.driverName}>{item.name || 'Unknown Name'}</Text>
+            <Text style={styles.driverName}>{item.name || 'Nume indisponibil'}</Text>
             {item.email && <Text style={styles.driverEmail}>{item.email}</Text>}
             
             <View style={styles.divider} />
             
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Company</Text>
-                <Text style={styles.detailValue}>{item.company || 'Not specified'}</Text>
+                <Text style={styles.detailLabel}>Companie</Text>
+                <Text style={styles.detailValue}>{item.company || 'Nespecificat'}</Text>
               </View>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Rating</Text>
@@ -139,7 +151,7 @@ const DriversScreen = () => {
                 </Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Role</Text>
+                <Text style={styles.detailLabel}>Rol</Text>
                 <Text style={styles.detailValue}>
                   {item.is_driver && item.is_dispatcher ? 'Driver & Dispatcher' : 
                    item.is_driver ? 'Driver' : 
@@ -155,7 +167,7 @@ const DriversScreen = () => {
 
   const renderHeader = () => (
     <View style={styles.headerCard}>
-      <Text style={styles.headerTitle}>Drivers</Text>
+      <Text style={styles.headerTitle}>Soferi</Text>
       <Text style={styles.headerSubtitle}>
         {drivers.length} active drivers
       </Text>
@@ -167,7 +179,7 @@ const DriversScreen = () => {
       <SafeAreaView style={styles.loadingContainer}>
         <View style={styles.loadingCard}>
           <ActivityIndicator size="large" color="#6E78F7" />
-          <Text style={styles.loadingText}>Loading drivers...</Text>
+          <Text style={styles.loadingText}>Se incarca...</Text>
         </View>
       </SafeAreaView>
     );
@@ -180,7 +192,7 @@ const DriversScreen = () => {
           <Text style={styles.errorTitle}>Oops!</Text>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => authToken && fetchDrivers()}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
+            <Text style={styles.retryButtonText}>Incearca din nou</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -190,13 +202,33 @@ const DriversScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
+      <View style={styles.navigationHeader}>
+      <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate("Main"); // or your fallback screen
+            }
+          }}
+        >
+          <Ionicons name="arrow-back" size={24} color="#303F9F" />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.refreshButton}
+          onPress={fetchDrivers}
+        >
+          <Ionicons name="refresh" size={24} color="#303F9F" />
+        </TouchableOpacity>
+      </View>
       {drivers.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No Drivers Found</Text>
-            <Text style={styles.emptyText}>There are currently no drivers available in the system.</Text>
+            <Text style={styles.emptyTitle}>Nu exista soferi inregistrati!</Text>
+            <Text style={styles.emptyText}>Nu exista soferi inregistrati in sistem!</Text>
             <TouchableOpacity style={styles.refreshButton} onPress={fetchDrivers}>
-              <Text style={styles.refreshButtonText}>Refresh</Text>
+              <Text style={styles.refreshButtonText}>Reincarca</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -446,6 +478,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 16,
+  },
+  navigationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  backButton: {
+    padding: 8,
+  },
+  refreshButton: {
+    padding: 8,
   },
 });
 

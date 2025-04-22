@@ -31,10 +31,10 @@ const DispatcherDashboard = () => {
   const [error, setError] = useState(null);
 
   const [stats, setStats] = useState({
-    activeShipments: 18,
-    delayedShipments: 4,
-    activeDrivers: 12,
-    completionRate: 84,
+    activeShipments: 0,
+    delayedShipments: 0,
+    activeDrivers: 0,
+    completionRate: 0,
   });
   useEffect(() => {
     const getAuthToken = () => {
@@ -63,54 +63,93 @@ const DispatcherDashboard = () => {
   }, []);
   // Define loadData outside both useEffects
 const loadData = async () => {
+  const token = localStorage.getItem('authToken');
+    const profileResponse = await fetch('https://atrux-717ecf8763ea.herokuapp.com/get_profile', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Token ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!profileResponse.ok) {
+      throw new Error('Failed to fetch profile');
+    }
+
+    const profile = await profileResponse.json();
   try {
     // User data
     setUserData({
-      name: "Alexandru Popescu",
-      company: "Atrux Logistics",
-      role: "Manager de transport"
+      name: profile.name,
+      company: profile.company,
+      role: profile.is_driver
+        ? "Șofer"
+        : profile.is_dispatcher
+        ? "Dispecer"
+        : "Utilizator"
     });
-    
-    // Fetch active transports count
-    // const response = await fetch("https://atrux-717ecf8763ea.herokuapp.com/active_transports", {
-    //   method: "GET",
-    //   headers: {
-    //     'Authorization': `Token ${authToken}`,
-    //     'Content-Type': 'application/json'
-    //   }
-    // });
-    
-    // if (!response.ok) {
-    //   throw new Error(`API request failed with status ${response.status}`);
-    // }
-    // const data = await response.json();
-    // console.log("API Data received:", data);
-    // console.log("Active shipments count:", data.count);
+    const transportResponse = await fetch('https://atrux-717ecf8763ea.herokuapp.com/list_transports/', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Token ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!transportResponse.ok) throw new Error('Failed to fetch transports');
+    const transports = await transportResponse.json();
+
+    // Get last 3 (assuming they're sorted newest-last — reverse if needed)
+    const lastThree = transports.slice(-3).reverse();
+
+    const formatted = lastThree.map((t, idx) => ({
+      id: `TR-${t.id}`,
+      origin_city: "Necunoscut", // Placeholder unless you have route data
+      destination_city: "Necunoscut",
+      eta: new Date(), // Placeholder unless you get a date
+      status: t.status_transport || "necunoscut",
+      cargo: t.truck_combination || "Nespecificat",
+      pallets: 0,
+      distance: "N/A",
+      completion: 0,
+      driver: `ID: ${t.driver}`
+    }));
    
-    // // Update stats with count from API
-    // setStats(prevStats => ({
-    //   ...prevStats,
-    //   activeShipments: data.count
-    // }));
-    
-    // Set shipments data
-    setShipments([
-      {
-        id: "TR-1234",
-        origin_city: "Lyon",
-        destination_city: "Cluj",
-        eta: new Date(Date.now() + 86400000), // tomorrow
-        status: "in_transit",
-        cargo: "Electronice",
-        pallets: 2,
-        distance: "280 km",
-        completion: 65,
-        driver: "Gabriel Ionescu"
-      },
-      // ... other shipments
-    ]);
-    
+    setShipments(formatted);
+    const activeRes = await fetch('https://atrux-717ecf8763ea.herokuapp.com/active_transports/', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Token ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const activeData = await activeRes.json();
+    const activeShipments = activeData.count || 0;
+
+    // 4. Get delayed shipments count
+    const delayedRes = await fetch('https://atrux-717ecf8763ea.herokuapp.com/late_transports/', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Token ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const delayedShipments = await delayedRes.json(); // should be a number
+
+    // Example placeholders for drivers & completion rate
+    const activeDrivers = 12; // TODO: replace with real driver data if available
+    const completionRate = 84; // You can calculate this later if you want
+    setStats({
+      activeShipments,
+      delayedShipments,
+      activeDrivers,
+      completionRate
+    });
     setIsLoading(false);
+
+    
   } catch (error) {
     console.error("Error fetching data:", error);
     setIsLoading(false);
@@ -216,10 +255,49 @@ useEffect(() => {
             </View>
           </View>
           
-          <TouchableOpacity style={styles.calendarButton}>
-            <Feather name="calendar" size={16} color={COLORS.primary} />
-            <Text style={styles.calendarText}>Calendar</Text>
-          </TouchableOpacity>
+          <TouchableOpacity
+  style={styles.calendarButton}
+  onPress={async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+
+      if (!token) {
+        alert('No token found.');
+        return;
+      }
+
+      const response = await fetch('https://atrux-717ecf8763ea.herokuapp.com/auth/token/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Clear token and route
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('lastRoute');
+
+        // Navigate to Login
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        });
+      } else {
+        const err = await response.json();
+        console.error('Logout failed:', err);
+        alert('Logout failed.');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      alert('Something went wrong during logout.');
+    }
+  }}
+>
+  <Feather name="log-out" size={16} color={COLORS.primary} />
+  <Text style={styles.calendarText}>Deconectare</Text>
+</TouchableOpacity>
         </View>
       </View>
       
@@ -303,7 +381,7 @@ useEffect(() => {
           
           <TouchableOpacity 
             style={styles.gridItem}
-            onPress={() => navigation.navigate('CreateShipment')}
+            onPress={() => navigation.navigate('CreateTransport')}
           >
             <View style={[styles.gridIconContainer, { backgroundColor: COLORS.success + '20' }]}>
               <Feather name="plus" size={22} color={COLORS.success} />
