@@ -65,28 +65,24 @@ const TransportsScreen = ({ navigation }) => {
   
   // Load auth token on component mount
   useEffect(() => {
-    const getAuthToken = async () => {
+    const getAuthToken = () => {
       try {
-        console.log("Attempting to get auth token from AsyncStorage");
-        const token = await AsyncStorage.getItem('authToken');
-        console.log("Token from AsyncStorage:", token ? "Token exists" : "No token found");
+        console.log("Attempting to get auth token from localStorage");
+        const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
+        console.log("Token from localStorage:", token ? "Token exists" : "No token found");
         
         if (token) {
           setAuthToken(token);
           console.log("Auth token set in state");
-          // Simulate loading data
-          setTimeout(() => {
-            setTransports([{ id: 1, name: 'Transport 1' }]);
-            setLoading(false);
-          }, 1000);
         } else {
           console.log("No token found, setting error");
           setError('Authentication required. Please log in first.');
-          setLoading(false);
         }
       } catch (err) {
         console.error("Error getting auth token:", err);
         setError('Failed to load authentication token.');
+      } finally {
+        console.log("Setting loading to false");
         setLoading(false);
       }
     };
@@ -438,7 +434,13 @@ const TransportsScreen = ({ navigation }) => {
       <View style={styles.navigationHeader}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate("Main"); // or your fallback screen
+            }
+          }}
         >
           <Ionicons name="arrow-back" size={24} color="#303F9F" />
         </TouchableOpacity>

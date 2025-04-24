@@ -120,11 +120,12 @@ const TransportsScreen = ({ navigation }) => {
             <View style={styles.transportHeader}>
               <Text style={styles.transportTitle}>Transport #{item.id}</Text>
               <TouchableOpacity 
-                style={styles.editButton} 
-                onPress={() => navigation.navigate('CMR')}
-              >
-                <Text style={styles.editButtonText}>Vezi CMR</Text>
-              </TouchableOpacity>
+  style={styles.editButton} 
+  onPress={() => navigation.navigate('CMR', { transportId: item.id })}
+>
+  <Text style={styles.editButtonText}>Vezi CMR</Text>
+</TouchableOpacity>
+
             </View>
             
             <View style={styles.divider} />
