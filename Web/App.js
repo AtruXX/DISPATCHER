@@ -10,6 +10,7 @@ import Drivers from './Drivers.js';
 import Trucks from './Trucks.js';
 import AssignTransports from './Assign_transport.js';
 import CreateTransport from './Create_transport.js';
+import cmr from './CMR.js';
 import { enableScreens } from 'react-native-screens';
 
 enableScreens();
@@ -126,6 +127,11 @@ function App() {
               component={CreateTransport}
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="CMR"
+              component={cmr}
+              options={{ headerShown: false }}
+              />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
