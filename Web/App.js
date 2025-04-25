@@ -47,6 +47,8 @@ function App() {
     const bootstrapAsync = () => {
       try {
         // Get the token from localStorage
+        // localStorage.removeItem('authToken');
+        // localStorage.removeItem('lastRoute');
         const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
         
         // Get the last visited route if available
@@ -54,7 +56,7 @@ function App() {
         
         if (token) {
           setUserToken(token);
-          setInitialRoute(lastRoute || 'Main');
+          setInitialRoute('Main');
         }
       } catch (e) {
         console.error('Failed to get token or route from storage', e);
