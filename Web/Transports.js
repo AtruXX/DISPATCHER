@@ -8,7 +8,8 @@ import {
   SafeAreaView, 
   StatusBar, 
   Alert,
-  TouchableOpacity
+  TouchableOpacity,
+  
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -170,12 +171,10 @@ const TransportsScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <View style={styles.loadingCard}>
-          <ActivityIndicator size="large" color="#6E78F7" />
-          <Text style={styles.loadingText}>Se incarca...</Text>
-        </View>
-      </SafeAreaView>
+      <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#0000ff" />
+      <Text style={styles.loadingText}>Se încarcă...</Text>
+    </View>
     );
   }
 

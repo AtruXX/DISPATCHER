@@ -9,7 +9,8 @@ import {
   StatusBar, 
   Alert,
   TouchableOpacity,
-  Image
+  Image,
+  
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 

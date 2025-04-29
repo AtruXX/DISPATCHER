@@ -8,7 +8,8 @@ import {
   SafeAreaView, 
   StatusBar, 
   Alert,
-  TouchableOpacity
+  TouchableOpacity,
+  
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -212,12 +213,10 @@ const TrucksScreen = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <View style={styles.loadingCard}>
-          <ActivityIndicator size="large" color="#6E78F7" />
-          <Text style={styles.loadingText}>Se incarca...</Text>
-        </View>
-      </SafeAreaView>
+      <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#0000ff" />
+      <Text style={styles.loadingText}>Se încarcă...</Text>
+    </View>
     );
   }
 

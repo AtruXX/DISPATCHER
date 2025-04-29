@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image, Easing, Animated , ActivityIndicator} from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 
@@ -210,12 +210,13 @@ useEffect(() => {
       default: return 'help-circle';
     }
   };
-
+  
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Se încarcă...</Text>
-      </View>
+      <ActivityIndicator size="large" color="#0000ff" />
+      <Text style={styles.loadingText}>Se încarcă...</Text>
+    </View>
     );
   }
 
