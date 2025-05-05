@@ -3,19 +3,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Text, View } from 'react-native';
-import LoginScreen from './Login.js';
-import MainScreen from './Main.js';
+import LoginScreen from './Screens/Login/index.js';
+import MainScreen from './Screens/Main/index.js';
 import TransportsScreen from './Transports.js';
 import Drivers from './Drivers.js';
 import Trucks from './Trucks.js';
 import AssignTransports from './Assign_transport.js';
-import CreateTransport from './Create_transport.js';
+import CreateTransport from './Screens/CreateTransport/index.js';
 import cmr from './CMR.js';
 import { enableScreens } from 'react-native-screens';
 
 enableScreens();
 
-// Simple error boundary
 class ErrorBoundary extends React.Component {
   state = { hasError: false, error: null };
   static getDerivedStateFromError(error) {
@@ -47,8 +46,7 @@ function App() {
     const bootstrapAsync = () => {
       try {
         // Get the token from localStorage
-         //localStorage.removeItem('authToken');
-         localStorage.removeItem('lastRoute');
+         
         const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
         
         // Get the last visited route if available
@@ -91,7 +89,7 @@ function App() {
       <SafeAreaProvider>
         <NavigationContainer
           onStateChange={handleStateChange}
-          fallback={<Text>Loading...</Text>}
+          fallback={<Text>Se incarca...</Text>}
         >
           <Stack.Navigator initialRouteName={initialRoute}>
             <Stack.Screen

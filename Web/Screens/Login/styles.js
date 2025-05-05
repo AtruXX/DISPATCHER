@@ -1,0 +1,105 @@
+import { View, Text, TextInput, ActivityIndicator,TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  card: {
+    width: width * 0.9,
+    maxWidth: 400,
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 15, height: 15 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 30,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#555',
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  inputWrapper: {
+    backgroundColor: '#f5f7fa',
+    borderRadius: 12,
+    padding: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  input: {
+    height: 50,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: '#333',
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginBottom: 25,
+  },
+  forgotPasswordText: {
+    color: '#4361ee',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  loginButton: {
+    height: 55,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 20,
+    shadowColor: '#4361ee',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  gradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loginButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  registerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 15,
+  },
+  registerText: {
+    color: '#666',
+    fontSize: 14,
+  },
+  registerLink: {
+    color: '#4361ee',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+});
