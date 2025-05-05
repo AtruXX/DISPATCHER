@@ -9,24 +9,26 @@ import {
   StatusBar, 
   Alert,
   TouchableOpacity,
-  
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { styles } from './styles'; // Assuming you have a styles.js file for your styles
 
 const TransportsScreen = ({ navigation }) => {
   const [transports, setTransports] = useState([]);
+  const [totalTransports, setTotalTransports] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [authToken, setAuthToken] = useState(null);
-  
+  const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
+
   // Load auth token on component mount
   useEffect(() => {
     const getAuthToken = () => {
       try {
         console.log("Attempting to get auth token from localStorage");
-        const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
+        const token = localStorage.getItem('authToken');
         console.log("Token from localStorage:", token ? "Token exists" : "No token found");
         
         if (token) {
@@ -58,7 +60,7 @@ const TransportsScreen = ({ navigation }) => {
   const fetchTransports = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://atrux-717ecf8763ea.herokuapp.com/list_transports/', {
+      const response = await fetch(`${BASE_URL}transports`, {
         method: 'GET',
         headers: {
           'Authorization': `Token ${authToken}`,
@@ -71,7 +73,12 @@ const TransportsScreen = ({ navigation }) => {
       }
 
       const data = await response.json();
-      setTransports(data);
+      console.log('Fetched transports:', data);
+      
+      // Set the total number of transports and the transports array
+      setTotalTransports(data.number_of_transports || 0);
+      setTransports(data.transports || []);
+      
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -95,13 +102,25 @@ const TransportsScreen = ({ navigation }) => {
     return colors[id % colors.length];
   };
 
-  const handleEditTransport = (transport) => {
-    // Navigate to edit screen with transport data
-    navigation.navigate('Transport_Update', { transport });
+  // Helper function to get status color based on status_transport
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'not started':
+        return '#FFA500'; // Orange
+      case 'in progress':
+        return '#3F51B5'; // Blue
+      case 'completed':
+        return '#4CAF50'; // Green
+      case 'delayed':
+        return '#F44336'; // Red
+      default:
+        return '#3F51B5'; // Default blue
+    }
   };
 
   const renderTransportItem = ({ item }) => {
     const gradientColors = getRandomColor(item.id);
+    const statusColor = getStatusColor(item.status_transport);
     
     return (
       <View style={styles.transportCardContainer}>
@@ -121,12 +140,11 @@ const TransportsScreen = ({ navigation }) => {
             <View style={styles.transportHeader}>
               <Text style={styles.transportTitle}>Transport #{item.id}</Text>
               <TouchableOpacity 
-  style={styles.editButton} 
-  onPress={() => navigation.navigate('CMR', { transportId: item.id })}
->
-  <Text style={styles.editButtonText}>Vezi CMR</Text>
-</TouchableOpacity>
-
+                style={styles.editButton} 
+                onPress={() => navigation.navigate('CMR', { transportId: item.id })}
+              >
+                <Text style={styles.editButtonText}>Vezi CMR</Text>
+              </TouchableOpacity>
             </View>
             
             <View style={styles.divider} />
@@ -134,24 +152,35 @@ const TransportsScreen = ({ navigation }) => {
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Sofer</Text>
-                <Text style={styles.detailValue}>{item.driver || 'Not assigned'}</Text>
+                <Text style={styles.detailValue}>{item.driver ? `ID: ${item.driver}` : 'Not assigned'}</Text>
               </View>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Status</Text>
-                <Text style={[styles.detailValue, { color: '#3F51B5' }]}>
-                  {item.status || 'Pending'}
+                <Text style={[styles.detailValue, { color: statusColor }]}>
+                  {item.status_transport || 'Pending'}
                 </Text>
               </View>
             </View>
             
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Camion</Text>
-                <Text style={styles.detailValue}>{item.truck || 'None'}</Text>
+                <Text style={styles.detailLabel}>Origine</Text>
+                <Text style={styles.detailValue}>{item.origin_city || 'N/A'}</Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Trailer</Text>
-                <Text style={styles.detailValue}>{item.trailer || 'None'}</Text>
+                <Text style={styles.detailLabel}>Destinatie</Text>
+                <Text style={styles.detailValue}>{item.destination_city || 'N/A'}</Text>
+              </View>
+            </View>
+            
+            <View style={styles.detailRow}>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Tip marfa</Text>
+                <Text style={styles.detailValue}>{item.goods_type || 'N/A'}</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Numar trailer</Text>
+                <Text style={styles.detailValue}>{item.trailer_number || 'None'}</Text>
               </View>
             </View>
           </View>
@@ -164,7 +193,7 @@ const TransportsScreen = ({ navigation }) => {
     <View style={styles.headerCard}>
       <Text style={styles.headerTitle}>Transporturi</Text>
       <Text style={styles.headerSubtitle}>
-        {transports.length} transporturi active
+        {totalTransports} transporturi active
       </Text>
     </View>
   );
@@ -172,9 +201,9 @@ const TransportsScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="#0000ff" />
-      <Text style={styles.loadingText}>Se încarcă...</Text>
-    </View>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>Se încarcă...</Text>
+      </View>
     );
   }
 
@@ -233,223 +262,5 @@ const TransportsScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ECEFF1',
-  },
-  navigationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  backButton: {
-    padding: 8,
-  },
-  refreshButton: {
-    padding: 8,
-  },
-  headerCard: {
-    marginHorizontal: 20,
-    marginVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#303F9F',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#7986CB',
-  },
-  listContainer: {
-    paddingBottom: 20,
-  },
-  transportCardContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  transportCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  iconSection: {
-    marginRight: 16,
-  },
-  iconGradient: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  transportInfo: {
-    flex: 1,
-  },
-  transportHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  transportTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#303F9F',
-    marginBottom: 2,
-  },
-  editButton: {
-    backgroundColor: '#3F51B5',
-    borderRadius: 8,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-  },
-  editButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 8,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  detailItem: {
-    flex: 1,
-  },
-  detailLabel: {
-    fontSize: 12,
-    color: '#9E9E9E',
-    marginBottom: 2,
-  },
-  detailValue: {
-    fontSize: 14,
-    color: '#424242',
-    fontWeight: '500',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ECEFF1',
-    padding: 20,
-  },
-  loadingCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    width: '80%',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#5C6BC0',
-    fontWeight: '500',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ECEFF1',
-    padding: 20,
-  },
-  errorCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    width: '80%',
-  },
-  errorTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#F44336',
-    marginBottom: 12,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#757575',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  retryButton: {
-    backgroundColor: '#3F51B5',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    width: '80%',
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#5C6BC0',
-    marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#757575',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-});
 
 export default TransportsScreen;

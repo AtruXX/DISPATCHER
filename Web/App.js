@@ -5,7 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Text, View } from 'react-native';
 import LoginScreen from './Screens/Login/index.js';
 import MainScreen from './Screens/Main/index.js';
-import TransportsScreen from './Transports.js';
+import TransportsScreen from './Screens/Transports/index.js';
 import Drivers from './Drivers.js';
 import Trucks from './Trucks.js';
 import AssignTransports from './Assign_transport.js';
