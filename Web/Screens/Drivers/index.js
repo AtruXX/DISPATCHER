@@ -10,27 +10,28 @@ import {
   Alert,
   TouchableOpacity,
   Image,
-  
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import { styles } from './styles'; 
 
 const DriversScreen = () => {
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [authToken, setAuthToken] = useState(null);
-  const navigation = useNavigation(); // Add this line to get the navigation object
+  const navigation = useNavigation(); 
+  const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 
   // Load auth token on component mount
   useEffect(() => {
     const getAuthToken = () => {
       try {
         console.log("Attempting to get auth token from localStorage");
-        const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
+        const token = localStorage.getItem('authToken');
         console.log("Token from localStorage:", token ? "Token exists" : "No token found");
         
         if (token) {
@@ -62,7 +63,7 @@ const DriversScreen = () => {
   const fetchDrivers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://atrux-717ecf8763ea.herokuapp.com/get_drivers', {
+      const response = await fetch(`${BASE_URL}drivers`, {
         method: 'GET',
         headers: {
           'Authorization': `Token ${authToken}`,  
@@ -75,7 +76,15 @@ const DriversScreen = () => {
       }
 
       const data = await response.json();
-      setDrivers(data);
+      
+      // Check if the response has the new format
+      if (data.drivers) {
+        setDrivers(data.drivers);
+      } else {
+        // If using old format, keep it as is
+        setDrivers(data);
+      }
+      
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -106,6 +115,8 @@ const DriversScreen = () => {
 
   const renderDriverItem = ({ item }) => {
     const gradientColors = getRandomColor(item.id);
+    const isOnRoad = item.driver && item.driver.on_road !== undefined ? item.driver.on_road : item.on_road || false;
+    const rating = item.driver && item.driver.average_rating !== undefined ? item.driver.average_rating : (item.rating || 0);
     
     return (
       <View style={styles.driverCardContainer}>
@@ -120,7 +131,7 @@ const DriversScreen = () => {
               <Text style={styles.avatarText}>{getDriverInitials(item.name)}</Text>
             </LinearGradient>
             <View style={styles.statusIndicator}>
-              <View style={[styles.statusDot, { backgroundColor: item.on_road ? '#4CAF50' : '#FF5722' }]} />
+              <View style={[styles.statusDot, { backgroundColor: isOnRoad ? '#4CAF50' : '#FF5722' }]} />
             </View>
           </View>
           
@@ -138,7 +149,7 @@ const DriversScreen = () => {
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Rating</Text>
                 <View style={styles.ratingContainer}>
-                  <Text style={styles.ratingValue}>{item.rating.toFixed(1)}</Text>
+                  <Text style={styles.ratingValue}>{rating.toFixed(1)}</Text>
                   <Text style={styles.ratingMax}>/5.0</Text>
                 </View>
               </View>
@@ -147,8 +158,8 @@ const DriversScreen = () => {
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Status</Text>
-                <Text style={[styles.detailValue, { color: item.on_road ? '#4CAF50' : '#FF5722' }]}>
-                  {item.on_road ? 'On Road' : 'Available'}
+                <Text style={[styles.detailValue, { color: isOnRoad ? '#4CAF50' : '#FF5722' }]}>
+                  {isOnRoad ? 'On Road' : 'Available'}
                 </Text>
               </View>
               <View style={styles.detailItem}>
@@ -166,14 +177,19 @@ const DriversScreen = () => {
     );
   };
 
-  const renderHeader = () => (
-    <View style={styles.headerCard}>
-      <Text style={styles.headerTitle}>Soferi</Text>
-      <Text style={styles.headerSubtitle}>
-        {drivers.length} active drivers
-      </Text>
-    </View>
-  );
+  const renderHeader = () => {
+    // Get the number of drivers from either the new format or the array length
+    const driverCount = drivers.length;
+    
+    return (
+      <View style={styles.headerCard}>
+        <Text style={styles.headerTitle}>Soferi</Text>
+        <Text style={styles.headerSubtitle}>
+          {driverCount} active {driverCount === 1 ? 'driver' : 'drivers'}
+        </Text>
+      </View>
+    );
+  };
 
   if (loading) {
     return (
@@ -204,7 +220,7 @@ const DriversScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <View style={styles.navigationHeader}>
-      <TouchableOpacity 
+        <TouchableOpacity 
           style={styles.backButton}
           onPress={() => {
             if (navigation.canGoBack()) {
@@ -246,252 +262,5 @@ const DriversScreen = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ECEFF1',
-  },
-  headerCard: {
-    marginHorizontal: 20,
-    marginVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#303F9F',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#7986CB',
-  },
-  listContainer: {
-    paddingBottom: 20,
-  },
-  driverCardContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  driverCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  avatarSection: {
-    marginRight: 16,
-    position: 'relative',
-  },
-  avatarGradient: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  statusIndicator: {
-    position: 'absolute',
-    right: -2,
-    bottom: -2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    padding: 2,
-  },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  driverInfo: {
-    flex: 1,
-  },
-  driverName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#303F9F',
-    marginBottom: 2,
-  },
-  driverEmail: {
-    fontSize: 14,
-    color: '#7986CB',
-    marginBottom: 8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 8,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  detailItem: {
-    flex: 1,
-  },
-  detailLabel: {
-    fontSize: 12,
-    color: '#9E9E9E',
-    marginBottom: 2,
-  },
-  detailValue: {
-    fontSize: 14,
-    color: '#424242',
-    fontWeight: '500',
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  ratingValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#FFC107',
-  },
-  ratingMax: {
-    fontSize: 12,
-    color: '#BDBDBD',
-    marginLeft: 2,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ECEFF1',
-    padding: 20,
-  },
-  loadingCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    width: '80%',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#5C6BC0',
-    fontWeight: '500',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ECEFF1',
-    padding: 20,
-  },
-  errorCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    width: '80%',
-  },
-  errorTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#F44336',
-    marginBottom: 12,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#757575',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  retryButton: {
-    backgroundColor: '#3F51B5',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    width: '80%',
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#5C6BC0',
-    marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#757575',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  refreshButton: {
-    backgroundColor: '#3F51B5',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  refreshButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  navigationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  backButton: {
-    padding: 8,
-  },
-  refreshButton: {
-    padding: 8,
-  },
-});
 
 export default DriversScreen;

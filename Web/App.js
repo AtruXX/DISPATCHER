@@ -6,7 +6,7 @@ import { Text, View } from 'react-native';
 import LoginScreen from './Screens/Login/index.js';
 import MainScreen from './Screens/Main/index.js';
 import TransportsScreen from './Screens/Transports/index.js';
-import Drivers from './Drivers.js';
+import Drivers from './Screens/Drivers/index.js';
 import Trucks from './Trucks.js';
 import AssignTransports from './Assign_transport.js';
 import CreateTransport from './Screens/CreateTransport/index.js';
