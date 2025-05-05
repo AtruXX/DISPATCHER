@@ -34,24 +34,73 @@ export default function CreateTransportPage() {
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isDriverModalVisible, setDriverModalVisible] = useState(false);
+  const [isTruckModalVisible, setTruckModalVisible] = useState(false);
+  const [isTrailerModalVisible, setTrailerModalVisible] = useState(false);
   
   const navigation = useNavigation();
 
+  // Predefined options for dropdowns
+  const truckCombinations = [
+    'Cap tractor + Semiremorcă',
+    'Cap tractor + Tandem',
+    'Autoutilitară',
+    'Solo'
+  ];
+
+  const trailerTypes = [
+    'Prelată',
+    'Frigorifică',
+    'Cisterna',
+    'Platformă',
+    'Container',
+    'Box'
+  ];
+
+  // Mock data for testing - replace with actual API call
+  const mockDriversData = {
+    "number_of_drivers": 1,
+    "drivers": [
+      {
+        "id": 2,
+        "driver": {
+          "average_rating": 0.0,
+          "on_road": false
+        },
+        "dispatcher": null,
+        "company": "C&C Logistics",
+        "last_login": "2025-05-04T11:39:00.341871Z",
+        "email": "pop-ion@gmail.com",
+        "name": "Pop Ion",
+        "is_active": true,
+        "is_admin": false,
+        "is_dispatcher": false,
+        "is_driver": true
+      }
+    ]
+  };
+
   // Fetch drivers on component mount
   useEffect(() => {
-    fetchDrivers();
+    // For actual implementation, use fetchDrivers()
+    // For now, using mock data
+    setDrivers(mockDriversData.drivers);
   }, []);
 
   const fetchDrivers = async () => {
     setLoading(true);
     try {
-        const token = localStorage.getItem('authToken');
-
-      const response = await fetch('https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/drivers',{
-        method: 'GET',
-        
-      })
-      const data = await response.json();
+      // For actual API call
+      // const token = localStorage.getItem('authToken');
+      // const response = await fetch('https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/drivers', {
+      //   method: 'GET',
+      //   headers: {
+      //     'Authorization': `Token ${token}`
+      //   }
+      // });
+      // const data = await response.json();
+      
+      // Using mock data instead
+      const data = mockDriversData;
       
       if (data && data.drivers) {
         setDrivers(data.drivers);
@@ -74,6 +123,16 @@ export default function CreateTransportPage() {
     setDriverModalVisible(false);
   };
 
+  const selectTruckCombination = (combination) => {
+    setFormData(prev => ({ ...prev, truck_combination: combination }));
+    setTruckModalVisible(false);
+  };
+
+  const selectTrailerType = (type) => {
+    setFormData(prev => ({ ...prev, trailer_type: type }));
+    setTrailerModalVisible(false);
+  };
+
   const handleSubmit = async () => {
     // Validate required fields
     const requiredFields = ['truck_combination', 'trailer_type', 'trailer_number', 'origin_city', 'destination_city', 'goods_type', 'driver'];
@@ -86,14 +145,12 @@ export default function CreateTransportPage() {
     
     setLoading(true);
     try {
+      const token = localStorage.getItem('authToken');
       const response = await fetch('https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/transports', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          
-            'Authorization': `Token ${token}`,
-            
-        
+          'Authorization': `Token ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -182,7 +239,79 @@ export default function CreateTransportPage() {
     );
   };
 
-  if (loading && !isDriverModalVisible) {
+  // Truck combination selection modal
+  const renderTruckModal = () => {
+    return (
+      <Modal
+        visible={isTruckModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setTruckModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selectează Combinație Camion</Text>
+              <TouchableOpacity onPress={() => setTruckModalVisible(false)}>
+                <Ionicons name="close" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+            
+            <FlatList
+              data={truckCombinations}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity 
+                  style={styles.optionItem}
+                  onPress={() => selectTruckCombination(item)}
+                >
+                  <Text style={styles.optionText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  // Trailer type selection modal
+  const renderTrailerModal = () => {
+    return (
+      <Modal
+        visible={isTrailerModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setTrailerModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selectează Tip Remorcă</Text>
+              <TouchableOpacity onPress={() => setTrailerModalVisible(false)}>
+                <Ionicons name="close" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+            
+            <FlatList
+              data={trailerTypes}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity 
+                  style={styles.optionItem}
+                  onPress={() => selectTrailerType(item)}
+                >
+                  <Text style={styles.optionText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  if (loading && !isDriverModalVisible && !isTruckModalVisible && !isTrailerModalVisible) {
     return (
       <SafeAreaView style={styles.loadingContainer || { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
         <View style={styles.loadingCard || { padding: 20, backgroundColor: COLORS.white, borderRadius: 10, alignItems: 'center' }}>
@@ -191,27 +320,6 @@ export default function CreateTransportPage() {
         </View>
       </SafeAreaView>
     );
-  }
-
-  // Define form fields in the order you want them to appear
-  const formFields = [
-    { key: 'truck_combination', label: 'COMBINATIE CAMION' },
-    { key: 'trailer_type', label: 'TIP REMORCĂ' },
-    { key: 'trailer_number', label: 'NUMĂR REMORCĂ' },
-    { key: 'detraction', label: 'TIP TRACTARE' },
-    { key: 'origin_city', label: 'ORAȘ ORIGINE' },
-    { key: 'destination_city', label: 'ORAȘ DESTINAȚIE' },
-    { key: 'goods_type', label: 'TIP MARFĂ' },
-  ];
-
-  // Group form fields for two-column layout
-  const fieldPairs = [];
-  for (let i = 0; i < formFields.length; i += 2) {
-    if (i + 1 < formFields.length) {
-      fieldPairs.push([formFields[i], formFields[i + 1]]);
-    } else {
-      fieldPairs.push([formFields[i]]);
-    }
   }
 
   return (
@@ -269,27 +377,116 @@ export default function CreateTransportPage() {
             </TouchableOpacity>
           </View>
 
-          {/* Form Fields */}
-          {fieldPairs.map((pair, index) => (
-            <View key={index} style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
-              {pair.map((field) => (
-                <View key={field.key} style={styles.inputWrapper || { flex: 1, marginRight: pair.length > 1 ? 8 : 0 }}>
-                  <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                    {field.label}
-                  </Text>
-                  <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
-                    <TextInput
-                      value={formData[field.key]}
-                      onChangeText={(text) => handleChange(field.key, text)}
-                      style={styles.input || { padding: 12, fontSize: 16 }}
-                      placeholderTextColor={COLORS.text.light}
-                    />
-                  </View>
-                </View>
-              ))}
-              {pair.length === 1 && <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }} />}
+          {/* Truck Combination Selection */}
+          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
+            <View style={styles.inputWrapper || { flex: 1, marginRight: 8 }}>
+              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
+                COMBINATIE CAMION
+              </Text>
+              <TouchableOpacity 
+                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
+                onPress={() => setTruckModalVisible(true)}
+              >
+                <Text style={formData.truck_combination ? styles.dropdownText : styles.dropdownPlaceholder}>
+                  {formData.truck_combination || 'Selectează combinație'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
+              </TouchableOpacity>
             </View>
-          ))}
+            
+            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
+              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
+                TIP REMORCĂ
+              </Text>
+              <TouchableOpacity 
+                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
+                onPress={() => setTrailerModalVisible(true)}
+              >
+                <Text style={formData.trailer_type ? styles.dropdownText : styles.dropdownPlaceholder}>
+                  {formData.trailer_type || 'Selectează tip remorcă'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Other Form Fields */}
+          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
+            <View style={styles.inputWrapper || { flex: 1, marginRight: 8 }}>
+              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
+                NUMĂR REMORCĂ
+              </Text>
+              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
+                <TextInput
+                  value={formData.trailer_number}
+                  onChangeText={(text) => handleChange('trailer_number', text)}
+                  style={styles.input || { padding: 12, fontSize: 16 }}
+                  placeholderTextColor={COLORS.text.light}
+                />
+              </View>
+            </View>
+            
+            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
+              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
+                TIP TRACTARE
+              </Text>
+              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
+                <TextInput
+                  value={formData.detraction}
+                  onChangeText={(text) => handleChange('detraction', text)}
+                  style={styles.input || { padding: 12, fontSize: 16 }}
+                  placeholderTextColor={COLORS.text.light}
+                />
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
+            <View style={styles.inputWrapper || { flex: 1, marginRight: 8 }}>
+              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
+                ORAȘ ORIGINE
+              </Text>
+              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
+                <TextInput
+                  value={formData.origin_city}
+                  onChangeText={(text) => handleChange('origin_city', text)}
+                  style={styles.input || { padding: 12, fontSize: 16 }}
+                  placeholderTextColor={COLORS.text.light}
+                />
+              </View>
+            </View>
+            
+            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
+              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
+                ORAȘ DESTINAȚIE
+              </Text>
+              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
+                <TextInput
+                  value={formData.destination_city}
+                  onChangeText={(text) => handleChange('destination_city', text)}
+                  style={styles.input || { padding: 12, fontSize: 16 }}
+                  placeholderTextColor={COLORS.text.light}
+                />
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
+            <View style={styles.inputWrapper || { flex: 1 }}>
+              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
+                TIP MARFĂ
+              </Text>
+              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
+                <TextInput
+                  value={formData.goods_type}
+                  onChangeText={(text) => handleChange('goods_type', text)}
+                  style={styles.input || { padding: 12, fontSize: 16 }}
+                  placeholderTextColor={COLORS.text.light}
+                />
+              </View>
+            </View>
+            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }} />
+          </View>
 
           <LinearGradient
             colors={[COLORS.secondary, COLORS.primary]}
@@ -309,8 +506,8 @@ export default function CreateTransportPage() {
       </ScrollView>
 
       {renderDriverModal()}
+      {renderTruckModal()}
+      {renderTrailerModal()}
     </SafeAreaView>
   );
 }
-
-// Inline styles have been removed as they're now in the styles.js file

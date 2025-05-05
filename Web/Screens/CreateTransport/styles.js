@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-const COLORS = {
+export const COLORS = {
   background: "#ECEFF1", // Light background from your TransportScreen
   card: "#FFFFFF", // White card background
   primary: "#303F9F", // Primary blue color
@@ -18,9 +18,36 @@ const COLORS = {
   warning: "#FFA726", // Orange for warnings
   available: "#81C784", // Green for available drivers
   unavailable: "#E57373", // Red for unavailable drivers
+  white: "#FFFFFF", // White color for modal backgrounds
 };
 
+// Define all styles in one place
 export const styles = StyleSheet.create({
+  // Dropdown styles
+  dropdownContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: COLORS.text.dark,
+  },
+  dropdownPlaceholder: {
+    fontSize: 16,
+    color: COLORS.text.light,
+  },
+  optionItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  optionText: {
+    fontSize: 16,
+    color: COLORS.text.dark,
+  },
+  
   // Main container styles
   container: {
     flex: 1,
@@ -216,6 +243,7 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   modalContainer: {
     width: '90%',
@@ -319,6 +347,3 @@ export const styles = StyleSheet.create({
     color: COLORS.error,
   },
 });
-
-// Export colors for use in other components
-export { COLORS };
