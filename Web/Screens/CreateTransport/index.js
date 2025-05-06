@@ -23,10 +23,10 @@ export default function CreateTransportPage() {
     truck_combination: '',
     trailer_type: '',
     trailer_number: '',
-    detraction: '',
+    detraction: '', // Will now be a dropdown selection
     origin_city: '',
     destination_city: '',
-    goods_type: '',
+    goods_type: '', // Will now be a dropdown selection
     driver: null // Will store the selected driver ID
   });
   
@@ -36,6 +36,8 @@ export default function CreateTransportPage() {
   const [isDriverModalVisible, setDriverModalVisible] = useState(false);
   const [isTruckModalVisible, setTruckModalVisible] = useState(false);
   const [isTrailerModalVisible, setTrailerModalVisible] = useState(false);
+  const [isDetractionModalVisible, setDetractionModalVisible] = useState(false);
+  const [isGoodsTypeModalVisible, setGoodsTypeModalVisible] = useState(false);
   
   const navigation = useNavigation();
 
@@ -54,6 +56,26 @@ export default function CreateTransportPage() {
     'Platformă',
     'Container',
     'Box'
+  ];
+  
+  // New dropdown options for Tip Tractare
+  const detractionTypes = [
+    '4x2',
+    '6x2',
+    '6x4',
+    '8x4'
+  ];
+  
+  // New dropdown options for Tip Marfa
+  const goodsTypes = [
+    'Marfă generală',
+    'Frigorifică',
+    'ADR (substanțe periculoase)',
+    'Textile',
+    'Mobilier',
+    'Autoturisme',
+    'Băuturi',
+    'Alimente uscate'
   ];
 
   // Mock data for testing - replace with actual API call
@@ -131,6 +153,17 @@ export default function CreateTransportPage() {
   const selectTrailerType = (type) => {
     setFormData(prev => ({ ...prev, trailer_type: type }));
     setTrailerModalVisible(false);
+  };
+  
+  // New functions for the new dropdowns
+  const selectDetraction = (detraction) => {
+    setFormData(prev => ({ ...prev, detraction: detraction }));
+    setDetractionModalVisible(false);
+  };
+  
+  const selectGoodsType = (goodsType) => {
+    setFormData(prev => ({ ...prev, goods_type: goodsType }));
+    setGoodsTypeModalVisible(false);
   };
 
   const handleSubmit = async () => {
@@ -310,8 +343,80 @@ export default function CreateTransportPage() {
       </Modal>
     );
   };
+  
+  // New modal for Detraction (Tip Tractare)
+  const renderDetractionModal = () => {
+    return (
+      <Modal
+        visible={isDetractionModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setDetractionModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selectează Tip Tractare</Text>
+              <TouchableOpacity onPress={() => setDetractionModalVisible(false)}>
+                <Ionicons name="close" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+            
+            <FlatList
+              data={detractionTypes}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity 
+                  style={styles.optionItem}
+                  onPress={() => selectDetraction(item)}
+                >
+                  <Text style={styles.optionText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+  
+  // New modal for Goods Type (Tip Marfa)
+  const renderGoodsTypeModal = () => {
+    return (
+      <Modal
+        visible={isGoodsTypeModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setGoodsTypeModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selectează Tip Marfă</Text>
+              <TouchableOpacity onPress={() => setGoodsTypeModalVisible(false)}>
+                <Ionicons name="close" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+            
+            <FlatList
+              data={goodsTypes}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity 
+                  style={styles.optionItem}
+                  onPress={() => selectGoodsType(item)}
+                >
+                  <Text style={styles.optionText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  };
 
-  if (loading && !isDriverModalVisible && !isTruckModalVisible && !isTrailerModalVisible) {
+  if (loading && !isDriverModalVisible && !isTruckModalVisible && !isTrailerModalVisible && !isDetractionModalVisible && !isGoodsTypeModalVisible) {
     return (
       <SafeAreaView style={styles.loadingContainer || { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
         <View style={styles.loadingCard || { padding: 20, backgroundColor: COLORS.white, borderRadius: 10, alignItems: 'center' }}>
@@ -430,14 +535,16 @@ export default function CreateTransportPage() {
               <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
                 TIP TRACTARE
               </Text>
-              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
-                <TextInput
-                  value={formData.detraction}
-                  onChangeText={(text) => handleChange('detraction', text)}
-                  style={styles.input || { padding: 12, fontSize: 16 }}
-                  placeholderTextColor={COLORS.text.light}
-                />
-              </View>
+              {/* Changed from TextInput to TouchableOpacity for dropdown */}
+              <TouchableOpacity 
+                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
+                onPress={() => setDetractionModalVisible(true)}
+              >
+                <Text style={formData.detraction ? styles.dropdownText : styles.dropdownPlaceholder}>
+                  {formData.detraction || 'Selectează tip tractare'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -476,14 +583,16 @@ export default function CreateTransportPage() {
               <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
                 TIP MARFĂ
               </Text>
-              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
-                <TextInput
-                  value={formData.goods_type}
-                  onChangeText={(text) => handleChange('goods_type', text)}
-                  style={styles.input || { padding: 12, fontSize: 16 }}
-                  placeholderTextColor={COLORS.text.light}
-                />
-              </View>
+              {/* Changed from TextInput to TouchableOpacity for dropdown */}
+              <TouchableOpacity 
+                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
+                onPress={() => setGoodsTypeModalVisible(true)}
+              >
+                <Text style={formData.goods_type ? styles.dropdownText : styles.dropdownPlaceholder}>
+                  {formData.goods_type || 'Selectează tip marfă'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
+              </TouchableOpacity>
             </View>
             <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }} />
           </View>
@@ -508,6 +617,8 @@ export default function CreateTransportPage() {
       {renderDriverModal()}
       {renderTruckModal()}
       {renderTrailerModal()}
+      {renderDetractionModal()} {/* New modal */}
+      {renderGoodsTypeModal()} {/* New modal */}
     </SafeAreaView>
   );
 }
