@@ -17,6 +17,8 @@ const DispatcherDashboard = () => {
     const [error, setError] = useState(null);
     const [showPhoneNumber, setShowPhoneNumber] = useState(false);
     const phoneNumber = "+1 555-123-4567";
+    // Add state for expanded actions section
+    const [expandedActions, setExpandedActions] = useState(false);
     const [stats, setStats] = useState({
         activeShipments: 0,
         delayedShipments: 0,
@@ -38,6 +40,8 @@ const DispatcherDashboard = () => {
         warning: "#FFBD59",        // Amber
         danger: "#FF7285",         // Soft red
     };
+    
+    // Rest of your useEffect hooks and functions remain unchanged...
     useEffect(() => {
         const getAuthToken = () => {
             try {
@@ -63,13 +67,14 @@ const DispatcherDashboard = () => {
 
         getAuthToken();
     }, []);
+    
     // Define loadData outside both useEffects
     const loadData = async () => {
         try {
             const token = localStorage.getItem('authToken');
             
             // 1. Fetch profile data
-            const profileResponse = await fetch(`${BASE_URL}profile/`, {
+            const profileResponse = await fetch(`${BASE_URL}profile`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Token ${token}`,
@@ -134,33 +139,7 @@ const DispatcherDashboard = () => {
     
             setShipments(formatted);
     
-            // 3. Fetch active transports
-            // const activeRes = await fetch('https://atrux-717ecf8763ea.herokuapp.com/active_transports/', {
-            //     method: 'GET',
-            //     headers: {
-            //         'Authorization': `Token ${token}`,
-            //         'Content-Type': 'application/json'
-            //     }
-            // });
-    
-            // if (!activeRes.ok) throw new Error('Failed to fetch active transports');
-            // const activeData = await activeRes.json();
-            // const activeShipments = activeData.count || 0;
-    
-            // 4. Fetch delayed shipments
-            // const delayedRes = await fetch('https://atrux-717ecf8763ea.herokuapp.com/late_transports/', {
-            //     method: 'GET',
-            //     headers: {
-            //         'Authorization': `Token ${token}`,
-            //         'Content-Type': 'application/json'
-            //     }
-            // });
-    
-            // if (!delayedRes.ok) throw new Error('Failed to fetch delayed transports');
-            // const delayedData = await delayedRes.json();
-            // const delayedShipments = delayedData.count || 0;
-    
-            // 5. Fetch drivers data
+            // 3. Fetch drivers data
             const driversRes = await fetch(`${BASE_URL}drivers`, {
                 method: 'GET',
                 headers: {
@@ -199,6 +178,7 @@ const DispatcherDashboard = () => {
             loadData();
         }
     }, [authToken]); // Remove loadData from dependencies to avoid infinite loops
+    
     const formatDateTime = (date) => {
         if (!date) return "Neprogramat";
         return date.toLocaleDateString() + ", " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -245,6 +225,11 @@ const DispatcherDashboard = () => {
             case 'pending': return 'clock';
             default: return 'help-circle';
         }
+    };
+
+    // Function to toggle the expanded actions
+    const toggleExpandedActions = () => {
+        setExpandedActions(!expandedActions);
     };
 
     if (isLoading) {
@@ -380,8 +365,8 @@ const DispatcherDashboard = () => {
             <View style={styles.actionsSection}>
                 <View style={styles.sectionHeader}>
                     <Text style={styles.sectionTitle}>Acțiuni rapide</Text>
-                    <TouchableOpacity>
-                        <Text style={styles.seeAllText}>Vezi toate</Text>
+                    <TouchableOpacity onPress={toggleExpandedActions}>
+                        <Text style={styles.seeAllText}>{expandedActions ? 'Ascunde' : 'Vezi toate'}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -425,6 +410,41 @@ const DispatcherDashboard = () => {
                         </View>
                         <Text style={styles.gridText}>Creare transport</Text>
                     </TouchableOpacity>
+                    
+                    {/* Additional buttons that show when expanded */}
+                    {expandedActions && (
+                        <>
+                            <TouchableOpacity
+                                style={styles.gridItem}
+                                onPress={() => navigation.navigate('AddTruck')}
+                            >
+                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.warning + '20' }]}>
+                                    <Feather name="plus-circle" size={22} color={COLORS.warning} />
+                                </View>
+                                <Text style={styles.gridText}>Adaugă camion</Text>
+                            </TouchableOpacity>
+                            
+                            <TouchableOpacity
+                                style={styles.gridItem}
+                                onPress={() => navigation.navigate('AddDriver')}
+                            >
+                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.accent2 + '20' }]}>
+                                    <Feather name="user-plus" size={22} color={COLORS.accent2} />
+                                </View>
+                                <Text style={styles.gridText}>Adaugă șofer</Text>
+                            </TouchableOpacity>
+                            
+                            <TouchableOpacity
+                                style={styles.gridItem}
+                                onPress={() => navigation.navigate('AddTrailer')}
+                            >
+                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.danger + '20' }]}>
+                                    <Feather name="box" size={22} color={COLORS.danger} />
+                                </View>
+                                <Text style={styles.gridText}>Adaugă trailer</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
                 </View>
             </View>
 
@@ -523,22 +543,20 @@ const DispatcherDashboard = () => {
                     </View>
 
                     <TouchableOpacity
-          style={styles.helpButton}
-          onPress={() => setShowPhoneNumber(!showPhoneNumber)}
-        >
-          <Text style={styles.helpButtonText}>Support</Text>
-        </TouchableOpacity>
-        {showPhoneNumber && (
-          <View style={styles.phoneContainer}>
-            <Text style={styles.phoneText}>{phoneNumber}</Text>
-          </View>
-        )}
+                        style={styles.helpButton}
+                        onPress={() => setShowPhoneNumber(!showPhoneNumber)}
+                    >
+                        <Text style={styles.helpButtonText}>Support</Text>
+                    </TouchableOpacity>
+                    {showPhoneNumber && (
+                        <View style={styles.phoneContainer}>
+                            <Text style={styles.phoneText}>{phoneNumber}</Text>
+                        </View>
+                    )}
                 </View>
             </View>
         </ScrollView>
     );
 };
-
-
 
 export default DispatcherDashboard;

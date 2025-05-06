@@ -8,7 +8,6 @@ import MainScreen from './Screens/Main/index.js';
 import TransportsScreen from './Screens/Transports/index.js';
 import Drivers from './Screens/Drivers/index.js';
 import Trucks from './Screens/Trucks';
-import AssignTransports from './Assign_transport.js';
 import CreateTransport from './Screens/CreateTransport/index.js';
 import cmr from './CMR.js';
 import { enableScreens } from 'react-native-screens';
@@ -117,11 +116,7 @@ function App() {
               component={Trucks}
               options={{ headerShown: false }}
             />
-            <Stack.Screen
-              name="AssignTransports"
-              component={AssignTransports}
-              options={{ headerShown: false }}
-            />
+            
             <Stack.Screen
               name="CreateTransport"
               component={CreateTransport}
