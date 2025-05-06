@@ -9,19 +9,19 @@ import {
   StatusBar, 
   Alert,
   TouchableOpacity,
-  
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import {styles} from './styles'; 
+
 const TrucksScreen = () => {
-  const [trucks, setTrucks] = useState([]);
+  const [trucksData, setTrucksData] = useState({ number_of_trucks: 0, trucks: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [authToken, setAuthToken] = useState(null);
-  const navigation = useNavigation(); // Add this line to get the navigation object
+  const navigation = useNavigation();
   const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 
   // Load auth token on component mount
@@ -29,7 +29,7 @@ const TrucksScreen = () => {
     const getAuthToken = () => {
       try {
         console.log("Attempting to get auth token from localStorage");
-        const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
+        const token = localStorage.getItem('authToken');
         console.log("Token from localStorage:", token ? "Token exists" : "No token found");
         
         if (token) {
@@ -74,7 +74,8 @@ const TrucksScreen = () => {
       }
 
       const data = await response.json();
-      setTrucks(data);
+      console.log('Fetched trucks:', data);
+      setTrucksData(data); // Store the complete response
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -207,7 +208,7 @@ const TrucksScreen = () => {
     <View style={styles.headerCard}>
       <Text style={styles.headerTitle}>Flota</Text>
       <Text style={styles.headerSubtitle}>
-        {trucks.length} vehicule in flota
+        {trucksData.number_of_trucks} vehicule in flota
       </Text>
     </View>
   );
@@ -215,9 +216,9 @@ const TrucksScreen = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="#0000ff" />
-      <Text style={styles.loadingText}>Se încarcă...</Text>
-    </View>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>Se încarcă...</Text>
+      </View>
     );
   }
 
@@ -239,7 +240,7 @@ const TrucksScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <View style={styles.navigationHeader}>
-      <TouchableOpacity 
+        <TouchableOpacity 
           style={styles.backButton}
           onPress={() => {
             if (navigation.canGoBack()) {
@@ -258,7 +259,8 @@ const TrucksScreen = () => {
           <Ionicons name="refresh" size={24} color="#303F9F" />
         </TouchableOpacity>
       </View>
-      {trucks.length === 0 ? (
+      
+      {trucksData.number_of_trucks === 0 || !trucksData.trucks || trucksData.trucks.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyCard}>
             <Text style={styles.emptyTitle}>Nu s-au gasit camioane</Text>
@@ -270,7 +272,7 @@ const TrucksScreen = () => {
         </View>
       ) : (
         <FlatList
-          data={trucks}
+          data={trucksData.trucks} // Use the trucks array from the response
           renderItem={renderTruckItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
@@ -281,7 +283,5 @@ const TrucksScreen = () => {
     </SafeAreaView>
   );
 };
-
-
 
 export default TrucksScreen;
