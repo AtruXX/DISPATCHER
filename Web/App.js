@@ -3,7 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Text, View } from 'react-native';
-import LoginScreen from './Screens/Login/index.js';
+import LoginScreen from './Screens/Login/index.js'; 
+import AddTruck from './Screens/AddTruck/index.js';
 import MainScreen from './Screens/Main/index.js';
 import TransportsScreen from './Screens/Transports/index.js';
 import Drivers from './Screens/Drivers/index.js';
@@ -127,6 +128,11 @@ function App() {
               component={cmr}
               options={{ headerShown: false }}
               />
+            <Stack.Screen
+              name="AddTruck"
+              component={AddTruck}
+              options={{ headerShown: false }}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
