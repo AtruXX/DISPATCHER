@@ -443,6 +443,15 @@ const DispatcherDashboard = () => {
                                 </View>
                                 <Text style={styles.gridText}>Adaugă trailer</Text>
                             </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.gridItem}
+                                onPress={() => navigation.navigate('AddTrailer')}
+                            >
+                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.danger + '20' }]}>
+                                    <Feather name="box" size={22} color={COLORS.danger} />
+                                </View>
+                                <Text style={styles.gridText}>Adaugă remorca</Text>
+                            </TouchableOpacity>
                         </>
                     )}
                 </View>
