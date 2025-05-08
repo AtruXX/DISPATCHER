@@ -17,9 +17,9 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles';
-import { SearchBar } from '@rneui/themed';
+import EditTruckForm from './EditComponent';
 
-const TrucksScreen = ({ onSearch }) => { // Added onSearch as a prop with default value
+const TrucksScreen = ({ onSearch }) => {
   const [trucksData, setTrucksData] = useState({ number_of_trucks: 0, trucks: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,10 +27,10 @@ const TrucksScreen = ({ onSearch }) => { // Added onSearch as a prop with defaul
   const [searchQuery, setSearchQuery] = useState('');
   const navigation = useNavigation();
   const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
-  const [search, setSearch] = useState("");
   const textInputRef = useRef(null);
   const [filteredTrucks, setFilteredTrucks] = useState(trucksData.trucks || []);
-
+  const [selectedTruck, setSelectedTruck] = useState(null);
+  const [isEditFormVisible, setIsEditFormVisible] = useState(false);
 
   // Load auth token on component mount
   useEffect(() => {
@@ -91,6 +91,22 @@ const TrucksScreen = ({ onSearch }) => { // Added onSearch as a prop with defaul
       Alert.alert('Error', 'Failed to fetch trucks data');
       console.error('Error fetching trucks:', err);
     }
+  };
+
+  const handleEditTruck = (truck) => {
+    setSelectedTruck(truck);
+    setIsEditFormVisible(true);
+  };
+
+  const handleTruckUpdated = (updatedTruck) => {
+    // Update the trucks list with the updated truck
+    const updatedTrucks = trucksData.trucks.map(truck => 
+      truck.id === updatedTruck.id ? updatedTruck : truck
+    );
+    setTrucksData({
+      ...trucksData,
+      trucks: updatedTrucks
+    });
   };
 
   const getServiceStatus = (nextServiceDate) => {
@@ -218,6 +234,15 @@ const TrucksScreen = ({ onSearch }) => { // Added onSearch as a prop with defaul
                   {serviceStatus.status === 'unknown' && 'Stare revizie necunoscută'}
                 </Text>
               </View>
+              
+              {/* Edit Button */}
+              <TouchableOpacity 
+                style={styles.editButton}
+                onPress={() => handleEditTruck(item)}
+              >
+                <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -357,8 +382,44 @@ const TrucksScreen = ({ onSearch }) => { // Added onSearch as a prop with defaul
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      {/* Edit Truck Modal Form */}
+      {selectedTruck && (
+        <EditTruckForm
+          isVisible={isEditFormVisible}
+          onClose={() => {
+            setIsEditFormVisible(false);
+            setSelectedTruck(null);
+          }}
+          truck={selectedTruck}
+          authToken={authToken}
+          onTruckUpdated={handleTruckUpdated}
+        />
+      )}
     </SafeAreaView>
   );
 };
+
+// Add edit button styles to existing styles
+const additionalStyles = StyleSheet.create({
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#3F51B5',
+    padding: 8,
+    borderRadius: 5,
+    alignSelf: 'flex-end',
+    marginTop: 10,
+  },
+  editButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '500',
+    marginLeft: 5,
+  },
+});
+
+// Merge additional styles with the imported styles
+Object.assign(styles, additionalStyles);
 
 export default TrucksScreen;
