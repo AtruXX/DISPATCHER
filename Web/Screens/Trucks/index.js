@@ -1,28 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  StyleSheet, 
-  ActivityIndicator, 
-  SafeAreaView, 
-  StatusBar, 
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
   Alert,
   TouchableOpacity,
+  TextInput,
+  Keyboard,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import {styles} from './styles'; 
+import { styles } from './styles';
+import { SearchBar } from '@rneui/themed';
 
-const TrucksScreen = () => {
+const TrucksScreen = ({ onSearch }) => { // Added onSearch as a prop with default value
   const [trucksData, setTrucksData] = useState({ number_of_trucks: 0, trucks: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [authToken, setAuthToken] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const navigation = useNavigation();
   const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
+  const [search, setSearch] = useState("");
+  const textInputRef = useRef(null);
+  const [filteredTrucks, setFilteredTrucks] = useState(trucksData.trucks || []);
+
 
   // Load auth token on component mount
   useEffect(() => {
@@ -31,7 +39,7 @@ const TrucksScreen = () => {
         console.log("Attempting to get auth token from localStorage");
         const token = localStorage.getItem('authToken');
         console.log("Token from localStorage:", token ? "Token exists" : "No token found");
-        
+
         if (token) {
           setAuthToken(token);
           console.log("Auth token set in state");
@@ -47,24 +55,24 @@ const TrucksScreen = () => {
         setLoading(false);
       }
     };
-    
+
     getAuthToken();
   }, []);
-  
+
   // Fetch trucks when token is available
   useEffect(() => {
     if (authToken) {
       fetchTrucks();
     }
   }, [authToken]);
-  
+
   const fetchTrucks = async () => {
     try {
       setLoading(true);
       const response = await fetch(`${BASE_URL}trucks/`, {
         method: 'GET',
         headers: {
-          'Authorization': `Token ${authToken}`,  
+          'Authorization': `Token ${authToken}`,
           'Content-Type': 'application/json',
         },
       });
@@ -87,12 +95,12 @@ const TrucksScreen = () => {
 
   const getServiceStatus = (nextServiceDate) => {
     if (!nextServiceDate) return { status: 'unknown', color: '#9E9E9E' };
-    
+
     const today = new Date();
     const serviceDate = new Date(nextServiceDate);
     const diffTime = serviceDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 0) {
       return { status: 'overdue', color: '#F44336' };
     } else if (diffDays <= 7) {
@@ -104,7 +112,7 @@ const TrucksScreen = () => {
 
   const getTruckIcon = (make) => {
     const makeNormalized = make?.toLowerCase() || '';
-    
+
     if (makeNormalized.includes('volvo')) {
       return 'truck';
     } else if (makeNormalized.includes('mercedes')) {
@@ -130,16 +138,29 @@ const TrucksScreen = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Not specified';
-    
+
     const date = new Date(dateString);
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return date.toLocaleDateString(undefined, options);
   };
 
+  // Filter trucks based on search query - this happens on every render now
+  useEffect(() => {
+    const filtered = trucksData.trucks?.filter(truck =>
+      truck.license_plate.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || [];
+
+    setFilteredTrucks(filtered);
+    // Only call onSearch if it's provided as a prop
+    if (onSearch) {
+      onSearch(filtered);
+    }
+  }, [searchQuery, trucksData.trucks, onSearch]);
+
   const renderTruckItem = ({ item }) => {
     const gradientColors = getRandomColor(item.id);
     const serviceStatus = getServiceStatus(item.next_service_date);
-    
+
     return (
       <View style={styles.truckCardContainer}>
         <View style={styles.truckCard}>
@@ -156,15 +177,15 @@ const TrucksScreen = () => {
               <Text style={styles.plateText}>{item.license_plate}</Text>
             </View>
           </View>
-          
+
           <View style={styles.truckInfo}>
             <View style={styles.truckHeader}>
               <Text style={styles.truckMakeModel}>{item.make} {item.model}</Text>
               <Text style={styles.truckYear}>{item.year}</Text>
             </View>
-            
+
             <View style={styles.divider} />
-            
+
             <View style={styles.detailsContainer}>
               <View style={styles.detailRow}>
                 <View style={styles.detailItem}>
@@ -172,7 +193,7 @@ const TrucksScreen = () => {
                   <Text style={styles.detailValue}>{item.vin || 'Not specified'}</Text>
                 </View>
               </View>
-              
+
               <View style={styles.detailRow}>
                 <View style={styles.detailItem}>
                   <Text style={styles.detailLabel}>Ultima vizita la service</Text>
@@ -185,13 +206,13 @@ const TrucksScreen = () => {
                   </Text>
                 </View>
               </View>
-              
+
               <View style={[styles.serviceStatusBar, { backgroundColor: serviceStatus.color + '20' }]}>
                 <View style={styles.serviceStatusDot}>
                   <View style={[styles.statusDot, { backgroundColor: serviceStatus.color }]} />
                 </View>
                 <Text style={[styles.serviceStatusText, { color: serviceStatus.color }]}>
-                {serviceStatus.status === 'good' && 'Revizie la zi'}
+                  {serviceStatus.status === 'good' && 'Revizie la zi'}
                   {serviceStatus.status === 'upcoming' && 'Revizia se apropie'}
                   {serviceStatus.status === 'overdue' && 'Revizia este depășită'}
                   {serviceStatus.status === 'unknown' && 'Stare revizie necunoscută'}
@@ -205,11 +226,52 @@ const TrucksScreen = () => {
   };
 
   const renderHeader = () => (
-    <View style={styles.headerCard}>
-      <Text style={styles.headerTitle}>Flota</Text>
-      <Text style={styles.headerSubtitle}>
-        {trucksData.number_of_trucks} vehicule in flota
-      </Text>
+    <View>
+      <View style={styles.headerCard}>
+        <Text style={styles.headerTitle}>Flota</Text>
+        <Text style={styles.headerSubtitle}>
+          {filteredTrucks.length} {filteredTrucks.length === 1 ? 'vehicul' : 'vehicule'} {searchQuery ? 'găsite' : 'in flota'}
+        </Text>
+      </View>
+      <View style={styles.searchContainer}>
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={20} color="#5C6BC0" style={styles.searchIcon} />
+        <TextInput
+          ref={textInputRef}
+          style={styles.searchInput}
+          placeholder="Caută după număr de înmatriculare..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          returnKeyType="search"
+          clearButtonMode="while-editing"
+          autoCapitalize="characters"
+          onSubmitEditing={() => {
+            // No need to explicitly call filtering logic since useEffect handles it
+            // Just make sure we keep focus
+            setTimeout(() => {
+              if (textInputRef.current) {
+                textInputRef.current.focus();
+              }
+            }, 50);
+          }}
+        />
+        {searchQuery !== '' && (
+          <TouchableOpacity
+            onPress={() => {
+              setSearchQuery('');
+              setTimeout(() => {
+                if (textInputRef.current) {
+                  textInputRef.current.focus();
+                }
+              }, 50);
+            }}
+            style={styles.clearButton}
+          >
+            <Ionicons name="close-circle" size={18} color="#A7A9AF" />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
     </View>
   );
 
@@ -240,7 +302,7 @@ const TrucksScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <View style={styles.navigationHeader}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => {
             if (navigation.canGoBack()) {
@@ -252,14 +314,14 @@ const TrucksScreen = () => {
         >
           <Ionicons name="arrow-back" size={24} color="#303F9F" />
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.refreshButton}
           onPress={fetchTrucks}
         >
           <Ionicons name="refresh" size={24} color="#303F9F" />
         </TouchableOpacity>
       </View>
-      
+
       {trucksData.number_of_trucks === 0 || !trucksData.trucks || trucksData.trucks.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyCard}>
@@ -270,9 +332,24 @@ const TrucksScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
+      ) : filteredTrucks.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>Niciun rezultat</Text>
+            <Text style={styles.emptyText}>
+              Nu s-a găsit niciun camion cu numărul de înmatriculare "{searchQuery}".
+            </Text>
+            <TouchableOpacity
+              style={styles.refreshButton}
+              onPress={() => setSearchQuery('')}
+            >
+              <Text style={styles.refreshButtonText}>Șterge filtrul</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       ) : (
         <FlatList
-          data={trucksData.trucks} // Use the trucks array from the response
+          data={filteredTrucks}
           renderItem={renderTruckItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}

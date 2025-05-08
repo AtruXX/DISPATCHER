@@ -252,4 +252,36 @@ export const styles = StyleSheet.create({
     refreshButton: {
       padding: 8,
     },
+    searchContainer: {
+      paddingHorizontal: 20,
+      paddingBottom: 12,
+      backgroundColor: 'transparent',
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginBottom: 8,
+      shadowColor: '#A7A9AF',
+      shadowOffset: { width: 3, height: 3 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 4,
+    },
+    searchIcon: {
+      marginRight: 12,
+      color: '#5C6BC0',
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 16,
+      color: '#A7A9AF',
+      fontWeight: '400',
+    },
+    clearButton: {
+      padding: 6,
+    },
   });
