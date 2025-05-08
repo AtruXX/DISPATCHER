@@ -16,7 +16,7 @@ const DispatcherDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showPhoneNumber, setShowPhoneNumber] = useState(false);
-    const phoneNumber = "+1 555-123-4567";
+    const phoneNumber = "0745 346 397";
     // Add state for expanded actions section
     const [expandedActions, setExpandedActions] = useState(false);
     const [stats, setStats] = useState({
@@ -452,6 +452,18 @@ const DispatcherDashboard = () => {
                                 </View>
                                 <Text style={styles.gridText}>Adaugă remorca</Text>
                             </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.gridItem}
+                                onPress={() => navigation.navigate('AllTrailers')}
+                            >
+                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.danger + '20' }]}>
+                                    <Feather name="box" size={22} color={COLORS.danger} />
+                                </View>
+                                <Text style={styles.gridText}>Vezi remorcile</Text>
+                            </TouchableOpacity>
+
+
                         </>
                     )}
                 </View>

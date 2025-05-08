@@ -16,8 +16,8 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import {styles} from './styles'; 
 
-const TrucksScreen = () => {
-  const [trucksData, setTrucksData] = useState({ number_of_trucks: 0, trucks: [] });
+const TrailersScreen = () => {
+  const [trucksData, setTrucksData] = useState({ number_of_trailers: 0, trailers: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [authToken, setAuthToken] = useState(null);
@@ -61,7 +61,7 @@ const TrucksScreen = () => {
   const fetchTrucks = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${BASE_URL}trucks/`, {
+      const response = await fetch(`${BASE_URL}trailers/`, {
         method: 'GET',
         headers: {
           'Authorization': `Token ${authToken}`,  
@@ -74,13 +74,13 @@ const TrucksScreen = () => {
       }
 
       const data = await response.json();
-      console.log('Fetched trucks:', data);
+      console.log('Fetched trailers:', data);
       setTrucksData(data); // Store the complete response
       setLoading(false);
     } catch (err) {
       setError(err.message);
       setLoading(false);
-      Alert.alert('Error', 'Failed to fetch trucks data');
+      Alert.alert('Error', 'Failed to fetch trailers data');
       console.error('Error fetching trucks:', err);
     }
   };
@@ -169,7 +169,7 @@ const TrucksScreen = () => {
               <View style={styles.detailRow}>
                 <View style={styles.detailItem}>
                   <Text style={styles.detailLabel}>Serie de sasiu/VIN</Text>
-                  <Text style={styles.detailValue}>{item.vin || 'Not specified'}</Text>
+                  <Text style={styles.detailValue}>{item.vin || 'Nespecificat'}</Text>
                 </View>
               </View>
               
@@ -206,9 +206,9 @@ const TrucksScreen = () => {
 
   const renderHeader = () => (
     <View style={styles.headerCard}>
-      <Text style={styles.headerTitle}>Flota</Text>
+      <Text style={styles.headerTitle}>Flota de remorci</Text>
       <Text style={styles.headerSubtitle}>
-        {trucksData.number_of_trucks} vehicule in flota
+        {trucksData.number_of_trailers} remorci in flota
       </Text>
     </View>
   );
@@ -246,7 +246,7 @@ const TrucksScreen = () => {
             if (navigation.canGoBack()) {
               navigation.goBack();
             } else {
-              navigation.navigate("Main"); // or your fallback screen
+              navigation.navigate("Main"); 
             }
           }}
         >
@@ -260,11 +260,11 @@ const TrucksScreen = () => {
         </TouchableOpacity>
       </View>
       
-      {trucksData.number_of_trucks === 0 || !trucksData.trucks || trucksData.trucks.length === 0 ? (
+      {trucksData.number_of_trailers === 0 || !trucksData.trailers || trucksData.trailers.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>Nu s-au gasit camioane</Text>
-            <Text style={styles.emptyText}>Nu exista camioane inregistrate in sistem.</Text>
+            <Text style={styles.emptyTitle}>Nu s-au gasit remorci inregistrate</Text>
+            <Text style={styles.emptyText}>Nu exista remorci inregistrate in sistem.</Text>
             <TouchableOpacity style={styles.refreshButton} onPress={fetchTrucks}>
               <Text style={styles.refreshButtonText}>Reincarca</Text>
             </TouchableOpacity>
@@ -272,7 +272,7 @@ const TrucksScreen = () => {
         </View>
       ) : (
         <FlatList
-          data={trucksData.trucks} // Use the trucks array from the response
+          data={trucksData.trailers} // Use the trucks array from the response
           renderItem={renderTruckItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
@@ -284,4 +284,4 @@ const TrucksScreen = () => {
   );
 };
 
-export default TrucksScreen;
+export default TrailersScreen;

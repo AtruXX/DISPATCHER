@@ -13,6 +13,7 @@ import CreateTransport from './Screens/CreateTransport/index.js';
 import cmr from './CMR.js';
 import { enableScreens } from 'react-native-screens';
 import AddTrailer from './Screens/AddTrailer/index.js';
+import AllTrailers from './Screens/AllTrailers/index.js';
 enableScreens();
 
 class ErrorBoundary extends React.Component {
@@ -136,6 +137,11 @@ function App() {
             <Stack.Screen
               name="AddTrailer"
               component={AddTrailer}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="AllTrailers"
+              component={AllTrailers}
               options={{ headerShown: false }}
             />
           </Stack.Navigator>
