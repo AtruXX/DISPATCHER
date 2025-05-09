@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
-  FlatList, 
   StyleSheet, 
   ActivityIndicator, 
   SafeAreaView, 
@@ -10,132 +9,56 @@ import {
   Alert,
   TouchableOpacity,
   ScrollView,
-  
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import DEFAULT_CMR_DATA from './DefaultData'; // Import the default model
+import {styles} from './styles'; // Import your styles
+import { jsPDF } from "jspdf"; // Import jsPDF for PDF generation
+import { useNavigation } from '@react-navigation/native';
 
-const TransportsScreen = ({ route, navigation })  => {
-  const [transports, setTransports] = useState([]);
-  
-  const [authToken, setAuthToken] = useState(null);
+const TransportsScreen = ({ route, navigation }) => {
   const [cmrData, setCmrData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { transportId } = route.params;
-  
-  // Hardcoded CMR data
+  const contentRef = useRef();
+  window.downloadPdfRef = contentRef;
 
-  
-  // Load auth token on component mount
-  // Remove the separate useEffects and combine them
-useEffect(() => {
-    const initializeData = async () => {
-      console.log("Initializing data and fetching auth token");
-      setLoading(true);
-      
+  // Get transport ID from route params if available
+  const transportId = route?.params?.transportId;
+  const handlePress = () => {
+    navigation.navigate('PDFC')
+  };
+  // Simulate API fetch with the hardcoded data
+  useEffect(() => {
+    const loadCMRData = async () => {
       try {
-        // Get auth token
-        const token = localStorage.getItem('authToken');
-        console.log("Token from localStorage:", token ? "Token exists" : "No token found");
-        
-        if (!token) {
-          setError('Authentication required. Please log in first.');
+        // Simulate network delay
+        setTimeout(() => {
+          // Use our hardcoded data model
+          setCmrData(DEFAULT_CMR_DATA);
           setLoading(false);
-          return;
-        }
-        
-        // Set token and then proceed with CMR fetch if we have transportId
-        setAuthToken(token);
-        console.log(`Auth token set in state: ${token.substring(0, 5)}...`);
-        
-        if (transportId) {
-          console.log(`Proceeding to fetch CMR for transport ID: ${transportId}`);
-          await fetchCMRWithToken(transportId, token);
-        } else {
-          console.log("No transport ID available");
-          setLoading(false);
-        }
+        }, 1000);
       } catch (err) {
-        console.error("Error in initialization:", err);
-        setError('Failed to initialize data.');
+        console.error("Error loading CMR data:", err);
+        setError("Failed to load CMR document");
         setLoading(false);
       }
     };
-    
-    initializeData();
-  }, [transportId]); // Only depend on transportId
-  
-  // Create a separate function that uses the token directly instead of from state
-  const fetchCMRWithToken = async (id, token) => {
-    console.log(`📘 Starting fetchCMR for transportId: ${id} with token`);
-    
-    try {
-      const url = `https://atrux-717ecf8763ea.herokuapp.com/get_cmrs/${id}`;
-      console.log(`📘 Making request to: ${url}`);
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      console.log(`📘 Response status: ${response.status}`);
-      if (response.status === 404) {
-        // Handle specific case for CMR not found
-        console.log(`📘 CMR does not exist yet for transport ID: ${id}`);
-        setError('CMR nu exista inca!');
-        setLoading(false);
-        return;
-      }
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log(`📘 Data received:`, JSON.stringify(data, null, 2));
-      
-      setCmrData(data);
-      setLoading(false);
-    } catch (err) {
-      console.error(`❌ Error in fetchCMR:`, err);
-      setError(err.message);
-      setLoading(false);
-      Alert.alert('Error', 'Failed to fetch CMR data');
-    }
-  };
 
-  const getRandomColor = (id) => {
-    const colors = [
-      ['#FF9966', '#FF5E62'],
-      ['#36D1DC', '#5B86E5'],
-      ['#CB356B', '#BD3F32'],
-      ['#3A1C71', '#D76D77'],
-      ['#00B4DB', '#0083B0'],
-      ['#FEAC5E', '#C779D0'],
-      ['#43C6AC', '#191654'],
-      ['#834D9B', '#D04ED6']
-    ];
-    return colors[id % colors.length];
-  };
-  
+    loadCMRData();
+  }, []);
+
   const renderHeader = () => (
     <View style={styles.headerCard}>
       <Text style={styles.headerTitle}>CMR TRANSPORT</Text>
-      
+      <Text style={styles.headerSubtitle}>Document Nr. {cmrData?.numar_cmr || 'CMR-2025-5678'}</Text>
     </View>
   );
 
   const renderCMRDocument = () => {
-    // Use cmrData directly from your component state
-    const data = {
-      ...cmrData,
-      // Your default values if needed
-    };
-  
+    // Use cmrData from your component state
+    const data = cmrData;
+    
     return (
       <View style={styles.cmrContainer}>
         <View style={styles.cmrHeader}>
@@ -284,7 +207,7 @@ useEffect(() => {
             </View>
             <View style={styles.cmrCell}>
               <Text style={styles.cmrCellLabel}>Prescriptii de francare</Text>
-              <Text style={styles.cmrCellValue}>------</Text>
+              <Text style={styles.cmrCellValue}>{data.prescriptii_francare || '------'}</Text>
             </View>
           </View>
           
@@ -295,7 +218,7 @@ useEffect(() => {
             </View>
             <View style={styles.cmrCell}>
               <Text style={styles.cmrCellLabel}>Rambursare</Text>
-              <Text style={styles.cmrCellValue}>---------</Text>
+              <Text style={styles.cmrCellValue}>{data.rambursare || '---------'}</Text>
             </View>
           </View>
           
@@ -306,7 +229,7 @@ useEffect(() => {
             </View>
             <View style={styles.cmrCell}>
               <Text style={styles.cmrCellLabel}>Transportator</Text>
-              <Text style={styles.cmrCellValue}>--------</Text>
+              <Text style={styles.cmrCellValue}>{data.transportator || 'C&C Logistic SRL'}</Text>
             </View>
           </View>
           
@@ -317,7 +240,7 @@ useEffect(() => {
             </View>
             <View style={styles.cmrCell}>
               <Text style={styles.cmrCellLabel}>Transportatori succesivi</Text>
-              <Text style={styles.cmrCellValue}>-----------</Text>
+              <Text style={styles.cmrCellValue}>{data.transportatori_succesivi || '-----------'}</Text>
             </View>
           </View>
           
@@ -328,7 +251,7 @@ useEffect(() => {
             </View>
             <View style={styles.cmrCell}>
               <Text style={styles.cmrCellLabel}>Rezerve si observatii ale transportatorilor</Text>
-              <Text style={styles.cmrCellValue}>---------</Text>
+              <Text style={styles.cmrCellValue}>{data.rezerve_observatii || '---------'}</Text>
             </View>
           </View>
           
@@ -343,7 +266,7 @@ useEffect(() => {
             </View>
           </View>
           
-          {/* De plata - Simplified version since we don't have the full structure */}
+          {/* De plata */}
           <View style={styles.cmrRow}>
             <View style={styles.cmrNumberCell}>
               <Text style={styles.cmrCellNumber}>20</Text>
@@ -354,27 +277,27 @@ useEffect(() => {
                 <View style={styles.paymentTable}>
                   <View style={styles.paymentRow}>
                     <Text style={styles.paymentLabel}>Pret transport</Text>
-                    <Text style={styles.paymentValue}>----------- EUR</Text>
+                    <Text style={styles.paymentValue}>{data.de_plata.pret_transport} EUR</Text>
                   </View>
                   <View style={styles.paymentRow}>
                     <Text style={styles.paymentLabel}>Reduceri</Text>
-                    <Text style={styles.paymentValue}>---- EUR</Text>
+                    <Text style={styles.paymentValue}>{data.de_plata.reduceri} EUR</Text>
                   </View>
                   <View style={styles.paymentRow}>
                     <Text style={styles.paymentLabel}>Sold</Text>
-                    <Text style={styles.paymentValue}>------- EUR</Text>
+                    <Text style={styles.paymentValue}>{data.de_plata.sold} EUR</Text>
                   </View>
                   <View style={styles.paymentRow}>
                     <Text style={styles.paymentLabel}>Suplimente</Text>
-                    <Text style={styles.paymentValue}>------- EUR</Text>
+                    <Text style={styles.paymentValue}>{data.de_plata.suplimente} EUR</Text>
                   </View>
                   <View style={styles.paymentRow}>
                     <Text style={styles.paymentLabel}>Alte cheltuieli</Text>
-                    <Text style={styles.paymentValue}>------- EUR</Text>
+                    <Text style={styles.paymentValue}>{data.de_plata.alte_cheltuieli} EUR</Text>
                   </View>
                   <View style={[styles.paymentRow, styles.paymentRowTotal]}>
                     <Text style={styles.paymentLabelTotal}>Total</Text>
-                    <Text style={styles.paymentValueTotal}>------------EUR</Text>
+                    <Text style={styles.paymentValueTotal}>{data.de_plata.total} EUR</Text>
                   </View>
                 </View>
               ) : (
@@ -391,7 +314,7 @@ useEffect(() => {
             <View style={styles.cmrCell}>
               <Text style={styles.cmrCellLabel}>Incheiat la</Text>
               {data.incheiat_la && typeof data.incheiat_la === 'object' ? (
-                <Text style={styles.cmrCellValue}>------------</Text>
+                <Text style={styles.cmrCellValue}>{data.incheiat_la.locatie}, {data.incheiat_la.data}</Text>
               ) : (
                 <Text style={styles.cmrCellValue}>-</Text>
               )}
@@ -406,6 +329,9 @@ useEffect(() => {
               </View>
               <View style={styles.cmrSignatureContent}>
                 <Text style={styles.cmrSignatureText}>Semnătura și ștampila expeditorului</Text>
+                {data.semnatura_expeditor === "signed-electronically" && (
+                  <Text style={styles.electronicSignature}>Semnat electronic</Text>
+                )}
               </View>
             </View>
             
@@ -418,6 +344,9 @@ useEffect(() => {
                   <Text style={styles.cmrStampText}>C&C Logistic</Text>
                 </View>
                 <Text style={styles.cmrSignatureText}>Semnătura și ștampila transportatorului</Text>
+                {data.semnatura_transportator === "signed-electronically" && (
+                  <Text style={styles.electronicSignature}>Semnat electronic</Text>
+                )}
               </View>
             </View>
             
@@ -427,6 +356,9 @@ useEffect(() => {
               </View>
               <View style={styles.cmrSignatureContent}>
                 <Text style={styles.cmrSignatureText}>Semnătura și ștampila destinatarului</Text>
+                {data.semnatura_destinatar === "signed-electronically" && (
+                  <Text style={styles.electronicSignature}>Semnat electronic</Text>
+                )}
               </View>
             </View>
           </View>
@@ -435,7 +367,6 @@ useEffect(() => {
     );
   };
   
-
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
@@ -481,8 +412,14 @@ useEffect(() => {
           <Ionicons name="arrow-back" size={24} color="#303F9F" />
         </TouchableOpacity>
         <TouchableOpacity 
+          style={styles.printButton}
+          onPress={() => Alert.alert("Print", "Document se printează...")}
+        >
+          <Ionicons name="print" size={24} color="#303F9F" />
+        </TouchableOpacity>
+        <TouchableOpacity 
           style={styles.refreshButton}
-          onPress={() => Alert.alert("Info", "Refreshing data...")}
+          onPress={() => Alert.alert("Refresh", "Se reîncarcă datele...")}
         >
           <Ionicons name="refresh" size={24} color="#303F9F" />
         </TouchableOpacity>
@@ -491,365 +428,11 @@ useEffect(() => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {renderHeader()}
         {renderCMRDocument()}
+        <TouchableOpacity onPress = {handlePress} style={styles.downloadButton}>
+            Descarca
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ECEFF1',
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
-  navigationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  backButton: {
-    padding: 8,
-  },
-  refreshButton: {
-    padding: 8,
-  },
-  // Header styles
-  headerCard: {
-    marginHorizontal: 20,
-    marginVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#303F9F',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#7986CB',
-  },
-  // CMR Document styles
-  cmrContainer: {
-    marginHorizontal: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#CFD8DC',
-  },
-  cmrHeader: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#CFD8DC',
-    padding: 10,
-  },
-  cmrLogo: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  cmrLogoText: {
-    fontWeight: 'bold',
-    fontSize: 18,
-    color: '#303F9F',
-  },
-  cmrTitle: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cmrTitleText: {
-    fontWeight: 'bold',
-    fontSize: 24,
-    color: '#303F9F',
-  },
-  cmrSubtitleText: {
-    fontSize: 12,
-    color: '#455A64',
-  },
-  cmrContent: {
-    padding: 8,
-  },
-  cmrRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#CFD8DC',
-    minHeight: 60,
-  },
-  cmrNumberCell: {
-    width: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#CFD8DC',
-    backgroundColor: '#F5F5F5',
-  },
-  cmrCellNumber: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    color: '#455A64',
-  },
-  cmrCell: {
-    flex: 1,
-    padding: 8,
-  },
-  cmrCellLabel: {
-    fontSize: 12,
-    color: '#78909C',
-    marginBottom: 4,
-  },
-  cmrCellValue: {
-    fontSize: 14,
-    color: '#37474F',
-  },
-  cmrTableHeader: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#CFD8DC',
-    backgroundColor: '#F5F5F5',
-  },
-  cmrTableHeaderCell: {
-    flex: 1,
-    padding: 6,
-    alignItems: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#CFD8DC',
-  },
-  cmrTableHeaderText: {
-    fontSize: 10,
-    textAlign: 'center',
-    color: '#455A64',
-  },
-  cmrTableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#CFD8DC',
-    minHeight: 40,
-  },
-  cmrTableCell: {
-    flex: 1,
-    padding: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#CFD8DC',
-  },
-  cmrTableCellText: {
-    fontSize: 12,
-    color: '#37474F',
-  },
-  // Payment table styles
-  paymentTable: {
-    marginTop: 4,
-  },
-  paymentRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  paymentRowTotal: {
-    borderTopWidth: 2,
-    borderTopColor: '#BDBDBD',
-    paddingTop: 8,
-    marginTop: 4,
-  },
-  paymentLabel: {
-    fontSize: 12,
-    color: '#616161',
-  },
-  paymentValue: {
-    fontSize: 12,
-    color: '#212121',
-    fontWeight: '500',
-  },
-  paymentLabelTotal: {
-    fontSize: 14,
-    color: '#303F9F',
-    fontWeight: 'bold',
-  },
-  paymentValueTotal: {
-    fontSize: 14,
-    color: '#303F9F',
-    fontWeight: 'bold',
-  },
-  cmrSignatures: {
-    flexDirection: 'row',
-    marginTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#CFD8DC',
-  },
-  cmrSignatureBox: {
-    flex: 1,
-    borderRightWidth: 1,
-    borderRightColor: '#CFD8DC',
-  },
-  cmrSignatureHeader: {
-    backgroundColor: '#F5F5F5',
-    padding: 4,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#CFD8DC',
-  },
-  cmrSignatureNumber: {
-    fontWeight: 'bold',
-    fontSize: 14,
-    color: '#455A64',
-  },
-  cmrSignatureContent: {
-    minHeight: 80,
-    padding: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cmrSignatureText: {
-    fontSize: 10,
-    textAlign: 'center',
-    color: '#78909C',
-  },
-  cmrStamp: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#303F9F',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  cmrStampText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#303F9F',
-  },
-  // Loading and error styles
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ECEFF1',
-    padding: 20,
-  },
-  loadingCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    width: '80%',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#5C6BC0',
-    fontWeight: '500',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ECEFF1',
-    padding: 20,
-  },
-  errorCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    width: '80%',
-  },
-  errorTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#F44336',
-    marginBottom: 12,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#757575',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  retryButton: {
-    backgroundColor: '#3F51B5',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  listContainer: {
-    paddingBottom: 20,
-  },
-  transportCardContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  transportCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  
-  emptyCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 5, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    width: '80%',
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#5C6BC0',
-    marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#757575',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-});
-
 export default TransportsScreen;

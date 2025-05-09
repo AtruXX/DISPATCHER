@@ -185,7 +185,7 @@ const DriversScreen = () => {
       <View style={styles.headerCard}>
         <Text style={styles.headerTitle}>Soferi</Text>
         <Text style={styles.headerSubtitle}>
-          {driverCount} active {driverCount === 1 ? 'driver' : 'drivers'}
+          {driverCount} {driverCount === 1 ? 'sofer' : 'soferi'} in cursa 
         </Text>
       </View>
     );

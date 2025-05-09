@@ -24,7 +24,7 @@ import { Calendar } from 'react-native-calendars';
 // Define styles directly in the file since the imported styles might be causing issues
 
 import {styles } from './styles';
-export default function CreateTruckPage() {
+export default function CreateDriver() {
   const [formData, setFormData] = useState({
     license_plate: '',
     vin: '',
@@ -144,13 +144,11 @@ export default function CreateTruckPage() {
       
       // Reset form
       setFormData({
-        license_plate: '',
-        vin: '',
-        make: '',
-        model: '',
-        year: '',
-        next_service_date: '',
-        last_service_date: ''
+        name: '',
+        email: '',
+        phone_number: '',
+        vechime:'',
+        
       });
       
     } catch (error) {

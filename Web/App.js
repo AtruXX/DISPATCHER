@@ -10,10 +10,12 @@ import TransportsScreen from './Screens/Transports/index.js';
 import Drivers from './Screens/Drivers/index.js';
 import Trucks from './Screens/Trucks';
 import CreateTransport from './Screens/CreateTransport/index.js';
-import cmr from './CMR.js';
+import cmr from './Screens/CMR/index.js';
 import { enableScreens } from 'react-native-screens';
 import AddTrailer from './Screens/AddTrailer/index.js';
 import AllTrailers from './Screens/AllTrailers/index.js';
+import PDFC from './Screens/PDFGenerator/index.js'; 
+import AddDriver from './Screens/AddDriver;'
 enableScreens();
 
 class ErrorBoundary extends React.Component {
@@ -144,6 +146,16 @@ function App() {
               component={AllTrailers}
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="PDFC"
+              component={PDFC}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="AddDriver"
+              component={AddDriver}
+              options={{ headerShown: false }}
+              />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
