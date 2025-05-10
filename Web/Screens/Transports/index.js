@@ -13,8 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { styles } from './styles'; // Assuming you have a styles.js file for your styles
-
+import { styles } from './styles'; 
 const TransportsScreen = ({ navigation }) => {
   const [transports, setTransports] = useState([]);
   const [totalTransports, setTotalTransports] = useState(0);
@@ -23,7 +22,6 @@ const TransportsScreen = ({ navigation }) => {
   const [authToken, setAuthToken] = useState(null);
   const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 
-  // Load auth token on component mount
   useEffect(() => {
     const getAuthToken = () => {
       try {

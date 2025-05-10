@@ -15,7 +15,7 @@ import { enableScreens } from 'react-native-screens';
 import AddTrailer from './Screens/AddTrailer/index.js';
 import AllTrailers from './Screens/AllTrailers/index.js';
 import PDFC from './Screens/PDFGenerator/index.js'; 
-import AddDriver from './Screens/AddDriver;'
+import AddDriver from './Screens/AddDriver/index.js'
 enableScreens();
 
 class ErrorBoundary extends React.Component {
@@ -50,10 +50,10 @@ function App() {
       try {
         // Get the token from localStorage
          
-        const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
+        //const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
         
         // Get the last visited route if available
-        const lastRoute = localStorage.getItem('lastRoute');
+        //const lastRoute = localStorage.getItem('lastRoute');
         
         if (token) {
           setUserToken(token);

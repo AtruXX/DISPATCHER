@@ -1,9 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
+import { useNavigation } from '@react-navigation/native';
 
 function PdfGenerator() {
   const contentRef = useRef();
-  
+  const navigation = useNavigation();
+
   // Define initial CMR data
   const [cmrData, setCmrData] = useState({
     expeditor_nume: "Example Company SRL",
@@ -59,11 +61,20 @@ function PdfGenerator() {
     html2pdf().from(contentRef.current).set(opt).save();
   };
 
+  // Function to handle navigation back to main screen
+  const handleGoBack = () => {
+    navigation.navigate('Main');
+  };
+
   return (
     <div className="container">
+      
       <div className="controls">
         <h1>CMR Document Generator</h1>
-        <button onClick={handleDownload} className="download-btn">Download as PDF</button>
+        <div className="buttons-container">
+          <button onClick={handleGoBack} className="back-btn">Înapoi</button>
+          <button onClick={handleDownload} className="download-btn">Descarcă</button>
+        </div>
       </div>
       
       <div id="cmrContent" ref={contentRef}>
@@ -383,6 +394,13 @@ body {
     margin-bottom: 20px;
 }
 
+.buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 15px;
+}
+
 .download-btn {
     background-color: #303F9F;
     color: white;
@@ -396,6 +414,21 @@ body {
 
 .download-btn:hover {
     background-color: #1A237E;
+}
+
+.back-btn {
+    background-color: #757575;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.back-btn:hover {
+    background-color: #616161;
 }
 
 /* CMR Document Styles */
