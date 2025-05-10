@@ -1,614 +1,757 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ScrollView, 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet,
-  ActivityIndicator,
-  Alert,
-  SafeAreaView,
-  StatusBar,
-  Modal,
-  FlatList
+import {
+    ScrollView,
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    ActivityIndicator,
+    Alert,
+    SafeAreaView,
+    StatusBar,
+    Modal,
+    FlatList
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styles, COLORS } from './styles';
+// CMR Data Model - Default values for the form
+const DEFAULT_CMR_DATA = {
+    // Expeditor (Sender) information - Section 1
+    expeditor_nume: "",
+    expeditor_adresa: "",
+    expeditor_tara: "",
+    // Destinatar (Recipient) information - Section 2
+    destinatar_nume: "",
+    destinatar_adresa: "",
+    destinatar_tara: "",
+    // Location information - Sections 3-4
+    loc_livrare: "",
+    loc_incarcare: "",
+    data_incarcare: "",
+    // Cargo details - Sections 6-12
+    marci_numere: "",
+    numar_colete: "",
+    mod_ambalare: "",
+    natura_marfii: "",
+    nr_static: "",
+    greutate_bruta: "",
+    cubaj: "",
+    // Special instructions - Section 13
+    instructiuni_expeditor: "",
+    // Special conventions - Section 19
+    conventii_speciale: "",
+    // Payment information - Section 20
+    de_plata: {
+        pret_transport: "",
+        reduceri: "",
+        sold: "",
+        suplimente: "",
+        alte_cheltuieli: "",
+        total: ""
+    },
+    // Closure information - Section 21
+    incheiat_la: {
+        locatie: "",
+        data: ""
+    },
+    // Signatures - Sections 22-24
+    semnatura_expeditor: "",
+    semnatura_transportator: "",
+    semnatura_destinatar: "",
+    // Additional fields
+    numar_cmr: "",
+    data_emitere: "",
+    transportator: "",
+    transportatori_succesivi: "",
+    rezerve_observatii: "",
+    prescriptii_francare: "",
+    rambursare: ""
+};
 
 export default function CreateTransportPage() {
-  const [formData, setFormData] = useState({
-    truck_combination: '',
-    trailer_type: '',
-    trailer_number: '',
-    detraction: '', // Will now be a dropdown selection
-    origin_city: '',
-    destination_city: '',
-    goods_type: '', // Will now be a dropdown selection
-    driver: null // Will store the selected driver ID
-  });
-  
-  const [drivers, setDrivers] = useState([]);
-  const [selectedDriver, setSelectedDriver] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isDriverModalVisible, setDriverModalVisible] = useState(false);
-  const [isTruckModalVisible, setTruckModalVisible] = useState(false);
-  const [isTrailerModalVisible, setTrailerModalVisible] = useState(false);
-  const [isDetractionModalVisible, setDetractionModalVisible] = useState(false);
-  const [isGoodsTypeModalVisible, setGoodsTypeModalVisible] = useState(false);
-  
-  const navigation = useNavigation();
-
-  // Predefined options for dropdowns
-  const truckCombinations = [
-    'Cap tractor + Semiremorcă',
-    'Cap tractor + Tandem',
-    'Autoutilitară',
-    'Solo'
-  ];
-
-  const trailerTypes = [
-    'Prelată',
-    'Frigorifică',
-    'Cisterna',
-    'Platformă',
-    'Container',
-    'Box'
-  ];
-  
-  // New dropdown options for Tip Tractare
-  const detractionTypes = [
-    '4x2',
-    '6x2',
-    '6x4',
-    '8x4'
-  ];
-  
-  // New dropdown options for Tip Marfa
-  const goodsTypes = [
-    'Marfă generală',
-    'Frigorifică',
-    'ADR (substanțe periculoase)',
-    'Textile',
-    'Mobilier',
-    'Autoturisme',
-    'Băuturi',
-    'Alimente uscate'
-  ];
-
-  // Mock data for testing - replace with actual API call
-  const mockDriversData = {
-    "number_of_drivers": 1,
-    "drivers": [
-      {
-        "id": 2,
-        "driver": {
-          "average_rating": 0.0,
-          "on_road": false
+    const [formData, setFormData] = useState({
+        expeditor_nume: "",
+        expeditor_adresa: "",
+        expeditor_tara: "",
+        // Destinatar (Recipient) information - Section 2
+        destinatar_nume: "",
+        destinatar_adresa: "",
+        destinatar_tara: "",
+        // Location information - Sections 3-4
+        loc_livrare: "",
+        loc_incarcare: "",
+        data_incarcare: "",
+        // Cargo details - Sections 6-12
+        marci_numere: "",
+        numar_colete: "",
+        mod_ambalare: "",
+        natura_marfii: "",
+        nr_static: "",
+        greutate_bruta: "",
+        cubaj: "",
+        // Special instructions - Section 13
+        instructiuni_expeditor: "",
+        // Special conventions - Section 19
+        conventii_speciale: "",
+        // Payment information - Section 20
+        de_plata: {
+            pret_transport: "",
+            reduceri: "",
+            sold: "",
+            suplimente: "",
+            alte_cheltuieli: "",
+            total: ""
         },
-        "dispatcher": null,
-        "company": "C&C Logistics",
-        "last_login": "2025-05-04T11:39:00.341871Z",
-        "email": "pop-ion@gmail.com",
-        "name": "Pop Ion",
-        "is_active": true,
-        "is_admin": false,
-        "is_dispatcher": false,
-        "is_driver": true
-      }
-    ]
-  };
-
-  // Fetch drivers on component mount
-  useEffect(() => {
-    // For actual implementation, use fetchDrivers()
-    // For now, using mock data
-    setDrivers(mockDriversData.drivers);
-  }, []);
-
-  const fetchDrivers = async () => {
-    setLoading(true);
-    try {
-     
-      const data = mockDriversData;
-      
-      if (data && data.drivers) {
-        setDrivers(data.drivers);
-      }
-    } catch (error) {
-      console.error('Error fetching drivers:', error);
-      Alert.alert('Error', 'Failed to fetch drivers. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const selectDriver = (driver) => {
-    setSelectedDriver(driver);
-    setFormData(prev => ({ ...prev, driver: driver.id }));
-    setDriverModalVisible(false);
-  };
-
-  const selectTruckCombination = (combination) => {
-    setFormData(prev => ({ ...prev, truck_combination: combination }));
-    setTruckModalVisible(false);
-  };
-
-  const selectTrailerType = (type) => {
-    setFormData(prev => ({ ...prev, trailer_type: type }));
-    setTrailerModalVisible(false);
-  };
-  
-  // New functions for the new dropdowns
-  const selectDetraction = (detraction) => {
-    setFormData(prev => ({ ...prev, detraction: detraction }));
-    setDetractionModalVisible(false);
-  };
-  
-  const selectGoodsType = (goodsType) => {
-    setFormData(prev => ({ ...prev, goods_type: goodsType }));
-    setGoodsTypeModalVisible(false);
-  };
-
-  const handleSubmit = async () => {
-    // Validate required fields
-    const requiredFields = ['truck_combination', 'trailer_type', 'trailer_number', 'origin_city', 'destination_city', 'goods_type', 'driver'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
-    
-    if (missingFields.length > 0) {
-      Alert.alert('Missing Fields', `Please complete the following fields: ${missingFields.join(', ')}`);
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch('https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/transports', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`,
+        // Closure information - Section 21
+        incheiat_la: {
+            locatie: "",
+            data: ""
         },
-        body: JSON.stringify(formData),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create transport');
-      }
-      
-      const data = await response.json();
-      Alert.alert('Success', 'Transport created successfully!');
-      console.log('Success:', data);
-      
-      // Reset form
-      setFormData({
-        truck_combination: '',
-        trailer_type: '',
-        trailer_number: '',
-        detraction: '',
-        origin_city: '',
-        destination_city: '',
-        goods_type: '',
-        driver: null
-      });
-      setSelectedDriver(null);
-      
-    } catch (error) {
-      console.error('Error:', error.message);
-      Alert.alert('Error', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+        // Signatures - Sections 22-24
+        semnatura_expeditor: "",
+        semnatura_transportator: "",
+        semnatura_destinatar: "",
+        // Additional fields
+        numar_cmr: "",
+        data_emitere: "",
+        transportator: "",
+        transportatori_succesivi: "",
+        rezerve_observatii: "",
+        prescriptii_francare: "",
+        rambursare: ""
+    });
 
-  // Driver selection modal
-  const renderDriverModal = () => {
-    return (
-      <Modal
-        visible={isDriverModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setDriverModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Șofer</Text>
-              <TouchableOpacity onPress={() => setDriverModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-            
-            <FlatList
-              data={drivers}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity 
-                  style={styles.driverItem}
-                  onPress={() => selectDriver(item)}
-                >
-                  <Text style={styles.driverName}>{item.name}</Text>
-                  <Text style={styles.driverCompany}>{item.company}</Text>
-                  <View style={{flexDirection: 'row', marginTop: 4}}>
-                    <Text style={[
-                      styles.driverStatus, 
-                      item.is_active ? styles.driverStatusActive : styles.driverStatusInactive
-                    ]}>
-                      {item.is_active ? 'Activ' : 'Inactiv'}
-                    </Text>
-                    <Text style={[
-                      styles.driverStatus,
-                      item.driver && !item.driver.on_road ? styles.driverStatusAvailable : styles.driverStatusOnRoad
-                    ]}>
-                      {item.driver && !item.driver.on_road ? 'Disponibil' : 'În cursă'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>Nu există șoferi disponibili</Text>
-              }
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
+    const [drivers, setDrivers] = useState([]);
+    const [selectedDriver, setSelectedDriver] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [isDriverModalVisible, setDriverModalVisible] = useState(false);
+    const [isTruckModalVisible, setTruckModalVisible] = useState(false);
+    const [isTrailerModalVisible, setTrailerModalVisible] = useState(false);
+    const [isDetractionModalVisible, setDetractionModalVisible] = useState(false);
+    const [isGoodsTypeModalVisible, setGoodsTypeModalVisible] = useState(false);
+    const [showCMRForm, setShowCMRForm] = useState(false);
+    const [authToken, setAuthToken] = useState(null);
+    const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 
-  // Truck combination selection modal
-  const renderTruckModal = () => {
-    return (
-      <Modal
-        visible={isTruckModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setTruckModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Combinație Camion</Text>
-              <TouchableOpacity onPress={() => setTruckModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-            
-            <FlatList
-              data={truckCombinations}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity 
-                  style={styles.optionItem}
-                  onPress={() => selectTruckCombination(item)}
-                >
-                  <Text style={styles.optionText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
+    useEffect(() => {
+        const getAuthToken = () => {
+            try {
+                console.log("Attempting to get auth token from localStorage");
+                const token = localStorage.getItem('authToken');
+                console.log("Token from localStorage:", token ? "Token exists" : "No token found");
 
-  // Trailer type selection modal
-  const renderTrailerModal = () => {
-    return (
-      <Modal
-        visible={isTrailerModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setTrailerModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Tip Remorcă</Text>
-              <TouchableOpacity onPress={() => setTrailerModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-            
-            <FlatList
-              data={trailerTypes}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity 
-                  style={styles.optionItem}
-                  onPress={() => selectTrailerType(item)}
-                >
-                  <Text style={styles.optionText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-  
-  // New modal for Detraction (Tip Tractare)
-  const renderDetractionModal = () => {
-    return (
-      <Modal
-        visible={isDetractionModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setDetractionModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Tip Tractare</Text>
-              <TouchableOpacity onPress={() => setDetractionModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-            
-            <FlatList
-              data={detractionTypes}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity 
-                  style={styles.optionItem}
-                  onPress={() => selectDetraction(item)}
-                >
-                  <Text style={styles.optionText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-  
-  // New modal for Goods Type (Tip Marfa)
-  const renderGoodsTypeModal = () => {
-    return (
-      <Modal
-        visible={isGoodsTypeModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setGoodsTypeModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Tip Marfă</Text>
-              <TouchableOpacity onPress={() => setGoodsTypeModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-            
-            <FlatList
-              data={goodsTypes}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity 
-                  style={styles.optionItem}
-                  onPress={() => selectGoodsType(item)}
-                >
-                  <Text style={styles.optionText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
-  if (loading && !isDriverModalVisible && !isTruckModalVisible && !isTrailerModalVisible && !isDetractionModalVisible && !isGoodsTypeModalVisible) {
-    return (
-      <SafeAreaView style={styles.loadingContainer || { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
-        <View style={styles.loadingCard || { padding: 20, backgroundColor: COLORS.white, borderRadius: 10, alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText || { marginTop: 10, color: COLORS.primary, fontSize: 16 }}>Se incarca...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.container || { flex: 1, backgroundColor: COLORS.background }}>
-      <StatusBar barStyle="dark-content" />
-      
-      <View style={styles.navigationHeader || { flexDirection: 'row', justifyContent: 'space-between', padding: 16 }}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-            } else {
-              navigation.navigate("Main");
+                if (token) {
+                    setAuthToken(token);
+                    console.log("Auth token set in state");
+                } else {
+                    console.log("No token found, setting error");
+                    setError('Authentication required. Please log in first.');
+                }
+            } catch (err) {
+                console.error("Error getting auth token:", err);
+                setError('Failed to load authentication token.');
+            } finally {
+                console.log("Setting loading to false");
+                setLoading(false);
             }
-          }}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.refreshButton}
-          onPress={fetchDrivers}
-        >
-          <Ionicons name="refresh" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
-      </View>
-      
-      <ScrollView contentContainerStyle={styles.scrollContainer || { padding: 16 }}>
-        {/* Header Card */}
-        <View style={styles.headerCard || { backgroundColor: COLORS.white, borderRadius: 10, padding: 16, marginBottom: 16 }}>
-          <Text style={styles.headerTitle || { fontSize: 24, fontWeight: 'bold', color: COLORS.primary }}>Creare Transport</Text>
-          <Text style={styles.headerSubtitle || { fontSize: 16, color: COLORS.text.light, marginTop: 8 }}>
-            Completati detaliile pentru transport nou
-          </Text>
-        </View>
+        };
 
-        {/* Form Card */}
-        <View style={styles.formCard || { backgroundColor: COLORS.white, borderRadius: 10, padding: 16 }}>
-          {/* Driver Selection */}
-          <View style={styles.driverSection}>
-            <Text style={styles.sectionTitle}>SELECTEAZĂ ȘOFER</Text>
-            <TouchableOpacity 
-              style={styles.driverSelector}
-              onPress={() => setDriverModalVisible(true)}
-            >
-              {selectedDriver ? (
-                <View style={styles.selectedDriverContainer}>
-                  <Text style={styles.selectedDriverName}>{selectedDriver.name}</Text>
-                  <Text style={styles.selectedDriverCompany}>{selectedDriver.company}</Text>
+        getAuthToken();
+    }, []);
+    const navigation = useNavigation();
+
+
+    // Function to update CMR data fields
+    // Function to update top-level CMR data fields
+    const handleCMRChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    // Function to update nested CMR data fields (e.g., de_plata or incheiat_la)
+    const handleNestedCMRChange = (parentField, field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [parentField]: {
+                ...prev[parentField],
+                [field]: value
+            }
+        }));
+    };
+
+
+
+
+    const handleSubmit = async () => {
+        // Validate required fields for the basic transport form
+        // Update with actual required CMR fields
+const requiredFields = ['expeditor_nume', 'destinatar_nume', 'loc_livrare']; // Add any other required fields
+const missingFields = requiredFields.filter(field => !formData[field]);
+        if (missingFields.length > 0) {
+            Alert.alert('Missing Fields', `Please complete the following fields: ${missingFields.join(', ')}`);
+            return;
+        }
+
+        console.log('Submitting form data:', formData);
+
+        setLoading(true);
+        try {
+            console.log('Submitting form data:', formData);
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/transport-cmr/1', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`,
+                },
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to create transport');
+            }
+
+            const data = await response.json();
+            Alert.alert('Success', 'Transport CMR edited successfully!');
+            console.log('Success:', data);
+
+            // Reset form
+            setFormData({
+
+                expeditor_nume: "",
+                expeditor_adresa: "",
+                expeditor_tara: "",
+                // Destinatar (Recipient) information - Section 2
+                destinatar_nume: "",
+                destinatar_adresa: "",
+                destinatar_tara: "",
+                // Location information - Sections 3-4
+                loc_livrare: "",
+                loc_incarcare: "",
+                data_incarcare: "",
+                // Cargo details - Sections 6-12
+                marci_numere: "",
+                numar_colete: "",
+                mod_ambalare: "",
+                natura_marfii: "",
+                nr_static: "",
+                greutate_bruta: "",
+                cubaj: "",
+                // Special instructions - Section 13
+                instructiuni_expeditor: "",
+                // Special conventions - Section 19
+                conventii_speciale: "",
+                // Payment information - Section 20
+                de_plata: {
+                    pret_transport: "",
+                    reduceri: "",
+                    sold: "",
+                    suplimente: "",
+                    alte_cheltuieli: "",
+                    total: ""
+                },
+                // Closure information - Section 21
+                incheiat_la: {
+                    locatie: "",
+                    data: ""
+                },
+                // Signatures - Sections 22-24
+                semnatura_expeditor: "",
+                semnatura_transportator: "",
+                semnatura_destinatar: "",
+                // Additional fields
+                numar_cmr: "",
+                data_emitere: "",
+                transportator: "",
+                transportatori_succesivi: "",
+                rezerve_observatii: "",
+                prescriptii_francare: "",
+                rambursare: ""
+            });
+            setSelectedDriver(null);
+
+        } catch (error) {
+            console.error('Error:', error.message);
+            Alert.alert('Error', error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Driver selection modal
+
+
+
+    // Render the CMR form fields
+    const renderCMRForm = () => {
+        if (!showCMRForm) return null;
+
+        return (
+            <View style={styles.cmrFormContainer || { marginTop: 16, backgroundColor: COLORS.white, borderRadius: 10, padding: 16 }}>
+                <Text style={styles.sectionTitle}>INFORMAȚII CMR</Text>
+
+                {/* Expeditor Section */}
+                <View style={styles.cmrSection}>
+                    <Text style={styles.cmrSectionTitle}>1. EXPEDITOR</Text>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>NUME</Text>
+                        <TextInput
+                            value={formData.expeditor_nume}
+                            onChangeText={(text) => handleCMRChange('expeditor_nume', text)}
+                            style={styles.input}
+                            placeholder="Nume expeditor"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>ADRESĂ</Text>
+                        <TextInput
+                            value={formData.expeditor_adresa}
+                            onChangeText={(text) => handleCMRChange('expeditor_adresa', text)}
+                            style={styles.input}
+                            placeholder="Adresă expeditor"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>ȚARĂ</Text>
+                        <TextInput
+                            value={formData.expeditor_tara}
+                            onChangeText={(text) => handleCMRChange('expeditor_tara', text)}
+                            style={styles.input}
+                            placeholder="Țară expeditor"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
                 </View>
-              ) : (
-                <Text style={styles.driverPlaceholder}>Apasă pentru a selecta un șofer</Text>
-              )}
-              <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
-            </TouchableOpacity>
-          </View>
 
-          {/* Truck Combination Selection */}
-          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
-            <View style={styles.inputWrapper || { flex: 1, marginRight: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                COMBINATIE CAMION
-              </Text>
-              <TouchableOpacity 
-                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
-                onPress={() => setTruckModalVisible(true)}
-              >
-                <Text style={formData.truck_combination ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {formData.truck_combination || 'Selectează combinație'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                TIP REMORCĂ
-              </Text>
-              <TouchableOpacity 
-                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
-                onPress={() => setTrailerModalVisible(true)}
-              >
-                <Text style={formData.trailer_type ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {formData.trailer_type || 'Selectează tip remorcă'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-          </View>
+                {/* Destinatar Section */}
+                <View style={styles.cmrSection}>
+                    <Text style={styles.cmrSectionTitle}>2. DESTINATAR</Text>
 
-          {/* Other Form Fields */}
-          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
-            <View style={styles.inputWrapper || { flex: 1, marginRight: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                NUMĂR REMORCĂ
-              </Text>
-              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
-                <TextInput
-                  value={formData.trailer_number}
-                  onChangeText={(text) => handleChange('trailer_number', text)}
-                  style={styles.input || { padding: 12, fontSize: 16 }}
-                  placeholderTextColor={COLORS.text.light}
-                />
-              </View>
-            </View>
-            
-            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                TIP TRACTARE
-              </Text>
-              {/* Changed from TextInput to TouchableOpacity for dropdown */}
-              <TouchableOpacity 
-                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
-                onPress={() => setDetractionModalVisible(true)}
-              >
-                <Text style={formData.detraction ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {formData.detraction || 'Selectează tip tractare'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-          </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>NUME</Text>
+                        <TextInput
+                            value={formData.destinatar_nume}
+                            onChangeText={(text) => handleCMRChange('destinatar_nume', text)}
+                            style={styles.input}
+                            placeholder="Nume destinatar"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
 
-          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
-            <View style={styles.inputWrapper || { flex: 1, marginRight: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                ORAȘ ORIGINE
-              </Text>
-              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
-                <TextInput
-                  value={formData.origin_city}
-                  onChangeText={(text) => handleChange('origin_city', text)}
-                  style={styles.input || { padding: 12, fontSize: 16 }}
-                  placeholderTextColor={COLORS.text.light}
-                />
-              </View>
-            </View>
-            
-            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                ORAȘ DESTINAȚIE
-              </Text>
-              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
-                <TextInput
-                  value={formData.destination_city}
-                  onChangeText={(text) => handleChange('destination_city', text)}
-                  style={styles.input || { padding: 12, fontSize: 16 }}
-                  placeholderTextColor={COLORS.text.light}
-                />
-              </View>
-            </View>
-          </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>ADRESĂ</Text>
+                        <TextInput
+                            value={formData.destinatar_adresa}
+                            onChangeText={(text) => handleCMRChange('destinatar_adresa', text)}
+                            style={styles.input}
+                            placeholder="Adresă destinatar"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
 
-          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
-            <View style={styles.inputWrapper || { flex: 1 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                TIP MARFĂ
-              </Text>
-              {/* Changed from TextInput to TouchableOpacity for dropdown */}
-              <TouchableOpacity 
-                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
-                onPress={() => setGoodsTypeModalVisible(true)}
-              >
-                <Text style={formData.goods_type ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {formData.goods_type || 'Selectează tip marfă'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
-              </TouchableOpacity>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>ȚARĂ</Text>
+                        <TextInput
+                            value={formData.destinatar_tara}
+                            onChangeText={(text) => handleCMRChange('destinatar_tara', text)}
+                            style={styles.input}
+                            placeholder="Țară destinatar"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+                </View>
+
+                {/* Location Information */}
+                <View style={styles.cmrSection}>
+                    <Text style={styles.cmrSectionTitle}>LOCAȚII & DATE</Text>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>LOC LIVRARE</Text>
+                        <TextInput
+                            value={formData.loc_livrare}
+                            onChangeText={(text) => handleCMRChange('loc_livrare', text)}
+                            style={styles.input}
+                            placeholder="Loc de livrare"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>LOC ÎNCĂRCARE</Text>
+                        <TextInput
+                            value={formData.loc_incarcare}
+                            onChangeText={(text) => handleCMRChange('loc_incarcare', text)}
+                            style={styles.input}
+                            placeholder="Loc de încărcare"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>DATA ÎNCĂRCARE</Text>
+                        <TextInput
+                            value={formData.data_incarcare}
+                            onChangeText={(text) => handleCMRChange('data_incarcare', text)}
+                            style={styles.input}
+                            placeholder="DD.MM.YYYY"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+                </View>
+
+                {/* Cargo Details */}
+                <View style={styles.cmrSection}>
+                    <Text style={styles.cmrSectionTitle}>DETALII MARFĂ</Text>
+
+                    <View style={styles.inputRow || { flexDirection: 'row' }}>
+                        <View style={[styles.inputWrapper, { flex: 1, marginRight: 8 }]}>
+                            <Text style={styles.inputLabel}>MĂRCI/NUMERE</Text>
+                            <TextInput
+                                value={formData.marci_numere}
+                                onChangeText={(text) => handleCMRChange('marci_numere', text)}
+                                style={styles.input}
+                                placeholder="Mărci/Numere"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+
+                        <View style={[styles.inputWrapper, { flex: 1, marginLeft: 8 }]}>
+                            <Text style={styles.inputLabel}>NUMĂR COLETE</Text>
+                            <TextInput
+                                value={formData.numar_colete}
+                                onChangeText={(text) => handleCMRChange('numar_colete', text)}
+                                style={styles.input}
+                                placeholder="Număr colete"
+                                keyboardType="numeric"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={styles.inputRow || { flexDirection: 'row', marginTop: 12 }}>
+                        <View style={[styles.inputWrapper, { flex: 1, marginRight: 8 }]}>
+                            <Text style={styles.inputLabel}>MOD AMBALARE</Text>
+                            <TextInput
+                                value={formData.mod_ambalare}
+                                onChangeText={(text) => handleCMRChange('mod_ambalare', text)}
+                                style={styles.input}
+                                placeholder="Mod ambalare"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+
+                        <View style={[styles.inputWrapper, { flex: 1, marginLeft: 8 }]}>
+                            <Text style={styles.inputLabel}>NATURA MĂRFII</Text>
+                            <TextInput
+                                value={formData.natura_marfii}
+                                onChangeText={(text) => handleCMRChange('natura_marfii', text)}
+                                style={styles.input}
+                                placeholder="Natura mărfii"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={styles.inputRow || { flexDirection: 'row', marginTop: 12 }}>
+                        <View style={[styles.inputWrapper, { flex: 1, marginRight: 8 }]}>
+                            <Text style={styles.inputLabel}>NR. STATIC</Text>
+                            <TextInput
+                                value={formData.nr_static}
+                                onChangeText={(text) => handleCMRChange('nr_static', text)}
+                                style={styles.input}
+                                placeholder="Nr. static"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+
+                        <View style={[styles.inputWrapper, { flex: 1, marginLeft: 8 }]}>
+                            <Text style={styles.inputLabel}>GREUTATE BRUTĂ (kg)</Text>
+                            <TextInput
+                                value={formData.greutate_bruta}
+                                onChangeText={(text) => handleCMRChange('greutate_bruta', text)}
+                                style={styles.input}
+                                placeholder="Greutate brută"
+                                keyboardType="numeric"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>CUBAJ (m³)</Text>
+                        <TextInput
+                            value={formData.cubaj}
+                            onChangeText={(text) => handleCMRChange('cubaj', text)}
+                            style={styles.input}
+                            placeholder="Cubaj"
+                            keyboardType="numeric"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+                </View>
+
+                {/* Instructions */}
+                <View style={styles.cmrSection}>
+                    <Text style={styles.cmrSectionTitle}>INSTRUCȚIUNI & CONVENȚII</Text>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>INSTRUCȚIUNI EXPEDITOR</Text>
+                        <TextInput
+                            value={formData.instructiuni_expeditor}
+                            onChangeText={(text) => handleCMRChange('instructiuni_expeditor', text)}
+                            style={[styles.input, { height: 80 }]}
+                            placeholder="Instrucțiuni expeditor"
+                            multiline={true}
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>CONVENȚII SPECIALE</Text>
+                        <TextInput
+                            value={formData.conventii_speciale}
+                            onChangeText={(text) => handleCMRChange('conventii_speciale', text)}
+                            style={[styles.input, { height: 80 }]}
+                            placeholder="Convenții speciale"
+                            multiline={true}
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+                </View>
+
+                {/* Payment Information */}
+                <View style={styles.cmrSection}>
+                    <Text style={styles.cmrSectionTitle}>INFORMAȚII PLATĂ</Text>
+
+                    <View style={styles.inputRow || { flexDirection: 'row' }}>
+                        <View style={[styles.inputWrapper, { flex: 1, marginRight: 8 }]}>
+                            <Text style={styles.inputLabel}>PREȚ TRANSPORT</Text>
+                            <TextInput
+                                value={formData.de_plata.pret_transport}
+                                onChangeText={(text) => handleNestedCMRChange('de_plata', 'pret_transport', text)}
+                                style={styles.input}
+                                placeholder="Preț transport"
+                                keyboardType="numeric"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+
+                        <View style={[styles.inputWrapper, { flex: 1, marginLeft: 8 }]}>
+                            <Text style={styles.inputLabel}>REDUCERI</Text>
+                            <TextInput
+                                value={formData.de_plata.reduceri}
+                                onChangeText={(text) => handleNestedCMRChange('de_plata', 'reduceri', text)}
+                                style={styles.input}
+                                placeholder="Reduceri"
+                                keyboardType="numeric"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={styles.inputRow || { flexDirection: 'row', marginTop: 12 }}>
+                        <View style={[styles.inputWrapper, { flex: 1, marginRight: 8 }]}>
+                            <Text style={styles.inputLabel}>SOLD</Text>
+                            <TextInput
+                                value={formData.de_plata.sold}
+                                onChangeText={(text) => handleNestedCMRChange('de_plata', 'sold', text)}
+                                style={styles.input}
+                                placeholder="Sold"
+                                keyboardType="numeric"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+
+                        <View style={[styles.inputWrapper, { flex: 1, marginLeft: 8 }]}>
+                            <Text style={styles.inputLabel}>SUPLIMENTE</Text>
+                            <TextInput
+                                value={formData.de_plata.suplimente}
+                                onChangeText={(text) => handleNestedCMRChange('de_plata', 'suplimente', text)}
+                                style={styles.input}
+                                placeholder="Suplimente"
+                                keyboardType="numeric"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={styles.inputRow || { flexDirection: 'row', marginTop: 12 }}>
+                        <View style={[styles.inputWrapper, { flex: 1, marginRight: 8 }]}>
+                            <Text style={styles.inputLabel}>ALTE CHELTUIELI</Text>
+                            <TextInput
+                                value={formData.de_plata.alte_cheltuieli}
+                                onChangeText={(text) => handleNestedCMRChange('de_plata', 'alte_cheltuieli', text)}
+                                style={styles.input}
+                                placeholder="Alte cheltuieli"
+                                keyboardType="numeric"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+
+                        <View style={[styles.inputWrapper, { flex: 1, marginLeft: 8 }]}>
+                            <Text style={styles.inputLabel}>TOTAL</Text>
+                            <TextInput
+                                value={formData.de_plata.total}
+                                onChangeText={(text) => handleNestedCMRChange('de_plata', 'total', text)}
+                                style={styles.input}
+                                placeholder="Total"
+                                keyboardType="numeric"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+                    </View>
+                </View>
+
+                {/* Closure Information */}
+                <View style={styles.cmrSection}>
+                    <Text style={styles.cmrSectionTitle}>ÎNCHEIERE</Text>
+
+                    <View style={styles.inputRow || { flexDirection: 'row' }}>
+                        <View style={[styles.inputWrapper, { flex: 1, marginRight: 8 }]}>
+                            <Text style={styles.inputLabel}>LOCAȚIE</Text>
+                            <TextInput
+                                value={formData.incheiat_la.locatie}
+                                onChangeText={(text) => handleNestedCMRChange('incheiat_la', 'locatie', text)}
+                                style={styles.input}
+                                placeholder="Locație"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+
+                        <View style={[styles.inputWrapper, { flex: 1, marginLeft: 8 }]}>
+                            <Text style={styles.inputLabel}>DATA</Text>
+                            <TextInput
+                                value={formData.incheiat_la.data}
+                                onChangeText={(text) => handleNestedCMRChange('incheiat_la', 'data', text)}
+                                style={styles.input}
+                                placeholder="DD.MM.YYYY"
+                                placeholderTextColor={COLORS.text.light}
+                            />
+                        </View>
+                    </View>
+                </View>
+
+                {/* Additional Information */}
+                <View style={styles.cmrSection}>
+                    <Text style={styles.cmrSectionTitle}>INFORMAȚII SUPLIMENTARE</Text>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>NUMĂR CMR</Text>
+                        <TextInput
+                            value={formData.numar_cmr}
+                            onChangeText={(text) => handleCMRChange('numar_cmr', text)}
+                            style={styles.input}
+                            placeholder="Număr CMR"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>DATA EMITERE</Text>
+                        <TextInput
+                            value={formData.data_emitere}
+                            onChangeText={(text) => handleCMRChange('data_emitere', text)}
+                            style={styles.input}
+                            placeholder="DD.MM.YYYY"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>TRANSPORTATOR</Text>
+                        <TextInput
+                            value={formData.transportator}
+                            onChangeText={(text) => handleCMRChange('transportator', text)}
+                            style={styles.input}
+                            placeholder="Transportator"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>TRANSPORTATORI SUCCESIVI</Text>
+                        <TextInput
+                            value={formData.transportatori_succesivi}
+                            onChangeText={(text) => handleCMRChange('transportatori_succesivi', text)}
+                            style={styles.input}
+                            placeholder="Transportatori succesivi"
+                            placeholderTextColor={COLORS.text.light}
+                        />
+                    </View>
+                </View>
             </View>
-            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }} />
-          </View>
+        );
+    };
 
-          <LinearGradient
-            colors={[COLORS.secondary, COLORS.primary]}
-            style={styles.submitButtonGradient || { borderRadius: 8, marginTop: 16 }}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <TouchableOpacity 
-              style={styles.submitButton || { padding: 16, alignItems: 'center' }} 
-              onPress={handleSubmit}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.submitButtonText || { color: COLORS.white, fontWeight: 'bold', fontSize: 16 }}>CREEAZĂ TRANSPORT</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </View>
-      </ScrollView>
 
-      {renderDriverModal()}
-      {renderTruckModal()}
-      {renderTrailerModal()}
-      {renderDetractionModal()} {/* New modal */}
-      {renderGoodsTypeModal()} {/* New modal */}
-    </SafeAreaView>
-  );
-}
+
+    return (
+        <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.navigationHeader || { flexDirection: 'row', justifyContent: 'space-between', padding: 16 }}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => {
+                            if (navigation.canGoBack()) {
+                                navigation.goBack();
+                            } else {
+                                navigation.navigate("Main");
+                            }
+                        }}
+                    >
+                        <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Completeaza CMR</Text>
+                </View>
+
+                {/* Your transport form fields */}
+                {/* ... */}
+
+                {/* CMR Toggle */}
+                <View style={styles.cmrToggleContainer}>
+                    <Text style={styles.cmrToggleText}>Adaugă informații CMR</Text>
+                    <TouchableOpacity
+                        onPress={() => setShowCMRForm(!showCMRForm)}
+                        style={[styles.cmrToggleButton, showCMRForm && styles.cmrToggleButtonActive]}
+                    >
+                        <Ionicons
+                            name={showCMRForm ? "checkmark-circle" : "add-circle-outline"}
+                            size={24}
+                            color={showCMRForm ? COLORS.white : COLORS.primary}
+                        />
+                    </TouchableOpacity>
+                </View>
+
+                {/* CMR Form */}
+                {renderCMRForm()}
+                {/* Submit Button */}
+                <TouchableOpacity
+                    style={[styles.submitButton, loading ? styles.submitButtonDisabled : null]}
+                    onPress={handleSubmit}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <ActivityIndicator color={COLORS.white} />
+                    ) : (
+                        <Text style={styles.submitButtonText}> Submit </Text>
+                    )}
+                </TouchableOpacity>
+            </ScrollView>
+
+            {/* All modals */}
+
+        </SafeAreaView>
+    )
+};
