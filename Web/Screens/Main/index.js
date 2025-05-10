@@ -154,11 +154,41 @@ const DispatcherDashboard = () => {
 
             // Make sure we have the right property, add fallback
             const final_no = driversData.number_of_drivers;
+
+            const totalDrivers = await fetch(`${BASE_URL}drivers`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const final_active_Data = await totalDrivers.json();
+            const final_no_a = final_active_Data.number_of_drivers;
+            console.log("Active drivers data:", final_no_a);
+            const activeShipment = await fetch(`${BASE_URL}active-transports`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const activeShipmentData = await activeShipment.json();
+            const number_of_active_transports = activeShipmentData.number_of_active_transports;
+            const delayedShipment = await fetch(`${BASE_URL}inactive-transports`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const delayedShipmentData = await delayedShipment.json();
+            const number_of_inactive_transports = delayedShipmentData.number_of_inactive_transports;
+            console.log("Delayed shipment data:", delayedShipment.json());
             // Set stats with safe values
             setStats({
-                activeShipments: 0,
-                delayedShipments: 0,
-                activeDrivers: 4, // Your placeholder
+                activeShipments: number_of_active_transports||0,
+                delayedShipments: number_of_inactive_transports||0,
+                activeDrivers: final_no||0, 
                 final_no: final_no || 12,
             });
 
@@ -167,17 +197,15 @@ const DispatcherDashboard = () => {
         } catch (error) {
             console.error("Error fetching data:", error);
             setIsLoading(false);
-            // Consider setting an error state here for user feedback
             setError('Failed to load data. Please try again later.');
         }
     };
 
-    // A single useEffect that handles the data loading
     useEffect(() => {
         if (authToken) {
             loadData();
         }
-    }, [authToken]); // Remove loadData from dependencies to avoid infinite loops
+    }, [authToken]); 
 
     const formatDateTime = (date) => {
         if (!date) return "Neprogramat";
@@ -339,7 +367,7 @@ const DispatcherDashboard = () => {
                         <View style={styles.summaryIconContainer}>
                             <Feather name="alert-triangle" size={18} color={COLORS.warning} />
                         </View>
-                        <Text style={styles.summaryLabel}>Transporturi întârziate</Text>
+                        <Text style={styles.summaryLabel}>Transporturi finalizate</Text>
                         <Text style={styles.summaryNumber}>{stats.delayedShipments}</Text>
                     </View>
 
@@ -380,7 +408,7 @@ const DispatcherDashboard = () => {
                         </View>
                         <Text style={styles.gridText}>Transporturi in curs de desfasurare</Text>
                     </TouchableOpacity>
-
+                    
                     <TouchableOpacity
                         style={styles.gridItem}
                         onPress={() => navigation.navigate('Drivers')}
