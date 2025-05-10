@@ -40,7 +40,7 @@ const DispatcherDashboard = () => {
         warning: "#FFBD59",        // Amber
         danger: "#FF7285",         // Soft red
     };
-    
+
     // Rest of your useEffect hooks and functions remain unchanged...
     useEffect(() => {
         const getAuthToken = () => {
@@ -67,12 +67,12 @@ const DispatcherDashboard = () => {
 
         getAuthToken();
     }, []);
-    
+
     // Define loadData outside both useEffects
     const loadData = async () => {
         try {
             const token = localStorage.getItem('authToken');
-            
+
             // 1. Fetch profile data
             const profileResponse = await fetch(`${BASE_URL}profile`, {
                 method: 'GET',
@@ -81,13 +81,13 @@ const DispatcherDashboard = () => {
                     'Content-Type': 'application/json'
                 }
             });
-    
+
             if (!profileResponse.ok) {
                 throw new Error('Failed to fetch profile');
             }
-    
+
             const profile = await profileResponse.json();
-            
+
             // Set user data
             setUserData({
                 name: profile.name,
@@ -98,7 +98,7 @@ const DispatcherDashboard = () => {
                         ? "Dispecer"
                         : "Utilizator"
             });
-    
+
             // 2. Fetch transports data
             const transportResponse = await fetch(`${BASE_URL}transports`, {
                 method: 'GET',
@@ -107,28 +107,26 @@ const DispatcherDashboard = () => {
                     'Content-Type': 'application/json'
                 }
             });
-    
+
             if (!transportResponse.ok) throw new Error('Failed to fetch transports');
             const transportsData = await transportResponse.json();
-            
-            // Check if transports is an array, if not extract the array from the response
-            const transports = Array.isArray(transportsData) 
-                ? transportsData 
+            console.log("Transports data:", transportsData);
+            const transports = Array.isArray(transportsData)
+                ? transportsData
                 : (transportsData.results || transportsData.transports || []);
-                
+
             console.log("Transports data structure:", typeof transports, Array.isArray(transports), transports.length);
-    
-            // Get last 3 (assuming they're sorted newest-last — reverse if needed)
-            // Only slice if it's an array with elements
-            const lastThree = Array.isArray(transports) && transports.length > 0 
+
+            const lastThree = Array.isArray(transports) && transports.length > 0
                 ? transports.slice(-Math.min(3, transports.length)).reverse()
                 : [];
-    
-            const formatted = lastThree.map((t, idx) => ({
+
+            // Remove the unused 'idx' parameter
+            const formatted = lastThree.map(t => ({
                 id: `TR-${t.id}`,
-                origin_city: "Necunoscut", // Placeholder unless you have route data
-                destination_city: "Necunoscut",
-                eta: new Date(), // Placeholder unless you get a date
+                origin_city: t.origin_city||"Necunoscut",
+                destination_city: t.destination_city||"Necunoscut",
+                eta: new Date(),
                 status: t.status_transport || "necunoscut",
                 cargo: t.truck_combination || "Nespecificat",
                 pallets: 0,
@@ -136,9 +134,11 @@ const DispatcherDashboard = () => {
                 completion: 0,
                 driver: `ID: ${t.driver}`
             }));
-    
+
             setShipments(formatted);
-    
+
+            setShipments(formatted);
+
             // 3. Fetch drivers data
             const driversRes = await fetch(`${BASE_URL}drivers`, {
                 method: 'GET',
@@ -147,23 +147,23 @@ const DispatcherDashboard = () => {
                     'Content-Type': 'application/json'
                 }
             });
-    
+
             if (!driversRes.ok) throw new Error('Failed to fetch drivers');
             const driversData = await driversRes.json();
             console.log("Drivers data:", driversData);
-            
+
             // Make sure we have the right property, add fallback
             const final_no = driversData.number_of_drivers;
             // Set stats with safe values
             setStats({
-                activeShipments:  0,
+                activeShipments: 0,
                 delayedShipments: 0,
                 activeDrivers: 4, // Your placeholder
                 final_no: final_no || 12,
             });
-            
+
             setIsLoading(false);
-    
+
         } catch (error) {
             console.error("Error fetching data:", error);
             setIsLoading(false);
@@ -171,14 +171,14 @@ const DispatcherDashboard = () => {
             setError('Failed to load data. Please try again later.');
         }
     };
-    
+
     // A single useEffect that handles the data loading
     useEffect(() => {
         if (authToken) {
             loadData();
         }
     }, [authToken]); // Remove loadData from dependencies to avoid infinite loops
-    
+
     const formatDateTime = (date) => {
         if (!date) return "Neprogramat";
         return date.toLocaleDateString() + ", " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -378,7 +378,7 @@ const DispatcherDashboard = () => {
                         <View style={[styles.gridIconContainer, { backgroundColor: COLORS.secondary + '20' }]}>
                             <Feather name="clipboard" size={22} color={COLORS.secondary} />
                         </View>
-                        <Text style={styles.gridText}>Transporturi</Text>
+                        <Text style={styles.gridText}>Transporturi in curs de desfasurare</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -410,7 +410,7 @@ const DispatcherDashboard = () => {
                         </View>
                         <Text style={styles.gridText}>Creare transport</Text>
                     </TouchableOpacity>
-                    
+
                     {/* Additional buttons that show when expanded */}
                     {expandedActions && (
                         <>
@@ -423,7 +423,7 @@ const DispatcherDashboard = () => {
                                 </View>
                                 <Text style={styles.gridText}>Adaugă camion</Text>
                             </TouchableOpacity>
-                            
+
                             <TouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('AddDriver')}
@@ -433,13 +433,13 @@ const DispatcherDashboard = () => {
                                 </View>
                                 <Text style={styles.gridText}>Adaugă șofer</Text>
                             </TouchableOpacity>
-                            
+
                             <TouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('AddTrailer')}
                             >
                                 <View style={[styles.gridIconContainer, { backgroundColor: COLORS.danger + '20' }]}>
-                                    <Feather name="box" size={22} color={COLORS.danger} />
+                                    <Feather name="upload" size={22} color={COLORS.danger} />
                                 </View>
                                 <Text style={styles.gridText}>Adaugă trailer</Text>
                             </TouchableOpacity>
@@ -447,8 +447,8 @@ const DispatcherDashboard = () => {
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('AddTrailer')}
                             >
-                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.danger + '20' }]}>
-                                    <Feather name="box" size={22} color={COLORS.danger} />
+                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.primary + '20' }]}>
+                                    <Feather name="plus" size={22} color={COLORS.primary} />
                                 </View>
                                 <Text style={styles.gridText}>Adaugă remorca</Text>
                             </TouchableOpacity>
@@ -457,8 +457,10 @@ const DispatcherDashboard = () => {
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('AllTrailers')}
                             >
-                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.danger + '20' }]}>
-                                    <Feather name="box" size={22} color={COLORS.danger} />
+                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.accent2 + '20' }]}>
+                                    <Feather name="eye" size={22} color={COLORS.accent2} />
+
+
                                 </View>
                                 <Text style={styles.gridText}>Vezi remorcile</Text>
                             </TouchableOpacity>

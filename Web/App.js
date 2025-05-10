@@ -16,6 +16,7 @@ import AddTrailer from './Screens/AddTrailer/index.js';
 import AllTrailers from './Screens/AllTrailers/index.js';
 import PDFC from './Screens/PDFGenerator/index.js'; 
 import AddDriver from './Screens/AddDriver/index.js'
+import CompleteCMR from './Screens/CompleteCMR';
 enableScreens();
 
 class ErrorBoundary extends React.Component {
@@ -156,6 +157,12 @@ function App() {
               component={AddDriver}
               options={{ headerShown: false }}
               />
+              <Stack.Screen
+              name = {"CompleteCMR"}
+              component = {CompleteCMR}
+              options = {{ headerShown: false }}
+            />
+
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
