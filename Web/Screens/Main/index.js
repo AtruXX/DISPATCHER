@@ -287,13 +287,15 @@ const DispatcherDashboard = () => {
                                 <Text style={styles.notificationCount}>3</Text>
                             </View>
                         </TouchableOpacity>
-
-                        <View style={styles.profileContainer}>
-                            <Text style={styles.profileInitials}>
-                                {userData.name.split(' ').map(n => n[0]).join('')}
-                            </Text>
-                        </View>
+                        <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+  <View style={styles.profileContainer}>
+    <Text style={styles.profileInitials}>
+      {userData.name.split(' ').map(n => n[0]).join('')}
+    </Text>
+  </View>
+</TouchableOpacity>
                     </View>
+
                 </View>
 
                 <View style={styles.dateContainer}>

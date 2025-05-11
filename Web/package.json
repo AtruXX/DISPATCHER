@@ -18,6 +18,7 @@
     "@react-navigation/native-stack": "^7.3.10",
     "@rneui/themed": "^4.0.0-rc.8",
     "axios": "^1.9.0",
+    "date-fns": "^4.1.0",
     "expo": "~52.0.46",
     "expo-document-picker": "^13.1.5",
     "expo-linear-gradient": "^14.0.2",
