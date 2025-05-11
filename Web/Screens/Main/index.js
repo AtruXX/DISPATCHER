@@ -124,8 +124,8 @@ const DispatcherDashboard = () => {
             // Remove the unused 'idx' parameter
             const formatted = lastThree.map(t => ({
                 id: `TR-${t.id}`,
-                origin_city: t.origin_city||"Necunoscut",
-                destination_city: t.destination_city||"Necunoscut",
+                origin_city: t.origin_city || "Necunoscut",
+                destination_city: t.destination_city || "Necunoscut",
                 eta: new Date(),
                 status: t.status_transport || "necunoscut",
                 cargo: t.truck_combination || "Nespecificat",
@@ -186,9 +186,9 @@ const DispatcherDashboard = () => {
             console.log("Delayed shipment data:", delayedShipment.json());
             // Set stats with safe values
             setStats({
-                activeShipments: number_of_active_transports||0,
-                delayedShipments: number_of_inactive_transports||0,
-                activeDrivers: final_no||0, 
+                activeShipments: number_of_active_transports || 0,
+                delayedShipments: number_of_inactive_transports || 0,
+                activeDrivers: final_no || 0,
                 final_no: final_no || 12,
             });
 
@@ -205,7 +205,7 @@ const DispatcherDashboard = () => {
         if (authToken) {
             loadData();
         }
-    }, [authToken]); 
+    }, [authToken]);
 
     const formatDateTime = (date) => {
         if (!date) return "Neprogramat";
@@ -288,12 +288,12 @@ const DispatcherDashboard = () => {
                             </View>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
-  <View style={styles.profileContainer}>
-    <Text style={styles.profileInitials}>
-      {userData.name.split(' ').map(n => n[0]).join('')}
-    </Text>
-  </View>
-</TouchableOpacity>
+                            <View style={styles.profileContainer}>
+                                <Text style={styles.profileInitials}>
+                                    {userData.name.split(' ').map(n => n[0]).join('')}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
                     </View>
 
                 </View>
@@ -410,7 +410,7 @@ const DispatcherDashboard = () => {
                         </View>
                         <Text style={styles.gridText}>Transporturi in curs de desfasurare</Text>
                     </TouchableOpacity>
-                    
+
                     <TouchableOpacity
                         style={styles.gridItem}
                         onPress={() => navigation.navigate('Drivers')}
@@ -532,12 +532,7 @@ const DispatcherDashboard = () => {
                                 </View>
                             </View>
 
-                            <View style={styles.progressContainer}>
-                                <View style={styles.progressBarContainer}>
-                                    <View style={[styles.progressBar, { width: `${shipment.completion}%`, backgroundColor: getStatusColor(shipment.status) }]} />
-                                </View>
-                                <Text style={styles.progressText}>{shipment.completion}%</Text>
-                            </View>
+                            
 
                             <View style={styles.shipmentDetails}>
                                 <View style={styles.detailColumn}>
@@ -573,10 +568,7 @@ const DispatcherDashboard = () => {
                                     <Text style={styles.actionText}>Contact</Text>
                                 </TouchableOpacity>
 
-                                <TouchableOpacity style={styles.actionButton}>
-                                    <Feather name="map-pin" size={16} color={COLORS.primary} />
-                                    <Text style={styles.actionText}>Locație</Text>
-                                </TouchableOpacity>
+                                
 
                                 <TouchableOpacity style={styles.viewDetailsButton}>
                                     <Text style={styles.viewDetailsText}>Vezi detalii</Text>

@@ -5,6 +5,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import styles from './styles';
+import { Ionicons } from '@expo/vector-icons';
 
 const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 
@@ -18,7 +19,21 @@ const ProfileScreen = () => {
   useEffect(() => {
     loadData();
   }, []);
-
+  const COLORS = {
+    background: "#F4F5FB",     // Light lavender background
+    card: "#FFFFFF",           // White
+    primary: "#5A5BDE",        // Purple-blue (primary)
+    secondary: "#6F89FF",      // Light blue
+    accent: "#FF8C66",         // Soft orange
+    accent2: "#81C3F8",        // Sky blue
+    dark: "#373A56",           // Dark navy
+    medium: "#6B6F8D",         // Medium navy-gray
+    light: "#A0A4C1",          // Light gray-purple
+    border: "#E2E5F1",         // Light border
+    success: "#63C6AE",        // Turquoise
+    warning: "#FFBD59",        // Amber
+    danger: "#FF7285",         // Soft red
+};
   const loadData = async () => {
     try {
       setIsLoading(true);
@@ -104,6 +119,26 @@ const ProfileScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
+         <View style={styles.navigationHeader || { flexDirection: 'row', justifyContent: 'space-between', padding: 16 }}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate("Main");
+            }
+          }}
+        >
+          <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.refreshButton}
+          onPress={loadData}
+        >
+          <Ionicons name="refresh" size={24} color={COLORS.primary} />
+        </TouchableOpacity>
+      </View>
       {/* Profile Header */}
       <View style={styles.profileHeader}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>

@@ -240,6 +240,31 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.medium,
   },
+  navigationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  backButton: {
+    padding: 8,
+  },
+  refreshButton: {
+    padding: 8,
+  },
+  headerCard: {
+    marginHorizontal: 20,
+    marginVertical: 16,
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#A7A9AF',
+    shadowOffset: { width: 5, height: 5 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  
 });
 
 export default styles;
