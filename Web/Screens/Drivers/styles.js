@@ -18,7 +18,7 @@ const COLORS = {
     warning: "#FFA726", // Orange for warnings
     available: "#81C784", // Green for available drivers
     unavailable: "#E57373", // Red for unavailable drivers
-  };
+};
   
 export const styles = StyleSheet.create({
     container: {
@@ -50,87 +50,16 @@ export const styles = StyleSheet.create({
     listContainer: {
       paddingBottom: 20,
     },
-    driverCardContainer: {
-      paddingHorizontal: 20,
-      paddingBottom: 16,
-    },
-    driverCard: {
-      backgroundColor: '#FFFFFF',
-      borderRadius: 16,
-      padding: 16,
-      flexDirection: 'row',
-      shadowColor: '#A7A9AF',
-      shadowOffset: { width: 4, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
-      elevation: 8,
-    },
-    avatarSection: {
-      marginRight: 16,
-      position: 'relative',
-    },
-    avatarGradient: {
-      width: 64,
-      height: 64,
-      borderRadius: 32,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    avatarText: {
-      color: '#FFFFFF',
-      fontSize: 20,
-      fontWeight: 'bold',
-    },
-    statusIndicator: {
-      position: 'absolute',
-      right: -2,
-      bottom: -2,
-      backgroundColor: '#FFFFFF',
-      borderRadius: 10,
-      padding: 2,
-    },
-    statusDot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-    },
-    driverInfo: {
-      flex: 1,
-    },
-    driverName: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: '#303F9F',
-      marginBottom: 2,
-    },
-    driverEmail: {
-      fontSize: 14,
-      color: '#7986CB',
-      marginBottom: 8,
-    },
-    divider: {
-      height: 1,
-      backgroundColor: '#E0E0E0',
-      marginVertical: 8,
-    },
-    detailRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 8,
-    },
+    
+   
+    
+   
+    
     detailItem: {
       flex: 1,
     },
-    detailLabel: {
-      fontSize: 12,
-      color: '#9E9E9E',
-      marginBottom: 2,
-    },
-    detailValue: {
-      fontSize: 14,
-      color: '#424242',
-      fontWeight: '500',
-    },
+    
+    
     ratingContainer: {
       flexDirection: 'row',
       alignItems: 'baseline',
@@ -262,8 +191,201 @@ export const styles = StyleSheet.create({
     backButton: {
       padding: 8,
     },
-    refreshButton: {
-      padding: 8,
+    avatarSection: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
-  });
-  
+    
+    
+   
+   
+    editButtonText: {
+      color: 'white',
+      fontWeight: '600',
+    },
+    editButtonActive: {
+      backgroundColor: '#5C6BC0',
+    },
+    editButtonTextActive: {
+      color: '#FFFFFF',
+    },
+    buttonIcon: {
+      marginLeft: 4,
+    },
+    
+    // New styles for documents section
+    documentsContainer: {
+      backgroundColor: '#F8F9FD',
+      padding: 16,
+      borderRadius: 12,
+      marginTop: -8,
+      marginHorizontal: 20,
+      marginBottom: 8,
+      shadowColor: '#A7A9AF',
+      shadowOffset: { width: 2, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+    documentItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 8,
+      shadowColor: '#A7A9AF',
+      shadowOffset: { width: 1, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    documentIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: '#EEF0FF',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    documentInfo: {
+      flex: 1,
+    },
+    documentTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: COLORS.primary,
+      marginBottom: 2,
+    },
+    documentCategory: {
+      fontSize: 12,
+      color: COLORS.text.medium,
+      marginBottom: 2,
+    },
+    documentExpiration: {
+      fontSize: 12,
+      color: COLORS.text.light,
+    },
+    documentSeparator: {
+      height: 8,
+    },
+    loadingDocsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+    },
+    loadingDocsText: {
+      marginLeft: 8,
+      fontSize: 14,
+      color: COLORS.text.medium,
+    },
+    noDocumentsContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 20,
+    },
+    noDocumentsText: {
+      marginTop: 8,
+      fontSize: 14,
+      color: COLORS.text.light,
+      textAlign: 'center',
+    },
+
+    // Modified styles for the driver card layout
+driverCardContainer: {
+  paddingHorizontal: 20,
+  paddingBottom: 16,
+},
+driverCard: {
+  backgroundColor: '#FFFFFF',
+  borderRadius: 16,
+  padding: 16,
+  flexDirection: 'row',
+  shadowColor: '#A7A9AF',
+  shadowOffset: { width: 4, height: 4 },
+  shadowOpacity: 0.2,
+  shadowRadius: 8,
+  elevation: 8,
+  alignItems: 'flex-start', // Align items at the top
+},
+driverInfo: {
+  flex: 1,
+  marginLeft: 16, // Add margin to separate from avatar
+},
+avatarContainer: {
+  position: 'relative',
+  marginTop: 4, // Adjust vertical alignment
+},
+avatarGradient: {
+  width: 56, // Slightly smaller
+  height: 56, // Slightly smaller
+  borderRadius: 28,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+avatarText: {
+  color: '#FFFFFF',
+  fontSize: 18, // Slightly smaller
+  fontWeight: 'bold',
+},
+statusIndicator: {
+  position: 'absolute',
+  right: -2,
+  bottom: -2,
+  backgroundColor: '#FFFFFF',
+  borderRadius: 10,
+  padding: 2,
+  borderWidth: 1,
+  borderColor: '#FFFFFF',
+},
+statusDot: {
+  width: 10, // Slightly smaller
+  height: 10, // Slightly smaller
+  borderRadius: 5,
+},
+driverName: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: '#303F9F',
+  marginBottom: 4, // Increase spacing
+},
+driverEmail: {
+  fontSize: 14,
+  color: '#7986CB',
+  marginBottom: 12, // Increase spacing
+},
+editButton: {
+  backgroundColor: '#3F51B5',
+  borderRadius: 8,
+  paddingVertical: 6, // Slightly larger
+  paddingHorizontal: 12,
+  marginBottom: 12, // Increase spacing
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  alignSelf: 'flex-start',
+},
+detailRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginBottom: 10, // Increase spacing
+},
+divider: {
+  height: 1,
+  backgroundColor: '#E0E0E0',
+  marginVertical: 12, // Increase spacing
+},
+detailLabel: {
+  fontSize: 12,
+  color: '#9E9E9E',
+  marginBottom: 4, // Increase spacing
+},
+detailValue: {
+  fontSize: 14,
+  color: '#424242',
+  fontWeight: '500',
+}
+});
