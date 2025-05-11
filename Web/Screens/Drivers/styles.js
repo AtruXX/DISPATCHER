@@ -675,5 +675,42 @@ dataInput: {
   backgroundColor: 'transparent',
   border: 'none',
   outline: 'none',
-}
+},
+
+inputContainer: {
+  backgroundColor: COLORS.card,
+  borderRadius: 8,
+  paddingHorizontal: 12,
+  paddingVertical: 10,
+  height: 48,
+  justifyContent: 'center',
+},
+input: {
+  fontSize: 16,
+  color: COLORS.text.dark,
+},
+dropdownContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
+dropdownText: {
+  fontSize: 16,
+  color: COLORS.text.dark,
+},
+dropdownPlaceholder: {
+  fontSize: 16,
+  color: COLORS.text.light,
+},
+calendarContainer: {
+  backgroundColor: COLORS.white,
+  borderRadius: 8,
+  marginTop: 8,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+  zIndex: 1000,
+},
 });

@@ -12,6 +12,7 @@ import {
   Image,
   Linking,
   TextInput,
+  Platform
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -20,7 +21,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { styles } from './styles';
 import { Picker } from '@react-native-picker/picker';
 import * as DocumentPicker from 'expo-document-picker';
-
+import DateTimePicker from '@react-native-community/datetimepicker';
+// Import Calendar properly if you're using react-native-calendars
+import { Calendar } from 'react-native-calendars';
 const DriversScreen = () => {
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -146,13 +149,13 @@ const DriversScreen = () => {
           documentTitle: '',
           documentCategory: '',
           expirationDate: null,
+          showDatePicker: false,  // Add this field for date picker visibility
           isUploading: false
         }),
         [field]: value
       }
     }));
   };
-
   const toggleUploadForm = (driverId) => {
     updateDriverUploadState(
       driverId,
@@ -168,90 +171,97 @@ const DriversScreen = () => {
         type: '*/*',
         copyToCacheDirectory: true
       });
-
-      if (result.type === 'success') {
-        updateDriverUploadState(driverId, 'selectedFile', result);
+      // Handle both new and old API formats from Expo Document Picker
+      if (result.type === 'success' || result.canceled === false) {
+        // For the newer Expo Document Picker API
+        const fileData = result.assets ? result.assets[0] : result;
+        // Create a clean, normalized file object with only what we need
+        // This avoids any non-serializable properties
+        const cleanFileObject = {
+          uri: fileData.uri,
+          name: fileData.name || fileData.fileName || 'document',
+          mimeType: fileData.mimeType || fileData.type || 'application/octet-stream',
+          size: fileData.size || 0
+        };
+        console.log("Selected file:", cleanFileObject);
+        // Update the state with the normalized file data
+        updateDriverUploadState(driverId, 'selectedFile', cleanFileObject);
       }
     } catch (err) {
       console.error('Error picking document:', err);
     }
   };
-
-  const handleDateChange = (driverId, event) => {
+  
+  // When using the file in the upload function, make sure to construct the form data properly:
+  // In handleUploadDocument function:
+  const handleUploadDocument = (driverId) => {
+    // Get the current state for this specific driver
+    const driverState = getDriverState(driverId); // You need to implement this function
+    
+    const formData = new FormData();
+    
+    // Make sure the file object is properly structured for FormData
+    if (driverState.selectedFile) {
+      const fileToUpload = {
+        uri: driverState.selectedFile.uri,
+        type: driverState.selectedFile.mimeType || 'application/octet-stream',
+        name: driverState.selectedFile.name
+      };
+      formData.append('document', fileToUpload);
+      
+      // Continue with your upload logic
+      // uploadDocument(formData);
+    } else {
+      console.log("No file selected for driver:", driverId);
+    }
+  };
+const handleDateChange = (driverId, event) => {
+  if (event && event.target && event.target.value) {
     // Get the date value from the input element
     const selectedDate = new Date(event.target.value);
-
+    
     // Update the date if it's valid
     if (!isNaN(selectedDate.getTime())) {
       updateDriverUploadState(driverId, 'expirationDate', selectedDate);
     }
-  };
+  }
+};
 
-  const handleUploadDocument = async (driverId) => {
-    const state = uploadStates[driverId] || {
-      isUploadExpanded: false,
-      selectedFile: null,
-      documentTitle: '',
-      documentCategory: '',
-      expirationDate: null,
-      isUploading: false
-    };
-
-    if (!state.selectedFile || !state.documentTitle || !state.documentCategory || !state.expirationDate) {
-      Alert.alert('Eroare', 'Toate câmpurile sunt obligatorii.');
-      return;
-    }
-
-    updateDriverUploadState(driverId, 'isUploading', true);
-
-    try {
-      const formData = new FormData();
-      formData.append('document', {
-        uri: state.selectedFile.uri,
-        type: state.selectedFile.mimeType || 'application/octet-stream',
-        name: state.selectedFile.name,
-      });
-      formData.append('title', state.documentTitle);
-      formData.append('category', state.documentCategory);
-      formData.append('expiration_date', state.expirationDate.toISOString().split('T')[0]);
-
-      const response = await fetch(`${BASE_URL}personal-documents/${driverId}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Token ${authToken}`,
-          'Content-Type': 'multipart/form-data',
-        },
-        body: formData,
-      });
-
-      if (response.ok) {
-        // Reset form and refresh documents
-        setUploadStates(prev => ({
-          ...prev,
-          [driverId]: {
-            isUploadExpanded: false,
-            selectedFile: null,
-            documentTitle: '',
-            documentCategory: '',
-            expirationDate: null,
-            isUploading: false
-          }
-        }));
-
-        // Refresh the documents list
-        fetchDriverDocuments(driverId);
-        Alert.alert('Succes', 'Documentul a fost încărcat cu succes.');
-      } else {
-        const errorData = await response.json();
-        Alert.alert('Eroare', errorData.message || 'A apărut o eroare la încărcarea documentului.');
-      }
-    } catch (error) {
-      console.error('Error uploading document:', error);
-      Alert.alert('Eroare', 'A apărut o eroare la încărcarea documentului.');
-    } finally {
-      updateDriverUploadState(driverId, 'isUploading', false);
-    }
-  };
+// Add this for web platform date input component
+const renderWebDatePicker = (driverId, driverUploadState) => {
+  return (
+    <View style={styles.datePickerContainer}>
+      <Text style={styles.inputLabel}>DATA EXPIRÅRII</Text>
+      <View style={[styles.inputContainer, styles.dropdownContainer]}>
+        <input
+          type="date"
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#424242',
+            width: '100%',
+            fontSize: 16,
+            fontFamily: 'inherit',
+          }}
+          value={driverUploadState.expirationDate ? 
+                 driverUploadState.expirationDate.toISOString().split('T')[0] : ''}
+          onChange={(e) => handleDateChange(driverId, e)}
+        />
+        <Ionicons name="calendar" size={20} color="#5C6BC0" />
+      </View>
+    </View>
+  );
+};
+const initialUploadState = {
+  isUploadExpanded: false,
+  selectedFile: null,
+  documentTitle: '',
+  documentCategory: '',
+  expirationDate: null,
+  showDatePicker: false,
+  isUploading: false
+};
+  
 
   const openDocument = (url) => {
     Linking.openURL(url).catch(err => {
@@ -457,28 +467,67 @@ const DriversScreen = () => {
               </Picker>
             </View>
 
-            <View style={styles.datePickerContainer}>
-              <Ionicons name="calendar" size={20} color="#5C6BC0" style={styles.datePickerIcon} />
-              <input
-                type="date"
-                style={{
-                  flex: 1,
-                  padding: 16,
-                  height: 64,
-                  fontSize: 17,
-                  color: '#303F9F',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  fontWeight: '500',
-                }}
-                min={new Date().toISOString().split('T')[0]}
-                value={driverUploadState.expirationDate ? driverUploadState.expirationDate.toISOString().split('T')[0] : ''}
-                onChange={(event) => handleDateChange(item.id, event)}
-                placeholder="Selectează data expirării"
-              />
-            </View>
+            {/* Replace the expiration date input section in the upload form with this updated code */}
 
+<View style={styles.datePickerContainer}>
+  <Text style={styles.inputLabel}>DATA EXPIRÅRII</Text>
+  <TouchableOpacity 
+    style={[styles.inputContainer, styles.dropdownContainer]}
+    onPress={() => updateDriverUploadState(item.id, 'showDatePicker', true)}
+  >
+    <Text style={driverUploadState.expirationDate ? styles.dropdownText : styles.dropdownPlaceholder}>
+      {driverUploadState.expirationDate ? driverUploadState.expirationDate.toLocaleDateString() : 'Selectează data'}
+    </Text>
+    <Ionicons name="calendar" size={20} color="#5C6BC0" />
+  </TouchableOpacity>
+  
+  {driverUploadState.showDatePicker && (
+    <View style={styles.calendarContainer}>
+      {Platform.OS === 'ios' || Platform.OS === 'android' ? (
+        <DateTimePicker
+          value={driverUploadState.expirationDate || new Date()}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            updateDriverUploadState(item.id, 'showDatePicker', false);
+            if (selectedDate) {
+              updateDriverUploadState(item.id, 'expirationDate', selectedDate);
+            }
+          }}
+        />
+      ) : (
+        <Calendar
+          onDayPress={(day) => {
+            const selectedDate = new Date(day.timestamp);
+            updateDriverUploadState(item.id, 'expirationDate', selectedDate);
+            updateDriverUploadState(item.id, 'showDatePicker', false);
+          }}
+          markedDates={{
+            [driverUploadState.expirationDate ? 
+              driverUploadState.expirationDate.toISOString().split('T')[0] : '']: {
+              selected: true,
+              selectedColor: "#5C6BC0"
+            }
+          }}
+          theme={{
+            calendarBackground: '#FFFFFF',
+            textSectionTitleColor: '#303F9F',
+            selectedDayBackgroundColor: '#5C6BC0',
+            selectedDayTextColor: '#FFFFFF',
+            todayTextColor: '#5C6BC0',
+            dayTextColor: '#424242',
+            textDisabledColor: '#BDBDBD',
+            arrowColor: '#5C6BC0',
+            monthTextColor: '#303F9F',
+            textDayFontWeight: '400',
+            textMonthFontWeight: 'bold',
+            textDayHeaderFontWeight: '500'
+          }}
+        />
+      )}
+    </View>
+  )}
+</View>
             <TouchableOpacity
               style={styles.uploadButton}
               onPress={() => handleUploadDocument(item.id)}
