@@ -48,13 +48,13 @@ function PdfGenerator() {
     semnatura_destinatar: "Semnat electronic"
   });
 
-  // Function to handle PDF download
+  // Function to handle PDF download with A4 optimization
   const handleDownload = () => {
     const opt = {
-      margin: 10,
+      margin: [5, 5], // Reduced margins [top&bottom, left&right] in mm
       filename: 'cmr_document.pdf',
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
+      html2canvas: { scale: 2 }, // Higher scale for better quality
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
@@ -91,51 +91,51 @@ function PdfGenerator() {
           
           {/* CMR Main Content */}
           <div className="cmrContent">
-            {/* Row 1 - Expeditor */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">1</div>
+            {/* Row 1 & 2 - Expeditor & Destinatar side by side */}
+            <div className="cmrFlexRow">
+              <div className="cmrHalfRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">1</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Expeditor (nume, adresa, tara)</div>
+                  <div className="cmrCellValue">{cmrData.expeditor_nume}</div>
+                  <div className="cmrCellValue">{cmrData.expeditor_adresa}</div>
+                  <div className="cmrCellValue">{cmrData.expeditor_tara}</div>
+                </div>
               </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Expeditor (nume, adresa, tara)</div>
-                <div className="cmrCellValue">{cmrData.expeditor_nume}</div>
-                <div className="cmrCellValue">{cmrData.expeditor_adresa}</div>
-                <div className="cmrCellValue">{cmrData.expeditor_tara}</div>
-              </div>
-            </div>
-            
-            {/* Row 2 - Destinatar */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">2</div>
-              </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Destinatar (nume, adresa, tara)</div>
-                <div className="cmrCellValue">{cmrData.destinatar_nume}</div>
-                <div className="cmrCellValue">{cmrData.destinatar_adresa}</div>
-                <div className="cmrCellValue">{cmrData.destinatar_tara}</div>
-              </div>
-            </div>
-            
-            {/* Row 3 - Loc de livrare */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">3</div>
-              </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Locul prevazut pentru livrarea marfii</div>
-                <div className="cmrCellValue">{cmrData.loc_livrare}</div>
+              <div className="cmrHalfRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">2</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Destinatar (nume, adresa, tara)</div>
+                  <div className="cmrCellValue">{cmrData.destinatar_nume}</div>
+                  <div className="cmrCellValue">{cmrData.destinatar_adresa}</div>
+                  <div className="cmrCellValue">{cmrData.destinatar_tara}</div>
+                </div>
               </div>
             </div>
             
-            {/* Row 4 - Loc de incarcare */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">4</div>
+            {/* Row 3 & 4 - Loc de livrare & Loc de incarcare side by side */}
+            <div className="cmrFlexRow">
+              <div className="cmrHalfRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">3</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Locul prevazut pentru livrarea marfii</div>
+                  <div className="cmrCellValue">{cmrData.loc_livrare}</div>
+                </div>
               </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Locul si data de incarcare a marfii</div>
-                <div className="cmrCellValue">{`${cmrData.loc_incarcare}, ${cmrData.data_incarcare}`}</div>
+              <div className="cmrHalfRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">4</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Locul si data de incarcare a marfii</div>
+                  <div className="cmrCellValue">{`${cmrData.loc_incarcare}, ${cmrData.data_incarcare}`}</div>
+                </div>
               </div>
             </div>
             
@@ -207,127 +207,125 @@ function PdfGenerator() {
               </div>
             </div>
             
-            {/* Instructiuni expeditor */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">13</div>
+            {/* Row 13-15 in a flex row */}
+            <div className="cmrFlexRow">
+              <div className="cmrThirdRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">13</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Instructiunile expeditorului</div>
+                  <div className="cmrCellValue">{cmrData.instructiuni_expeditor}</div>
+                </div>
               </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Instructiunile expeditorului</div>
-                <div className="cmrCellValue">{cmrData.instructiuni_expeditor}</div>
+              <div className="cmrThirdRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">14</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Prescriptii de francare</div>
+                  <div className="cmrCellValue">{cmrData.prescriptii_francare}</div>
+                </div>
               </div>
-            </div>
-            
-            {/* Prescriptii francare */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">14</div>
-              </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Prescriptii de francare</div>
-                <div className="cmrCellValue">{cmrData.prescriptii_francare}</div>
-              </div>
-            </div>
-            
-            {/* Rambursare */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">15</div>
-              </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Rambursare</div>
-                <div className="cmrCellValue">{cmrData.rambursare}</div>
-              </div>
-            </div>
-            
-            {/* Transportator */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">16</div>
-              </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Transportator</div>
-                <div className="cmrCellValue">{cmrData.transportator}</div>
-              </div>
-            </div>
-            
-            {/* Transportatori succesivi */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">17</div>
-              </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Transportatori succesivi</div>
-                <div className="cmrCellValue">{cmrData.transportatori_succesivi}</div>
-              </div>
-            </div>
-            
-            {/* Rezerve si observatii */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">18</div>
-              </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Rezerve si observatii ale transportatorilor</div>
-                <div className="cmrCellValue">{cmrData.rezerve_observatii}</div>
-              </div>
-            </div>
-            
-            {/* Conventii speciale */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">19</div>
-              </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Conventii speciale</div>
-                <div className="cmrCellValue">{cmrData.conventii_speciale}</div>
-              </div>
-            </div>
-            
-            {/* De plata */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">20</div>
-              </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">De plata</div>
-                <div className="paymentTable">
-                  <div className="paymentRow">
-                    <div className="paymentLabel">Pret transport</div>
-                    <div className="paymentValue">{`${cmrData.de_plata.pret_transport} EUR`}</div>
-                  </div>
-                  <div className="paymentRow">
-                    <div className="paymentLabel">Reduceri</div>
-                    <div className="paymentValue">{`${cmrData.de_plata.reduceri} EUR`}</div>
-                  </div>
-                  <div className="paymentRow">
-                    <div className="paymentLabel">Sold</div>
-                    <div className="paymentValue">{`${cmrData.de_plata.sold} EUR`}</div>
-                  </div>
-                  <div className="paymentRow">
-                    <div className="paymentLabel">Suplimente</div>
-                    <div className="paymentValue">{`${cmrData.de_plata.suplimente} EUR`}</div>
-                  </div>
-                  <div className="paymentRow">
-                    <div className="paymentLabel">Alte cheltuieli</div>
-                    <div className="paymentValue">{`${cmrData.de_plata.alte_cheltuieli} EUR`}</div>
-                  </div>
-                  <div className="paymentRow paymentRowTotal">
-                    <div className="paymentLabelTotal">Total</div>
-                    <div className="paymentValueTotal">{`${cmrData.de_plata.total} EUR`}</div>
-                  </div>
+              <div className="cmrThirdRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">15</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Rambursare</div>
+                  <div className="cmrCellValue">{cmrData.rambursare}</div>
                 </div>
               </div>
             </div>
             
-            {/* Incheiat la */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">21</div>
+            {/* Row 16-17 in a flex row */}
+            <div className="cmrFlexRow">
+              <div className="cmrHalfRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">16</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Transportator</div>
+                  <div className="cmrCellValue">{cmrData.transportator}</div>
+                </div>
               </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Incheiat la</div>
-                <div className="cmrCellValue">{`${cmrData.incheiat_la.locatie}, ${cmrData.incheiat_la.data}`}</div>
+              <div className="cmrHalfRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">17</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Transportatori succesivi</div>
+                  <div className="cmrCellValue">{cmrData.transportatori_succesivi}</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Row 18-19 in a flex row */}
+            <div className="cmrFlexRow">
+              <div className="cmrHalfRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">18</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Rezerve si observatii ale transportatorilor</div>
+                  <div className="cmrCellValue">{cmrData.rezerve_observatii}</div>
+                </div>
+              </div>
+              <div className="cmrHalfRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">19</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Conventii speciale</div>
+                  <div className="cmrCellValue">{cmrData.conventii_speciale}</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Row 20-21 in a flex row */}
+            <div className="cmrFlexRow">
+              <div className="cmrHalfRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">20</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">De plata</div>
+                  <div className="paymentTable">
+                    <div className="paymentRow">
+                      <div className="paymentLabel">Pret transport</div>
+                      <div className="paymentValue">{`${cmrData.de_plata.pret_transport} EUR`}</div>
+                    </div>
+                    <div className="paymentRow">
+                      <div className="paymentLabel">Reduceri</div>
+                      <div className="paymentValue">{`${cmrData.de_plata.reduceri} EUR`}</div>
+                    </div>
+                    <div className="paymentRow">
+                      <div className="paymentLabel">Sold</div>
+                      <div className="paymentValue">{`${cmrData.de_plata.sold} EUR`}</div>
+                    </div>
+                    <div className="paymentRow">
+                      <div className="paymentLabel">Suplimente</div>
+                      <div className="paymentValue">{`${cmrData.de_plata.suplimente} EUR`}</div>
+                    </div>
+                    <div className="paymentRow">
+                      <div className="paymentLabel">Alte cheltuieli</div>
+                      <div className="paymentValue">{`${cmrData.de_plata.alte_cheltuieli} EUR`}</div>
+                    </div>
+                    <div className="paymentRow paymentRowTotal">
+                      <div className="paymentLabelTotal">Total</div>
+                      <div className="paymentValueTotal">{`${cmrData.de_plata.total} EUR`}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="cmrHalfRow">
+                <div className="cmrNumberCell">
+                  <div className="cmrCellNumber">21</div>
+                </div>
+                <div className="cmrCell">
+                  <div className="cmrCellLabel">Incheiat la</div>
+                  <div className="cmrCellValue">{`${cmrData.incheiat_la.locatie}, ${cmrData.incheiat_la.data}`}</div>
+                </div>
               </div>
             </div>
             
@@ -431,7 +429,7 @@ body {
     background-color: #616161;
 }
 
-/* CMR Document Styles */
+/* CMR Document Styles - Optimized for A4 */
 .cmrContainer {
     margin: 20px auto;
     background-color: #FFFFFF;
@@ -439,14 +437,14 @@ body {
     overflow: hidden;
     border: 1px solid #CFD8DC;
     max-width: 800px;
+    width: 210mm; /* A4 width */
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    overflow: auto
 }
 
 .cmrHeader {
     display: flex;
     border-bottom: 1px solid #CFD8DC;
-    padding: 10px;
+    padding: 5px;
 }
 
 .cmrLogo {
@@ -457,7 +455,7 @@ body {
 
 .cmrLogoText {
     font-weight: bold;
-    font-size: 18px;
+    font-size: 16px;
     color: #303F9F;
 }
 
@@ -468,30 +466,57 @@ body {
 
 .cmrTitleText {
     font-weight: bold;
-    font-size: 24px;
+    font-size: 20px;
     color: #303F9F;
     margin: 0;
 }
 
 .cmrSubtitleText {
-    font-size: 12px;
+    font-size: 10px;
     color: #455A64;
     margin: 0;
 }
 
 .cmrContent {
-    padding: 8px;
-    overflow: auto
+    padding: 4px;
+}
+
+/* Flex rows for side-by-side display */
+.cmrFlexRow {
+    display: flex;
+    border-bottom: 1px solid #CFD8DC;
+}
+
+.cmrHalfRow {
+    display: flex;
+    width: 50%;
+    border-right: 1px solid #CFD8DC;
+    min-height: 45px;
+}
+
+.cmrHalfRow:last-child {
+    border-right: none;
+}
+
+.cmrThirdRow {
+    display: flex;
+    width: 33.33%;
+    border-right: 1px solid #CFD8DC;
+    min-height: 45px;
+}
+
+.cmrThirdRow:last-child {
+    border-right: none;
 }
 
 .cmrRow {
     display: flex;
     border-bottom: 1px solid #CFD8DC;
-    min-height: 60px;
+    min-height: 45px;
 }
 
 .cmrNumberCell {
-    width: 30px;
+    width: 25px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -501,23 +526,23 @@ body {
 
 .cmrCellNumber {
     font-weight: bold;
-    font-size: 16px;
+    font-size: 12px;
     color: #455A64;
 }
 
 .cmrCell {
     flex: 1;
-    padding: 8px;
+    padding: 4px;
 }
 
 .cmrCellLabel {
-    font-size: 12px;
+    font-size: 10px;
     color: #78909C;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .cmrCellValue {
-    font-size: 14px;
+    font-size: 11px;
     color: #37474F;
 }
 
@@ -529,13 +554,17 @@ body {
 
 .cmrTableHeaderCell {
     flex: 1;
-    padding: 6px;
+    padding: 4px;
     text-align: center;
     border-right: 1px solid #CFD8DC;
 }
 
+.cmrTableHeaderCell:last-child {
+    border-right: none;
+}
+
 .cmrTableHeaderText {
-    font-size: 10px;
+    font-size: 9px;
     text-align: center;
     color: #455A64;
     margin: 0;
@@ -544,66 +573,69 @@ body {
 .cmrTableRow {
     display: flex;
     border-bottom: 1px solid #CFD8DC;
-    min-height: 40px;
+    min-height: 30px;
 }
 
 .cmrTableCell {
     flex: 1;
-    padding: 8px;
+    padding: 4px;
     display: flex;
     justify-content: center;
     align-items: center;
     border-right: 1px solid #CFD8DC;
 }
 
+.cmrTableCell:last-child {
+    border-right: none;
+}
+
 .cmrTableCellText {
-    font-size: 12px;
+    font-size: 10px;
     color: #37474F;
 }
 
 .paymentTable {
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .paymentRow {
     display: flex;
     justify-content: space-between;
-    padding: 4px 0;
+    padding: 2px 0;
     border-bottom: 1px solid #E0E0E0;
 }
 
 .paymentRowTotal {
-    border-top: 2px solid #BDBDBD;
-    padding-top: 8px;
-    margin-top: 4px;
+    border-top: 1px solid #BDBDBD;
+    padding-top: 3px;
+    margin-top: 2px;
 }
 
 .paymentLabel {
-    font-size: 12px;
+    font-size: 9px;
     color: #616161;
 }
 
 .paymentValue {
-    font-size: 12px;
+    font-size: 9px;
     color: #212121;
     font-weight: 500;
 }
 
 .paymentLabelTotal {
-    font-size: 14px;
+    font-size: 10px;
     color: #303F9F;
     font-weight: bold;
 }
 
 .paymentValueTotal {
-    font-size: 14px;
+    font-size: 10px;
     color: #303F9F;
     font-weight: bold;
 }
 
 .cmrSignatures {
     display: flex;
-    margin-top: 16px;
     border-top: 1px solid #CFD8DC;
 }
 
@@ -618,21 +650,21 @@ body {
 
 .cmrSignatureHeader {
     background-color: #F5F5F5;
-    padding: 4px;
+    padding: 2px;
     text-align: center;
     border-bottom: 1px solid #CFD8DC;
 }
 
 .cmrSignatureNumber {
     font-weight: bold;
-    font-size: 14px;
+    font-size: 12px;
     color: #455A64;
     margin: 0;
 }
 
 .cmrSignatureContent {
-    min-height: 80px;
-    padding: 8px;
+    min-height: 60px;
+    padding: 5px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -640,32 +672,32 @@ body {
 }
 
 .cmrSignatureText {
-    font-size: 10px;
+    font-size: 9px;
     text-align: center;
     color: #78909C;
 }
 
 .cmrStamp {
-    width: 60px;
-    height: 60px;
-    border-radius: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
     border: 1px solid #303F9F;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
 }
 
 .cmrStampText {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: bold;
     color: #303F9F;
 }
 
 .electronicSignature {
-    margin-top: 10px;
+    margin-top: 5px;
     font-style: italic;
-    font-size: 12px;
+    font-size: 10px;
     color: #303F9F;
 }
 
@@ -677,12 +709,21 @@ body {
     body {
         background-color: white;
         padding: 0;
+        margin: 0;
+    }
+    
+    .container {
+        padding: 0;
+        margin: 0;
     }
     
     .cmrContainer {
         box-shadow: none;
         margin: 0;
         border: 1px solid #000;
+        width: 100%;
+        max-width: 100%;
+        height: 297mm; /* A4 height */
     }
 }
 `;

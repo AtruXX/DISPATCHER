@@ -12,9 +12,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DEFAULT_CMR_DATA from './DefaultData'; // Import the default model
-import {styles} from './styles'; // Import your styles
+import { styles, COLORS } from './styles';
 import { jsPDF } from "jspdf"; // Import jsPDF for PDF generation
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const TransportsScreen = ({ route, navigation }) => {
   const [cmrData, setCmrData] = useState(null);
@@ -428,9 +429,22 @@ const TransportsScreen = ({ route, navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {renderHeader()}
         {renderCMRDocument()}
-        <TouchableOpacity onPress = {handlePress} style={styles.downloadButton}>
-            Descarca
-        </TouchableOpacity>
+        <View>
+        <LinearGradient
+            colors={[COLORS.secondary, COLORS.primary]}
+            style={styles.downloadButtonGradient || { borderRadius: 8, marginTop: 16 }}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <TouchableOpacity 
+              style={styles.downloadButton || { padding: 16, alignItems: 'center' }} 
+              onPress={handlePress}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.downloadButtonText || { color: COLORS.white, fontWeight: 'bold', fontSize: 16 }}>DESCARCA</Text>
+            </TouchableOpacity>
+          </LinearGradient>
+          </View>
       </ScrollView>
     </SafeAreaView>
   );

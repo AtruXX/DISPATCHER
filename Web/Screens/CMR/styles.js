@@ -12,6 +12,26 @@ const getRandomColor = (id) => {
     ];
     return colors[id % colors.length];
   };
+  export const COLORS = {
+    background: "#ECEFF1", // Light background from your TransportScreen
+    card: "#FFFFFF", // White card background
+    primary: "#303F9F", // Primary blue color
+    secondary: "#3F51B5", // Secondary blue
+    accent: "#5C6BC0", // Light blue accent
+    lightAccent: "#7986CB", // Very light blue text
+    text: {
+      dark: "#424242", // Dark text
+      medium: "#757575", // Medium text
+      light: "#9E9E9E", // Light text
+    },
+    border: "#E0E0E0", // Light border
+    success: "#66BB6A", // Green for success messages
+    error: "#EF5350", // Red for errors
+    warning: "#FFA726", // Orange for warnings
+    available: "#81C784", // Green for available drivers
+    unavailable: "#E57373", // Red for unavailable drivers
+    white: "#FFFFFF", // White color for modal backgrounds
+  };
 export const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -365,6 +385,24 @@ export const styles = StyleSheet.create({
       color: '#757575',
       textAlign: 'center',
       marginBottom: 24,
+    },
+    downloadButtonGradient: {
+      borderRadius: 10,
+      marginTop: 20,
+      shadowColor: COLORS.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 6,
+    },
+    downloadButton: {
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    downloadButtonText: {
+      color: COLORS.card,
+      fontSize: 16,
+      fontWeight: 'bold',
     },
   });
   
