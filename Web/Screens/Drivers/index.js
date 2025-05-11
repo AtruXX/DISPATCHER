@@ -11,13 +11,15 @@ import {
   TouchableOpacity,
   Image,
   Linking,
+  TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styles } from './styles';
+import { Picker } from '@react-native-picker/picker';
+import * as DocumentPicker from 'expo-document-picker';
 
 const DriversScreen = () => {
   const [drivers, setDrivers] = useState([]);
@@ -27,6 +29,8 @@ const DriversScreen = () => {
   const [expandedDriverId, setExpandedDriverId] = useState(null);
   const [documents, setDocuments] = useState({});
   const [loadingDocuments, setLoadingDocuments] = useState({});
+  // Move uploadStates to component level
+  const [uploadStates, setUploadStates] = useState({});
   const navigation = useNavigation();
   const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 
@@ -107,7 +111,7 @@ const DriversScreen = () => {
 
     try {
       setLoadingDocuments(prev => ({ ...prev, [driverId]: true }));
-      
+
       const response = await fetch(`${BASE_URL}personal-documents/${driverId}`, {
         method: 'GET',
         headers: {
@@ -128,6 +132,124 @@ const DriversScreen = () => {
       console.error('Error fetching documents:', err);
     } finally {
       setLoadingDocuments(prev => ({ ...prev, [driverId]: false }));
+    }
+  };
+
+  // Helper functions for upload state - moved from renderDriverItem
+  const updateDriverUploadState = (driverId, field, value) => {
+    setUploadStates(prev => ({
+      ...prev,
+      [driverId]: {
+        ...(prev[driverId] || {
+          isUploadExpanded: false,
+          selectedFile: null,
+          documentTitle: '',
+          documentCategory: '',
+          expirationDate: null,
+          isUploading: false
+        }),
+        [field]: value
+      }
+    }));
+  };
+
+  const toggleUploadForm = (driverId) => {
+    updateDriverUploadState(
+      driverId,
+      'isUploadExpanded',
+      !(uploadStates[driverId]?.isUploadExpanded || false)
+    );
+  };
+
+  const handleFileSelect = async (driverId) => {
+    try {
+      // Using Expo Document Picker
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true
+      });
+
+      if (result.type === 'success') {
+        updateDriverUploadState(driverId, 'selectedFile', result);
+      }
+    } catch (err) {
+      console.error('Error picking document:', err);
+    }
+  };
+
+  const handleDateChange = (driverId, event) => {
+    // Get the date value from the input element
+    const selectedDate = new Date(event.target.value);
+
+    // Update the date if it's valid
+    if (!isNaN(selectedDate.getTime())) {
+      updateDriverUploadState(driverId, 'expirationDate', selectedDate);
+    }
+  };
+
+  const handleUploadDocument = async (driverId) => {
+    const state = uploadStates[driverId] || {
+      isUploadExpanded: false,
+      selectedFile: null,
+      documentTitle: '',
+      documentCategory: '',
+      expirationDate: null,
+      isUploading: false
+    };
+
+    if (!state.selectedFile || !state.documentTitle || !state.documentCategory || !state.expirationDate) {
+      Alert.alert('Eroare', 'Toate câmpurile sunt obligatorii.');
+      return;
+    }
+
+    updateDriverUploadState(driverId, 'isUploading', true);
+
+    try {
+      const formData = new FormData();
+      formData.append('document', {
+        uri: state.selectedFile.uri,
+        type: state.selectedFile.mimeType || 'application/octet-stream',
+        name: state.selectedFile.name,
+      });
+      formData.append('title', state.documentTitle);
+      formData.append('category', state.documentCategory);
+      formData.append('expiration_date', state.expirationDate.toISOString().split('T')[0]);
+
+      const response = await fetch(`${BASE_URL}personal-documents/${driverId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${authToken}`,
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        // Reset form and refresh documents
+        setUploadStates(prev => ({
+          ...prev,
+          [driverId]: {
+            isUploadExpanded: false,
+            selectedFile: null,
+            documentTitle: '',
+            documentCategory: '',
+            expirationDate: null,
+            isUploading: false
+          }
+        }));
+
+        // Refresh the documents list
+        fetchDriverDocuments(driverId);
+        Alert.alert('Succes', 'Documentul a fost încărcat cu succes.');
+      } else {
+        const errorData = await response.json();
+        Alert.alert('Eroare', errorData.message || 'A apărut o eroare la încărcarea documentului.');
+      }
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      Alert.alert('Eroare', 'A apărut o eroare la încărcarea documentului.');
+    } finally {
+      updateDriverUploadState(driverId, 'isUploading', false);
     }
   };
 
@@ -158,13 +280,13 @@ const DriversScreen = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'No expiration';
-    
+
     const date = new Date(dateString);
     return date.toLocaleDateString();
   };
 
   const renderDocumentItem = ({ item }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.documentItem}
       onPress={() => openDocument(item.document)}
     >
@@ -182,6 +304,15 @@ const DriversScreen = () => {
     </TouchableOpacity>
   );
 
+  // Document categories
+  const documentCategories = [
+    { label: 'Permis de conducere', value: 'driving_license' },
+    { label: 'Carte de identitate', value: 'id_card' },
+    { label: 'Certificat profesional', value: 'professional_certificate' },
+    { label: 'Certificat medical', value: 'medical_certificate' },
+    { label: 'Altele', value: 'other' }
+  ];
+
   const renderDriverItem = ({ item }) => {
     const gradientColors = getRandomColor(item.id);
     const isOnRoad = item.driver && item.driver.on_road !== undefined ? item.driver.on_road : item.on_road || false;
@@ -189,6 +320,17 @@ const DriversScreen = () => {
     const isExpanded = expandedDriverId === item.id;
     const driverDocuments = documents[item.id] || [];
     const isLoadingDocs = loadingDocuments[item.id] || false;
+
+    // Get this driver's upload state
+    const driverUploadState = uploadStates[item.id] || {
+      isUploadExpanded: false,
+      selectedFile: null,
+      documentTitle: '',
+      documentCategory: '',
+      expirationDate: null,
+      showDatePicker: false,
+      isUploading: false
+    };
 
     return (
       <View>
@@ -211,22 +353,39 @@ const DriversScreen = () => {
             <View style={styles.driverInfo}>
               <Text style={styles.driverName}>{item.name || 'Nume indisponibil'}</Text>
               {item.email && <Text style={styles.driverEmail}>{item.email}</Text>}
-              
-              <TouchableOpacity 
-                style={[styles.editButton, isExpanded && styles.editButtonActive]}
-                onPress={() => fetchDriverDocuments(item.id)}
-              >
-                <Text style={styles.editButtonText}>
-                  {isExpanded ? 'Ascunde documente' : 'Vezi documente'}
-                </Text>
-                <Ionicons 
-                  name={isExpanded ? "chevron-up" : "chevron-down"} 
-                  size={16} 
-                  color="white" 
-                  style={styles.buttonIcon}
-                />
-              </TouchableOpacity>
-              
+
+              <View style={styles.buttonsContainer}>
+                <TouchableOpacity
+                  style={[styles.actionButton, isExpanded && styles.activeButton]}
+                  onPress={() => fetchDriverDocuments(item.id)}
+                >
+                  <Text style={styles.buttonText}>
+                    {isExpanded ? 'Ascunde documente' : 'Vezi documente'}
+                  </Text>
+                  <Ionicons
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    size={16}
+                    color="white"
+                    style={styles.buttonIcon}
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.addButton, driverUploadState.isUploadExpanded && styles.activeButton]}
+                  onPress={() => toggleUploadForm(item.id)}
+                >
+                  <Text style={styles.buttonText}>
+                    {driverUploadState.isUploadExpanded ? 'Anulează' : 'Adaugă documente'}
+                  </Text>
+                  <Ionicons
+                    name={driverUploadState.isUploadExpanded ? "close" : "add"}
+                    size={16}
+                    color="white"
+                    style={styles.buttonIcon}
+                  />
+                </TouchableOpacity>
+              </View>
+
               <View style={styles.divider} />
 
               <View style={styles.detailRow}>
@@ -263,13 +422,87 @@ const DriversScreen = () => {
           </View>
         </View>
 
+        {/* Document Upload Form */}
+        {driverUploadState.isUploadExpanded && (
+          <View style={styles.uploadContainer}>
+            <Text style={styles.uploadTitle}>Încarcă un document nou</Text>
+
+            <TouchableOpacity
+              style={styles.fileSelectButton}
+              onPress={() => handleFileSelect(item.id)}
+            >
+              <Ionicons name="document-attach" size={20} color="#5C6BC0" />
+              <Text style={styles.fileSelectText}>
+                {driverUploadState.selectedFile?.name || 'Selectează un fișier'}
+              </Text>
+            </TouchableOpacity>
+
+            <TextInput
+              style={styles.textInput}
+              placeholder="Titlu document"
+              value={driverUploadState.documentTitle || ''}
+              onChangeText={(text) => updateDriverUploadState(item.id, 'documentTitle', text)}
+            />
+
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={driverUploadState.documentCategory || ''}
+                onValueChange={(itemValue) => updateDriverUploadState(item.id, 'documentCategory', itemValue)}
+                style={styles.picker}
+              >
+                <Picker.Item label="Selectează categoria" value="" />
+                {documentCategories.map((category) => (
+                  <Picker.Item key={category.value} label={category.label} value={category.value} />
+                ))}
+              </Picker>
+            </View>
+
+            <View style={styles.datePickerContainer}>
+              <Ionicons name="calendar" size={20} color="#5C6BC0" style={styles.datePickerIcon} />
+              <input
+                type="date"
+                style={{
+                  flex: 1,
+                  padding: 16,
+                  height: 64,
+                  fontSize: 17,
+                  color: '#303F9F',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  fontWeight: '500',
+                }}
+                min={new Date().toISOString().split('T')[0]}
+                value={driverUploadState.expirationDate ? driverUploadState.expirationDate.toISOString().split('T')[0] : ''}
+                onChange={(event) => handleDateChange(item.id, event)}
+                placeholder="Selectează data expirării"
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.uploadButton}
+              onPress={() => handleUploadDocument(item.id)}
+              disabled={driverUploadState.isUploading}
+            >
+              {driverUploadState.isUploading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <>
+                  <Ionicons name="cloud-upload" size={20} color="white" />
+                  <Text style={styles.uploadButtonText}>Încarcă documentul</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Documents Section - Expanded view */}
         {isExpanded && (
           <View style={styles.documentsContainer}>
             {isLoadingDocs ? (
               <View style={styles.loadingDocsContainer}>
                 <ActivityIndicator size="small" color="#5C6BC0" />
-                <Text style={styles.loadingDocsText}>Se incarca documentele...</Text>
+                <Text style={styles.loadingDocsText}>Se încarcă documentele...</Text>
               </View>
             ) : driverDocuments.length > 0 ? (
               <FlatList
@@ -282,7 +515,7 @@ const DriversScreen = () => {
             ) : (
               <View style={styles.noDocumentsContainer}>
                 <Ionicons name="document-outline" size={24} color="#BDBDBD" />
-                <Text style={styles.noDocumentsText}>Nu exista documente disponibile</Text>
+                <Text style={styles.noDocumentsText}>Nu există documente disponibile</Text>
               </View>
             )}
           </View>
