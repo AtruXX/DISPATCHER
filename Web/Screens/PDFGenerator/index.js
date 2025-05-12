@@ -5,48 +5,138 @@ import { useNavigation } from '@react-navigation/native';
 function PdfGenerator() {
   const contentRef = useRef();
   const navigation = useNavigation();
+  const [cmrData, setCmrData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
+  const [authToken, setAuthToken] = useState(null);
+  // Function to fetch CMR data from API
+ // Function to fetch CMR data from API
+ useEffect(() => {
+  const getAuthToken = () => {
+      try {
+          console.log("Attempting to get auth token from localStorage");
+          const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
+          console.log("Token from localStorage:", token ? "Token exists" : "No token found");
 
-  // Define initial CMR data
-  const [cmrData, setCmrData] = useState({
-    expeditor_nume: "Example Company SRL",
-    expeditor_adresa: "Strada Exemplu 123, Bucuresti",
-    expeditor_tara: "Romania",
-    destinatar_nume: "Receiver Company GmbH",
-    destinatar_adresa: "Example Street 456, Berlin",
-    destinatar_tara: "Germany",
-    loc_livrare: "Berlin, Germania",
-    loc_incarcare: "Bucuresti",
-    data_incarcare: "09.05.2025",
-    marci_numere: "12345",
-    numar_colete: "10",
-    mod_ambalare: "Cutii",
-    natura_marfii: "Electronice",
-    nr_statistic: "85423",
-    greutate_bruta: "250 kg",
-    cubaj: "2 m³",
-    instructiuni_expeditor: "A se livra in intervalul orar 9-17",
-    prescriptii_francare: "------",
-    rambursare: "---------",
-    transportator: "C&C Logistic SRL",
-    transportatori_succesivi: "-----------",
-    rezerve_observatii: "---------",
-    conventii_speciale: "Transport express",
-    de_plata: {
-      pret_transport: "1000",
-      reduceri: "0",
-      sold: "1000", 
-      suplimente: "100",
-      alte_cheltuieli: "50",
-      total: "1150"
-    },
-    incheiat_la: {
-      locatie: "Bucuresti",
-      data: "09.05.2025"
-    },
-    semnatura_expeditor: "Semnat electronic",
-    semnatura_transportator: "Semnat electronic",
-    semnatura_destinatar: "Semnat electronic"
-  });
+          if (token) {
+              setAuthToken(token);
+              console.log("Auth token set in state");
+          } else {
+              console.log("No token found, setting error");
+              setError('Authentication required. Please log in first.');
+          }
+      } catch (err) {
+          console.error("Error getting auth token:", err);
+          setError('Failed to load authentication token.');
+      } finally {
+          console.log("Setting loading to false");
+          setLoading(false);
+      }
+  };
+
+  getAuthToken();
+}, []);
+useEffect(() => {
+  const fetchCmrData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${BASE_URL}transport-cmr/1`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      
+      const dataArray = await response.json();
+      console.log("Fetched CMR data:", dataArray);
+      
+      // Check if we have data and it's an array
+      if (!Array.isArray(dataArray) || dataArray.length === 0) {
+        throw new Error('No CMR data available');
+      }
+      
+      // Get the last element from the array
+      const data = dataArray[dataArray.length - 1];
+      console.log("Selected last CMR record:", data);
+      
+      // Transform and normalize data to match the required format
+      const transformedData = {
+        expeditor_nume: data.expeditor_nume || "",
+        expeditor_adresa: data.expeditor_adresa || "",
+        expeditor_tara: data.expeditor_tara || "",
+        destinatar_nume: data.destinatar_nume || "",
+        destinatar_adresa: data.destinatar_adresa || "",
+        destinatar_tara: data.destinatar_tara || "",
+        loc_livrare: data.loc_livrare || "",
+        loc_incarcare: data.loc_incarcare || "",
+        data_incarcare: formatDate(data.data_incarcare) || "",
+        marci_numere: data.marci_numere || "",
+        numar_colete: data.numar_colete?.toString() || "",
+        mod_ambalare: data.mod_ambalare || "",
+        natura_marfii: data.natura_marfii || "",
+        nr_statistic: data.nr_static || "",
+        greutate_bruta: `${data.greutate_bruta || ""}`,
+        cubaj: data.cubaj || "",
+        instructiuni_expeditor: data.instructiuni_expeditor || "",
+        prescriptii_francare: data.prescriptii_francare || "---------",
+        rambursare: data.rambursare || "---------",
+        transportator: data.transportator || "C&C Logistic SRL", // Default if null
+        transportatori_succesivi: data.transportatori_succesivi || "-----------",
+        rezerve_observatii: data.rezerve_observatii || "---------",
+        conventii_speciale: data.conventii_speciale || "",
+        de_plata: {
+          pret_transport: (data.de_plata && data.de_plata.pret_transport) || "0",
+          reduceri: (data.de_plata && data.de_plata.reduceri) || "0",
+          sold: (data.de_plata && data.de_plata.sold) || "0",
+          suplimente: (data.de_plata && data.de_plata.suplimente) || "0",
+          alte_cheltuieli: (data.de_plata && data.de_plata.alte_cheltuieli) || "0",
+          total: (data.de_plata && data.de_plata.total) || "0"
+        },
+        incheiat_la: {
+          locatie: (data.incheiat_la && data.incheiat_la.locatie) || "Bucuresti",
+          data: (data.incheiat_la && data.incheiat_la.data) 
+            ? formatDate(data.incheiat_la.data) 
+            : formatDate(data.data_incarcare) || formatDate(new Date())
+        },
+        semnatura_expeditor: data.semnatura_expeditor || "Semnat electronic",
+        semnatura_transportator: data.semnatura_transportator || "Semnat electronic",
+        semnatura_destinatar: data.semnatura_destinatar || "Semnat electronic"
+      };
+      
+      setCmrData(transformedData);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching CMR data:", err);
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+  fetchCmrData();
+}, []);
+
+  // Helper function to format date from API (YYYY-MM-DD) to DD.MM.YYYY
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ro-RO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).replace(/\//g, '.');
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return dateString; // Return the original string if parsing fails
+    }
+  };
 
   // Function to handle PDF download with A4 optimization
   const handleDownload = () => {
@@ -66,11 +156,40 @@ function PdfGenerator() {
     navigation.navigate('Main');
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="container">
+        <div className="loading-message">
+          <h2>Loading CMR data...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error && !cmrData) {
+    return (
+      <div className="container">
+        <div className="error-message">
+          <h2>Error loading CMR data</h2>
+          <p>{error}</p>
+          <button onClick={handleGoBack} className="back-btn">Înapoi</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container">
       
       <div className="controls">
         <h1>CMR Document Generator</h1>
+        {error && (
+          <div className="error-banner">
+            Warning: Using fallback data due to API error: {error}
+          </div>
+        )}
         <div className="buttons-container">
           <button onClick={handleGoBack} className="back-btn">Înapoi</button>
           <button onClick={handleDownload} className="download-btn">Descarcă</button>
