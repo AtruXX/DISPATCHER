@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styles, COLORS } from './styles';
+const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 
 export default function CreateTransportPage() {
   const [formData, setFormData] = useState({
@@ -29,7 +30,8 @@ export default function CreateTransportPage() {
     goods_type: '', // Will now be a dropdown selection
     driver: null // Will store the selected driver ID
   });
-  
+  const [authToken, setAuthToken] = useState(null);
+
   const [drivers, setDrivers] = useState([]);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -38,7 +40,8 @@ export default function CreateTransportPage() {
   const [isTrailerModalVisible, setTrailerModalVisible] = useState(false);
   const [isDetractionModalVisible, setDetractionModalVisible] = useState(false);
   const [isGoodsTypeModalVisible, setGoodsTypeModalVisible] = useState(false);
-  
+  const [error, setError] = useState(null);
+
   const navigation = useNavigation();
 
   // Predefined options for dropdowns
@@ -100,28 +103,70 @@ export default function CreateTransportPage() {
       }
     ]
   };
+  useEffect(() => {
+    const getAuthToken = () => {
+      try {
+        console.log("Attempting to get auth token from localStorage");
+        const token = localStorage.getItem('authToken');
+        console.log("Token from localStorage:", token ? "Token exists" : "No token found");
 
+        if (token) {
+          setAuthToken(token);
+          console.log("Auth token set in state");
+        } else {
+          console.log("No token found, setting error");
+          setError('Authentication required. Please log in first.');
+        }
+      } catch (err) {
+        console.error("Error getting auth token:", err);
+        setError('Failed to load authentication token.');
+      } finally {
+        console.log("Setting loading to false");
+        setLoading(false);
+      }
+    };
+
+    getAuthToken();
+  }, []);
   // Fetch drivers on component mount
   useEffect(() => {
-    // For actual implementation, use fetchDrivers()
-    // For now, using mock data
-    setDrivers(mockDriversData.drivers);
-  }, []);
+    if (authToken) {
+      fetchDrivers();
+    }
+  }, [authToken]);
+
 
   const fetchDrivers = async () => {
-    setLoading(true);
     try {
-     
-      const data = mockDriversData;
-      
-      if (data && data.drivers) {
-        setDrivers(data.drivers);
+      setLoading(true);
+      const response = await fetch(`${BASE_URL}drivers`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Token ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log(authToken)
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-    } catch (error) {
-      console.error('Error fetching drivers:', error);
-      Alert.alert('Error', 'Failed to fetch drivers. Please try again.');
-    } finally {
+
+      const data = await response.json();
+      console.log('Fetched drivers:', data);
+      // Check if the response has the new format
+      if (data.drivers) {
+        setDrivers(data.drivers);
+      } else {
+        // If using old format, keep it as is
+        setDrivers(data);
+      }
+
       setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+      Alert.alert('Error', 'Failed to fetch drivers data');
+      console.error('Error fetching drivers:', err);
     }
   };
 
