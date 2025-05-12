@@ -11,65 +11,18 @@ import {
     SafeAreaView,
     StatusBar,
     Modal,
-    FlatList
+    FlatList,
+    Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styles, COLORS } from './styles';
+import DateTimePicker from '@react-native-community/datetimepicker';
+// Import Calendar properly if you're using react-native-calendars
+import { Calendar } from 'react-native-calendars';
 // CMR Data Model - Default values for the form
-const DEFAULT_CMR_DATA = {
-    // Expeditor (Sender) information - Section 1
-    expeditor_nume: "",
-    expeditor_adresa: "",
-    expeditor_tara: "",
-    // Destinatar (Recipient) information - Section 2
-    destinatar_nume: "",
-    destinatar_adresa: "",
-    destinatar_tara: "",
-    // Location information - Sections 3-4
-    loc_livrare: "",
-    loc_incarcare: "",
-    data_incarcare: "",
-    // Cargo details - Sections 6-12
-    marci_numere: "",
-    numar_colete: "",
-    mod_ambalare: "",
-    natura_marfii: "",
-    nr_static: "",
-    greutate_bruta: "",
-    cubaj: "",
-    // Special instructions - Section 13
-    instructiuni_expeditor: "",
-    // Special conventions - Section 19
-    conventii_speciale: "",
-    // Payment information - Section 20
-    de_plata: {
-        pret_transport: "",
-        reduceri: "",
-        sold: "",
-        suplimente: "",
-        alte_cheltuieli: "",
-        total: ""
-    },
-    // Closure information - Section 21
-    incheiat_la: {
-        locatie: "",
-        data: ""
-    },
-    // Signatures - Sections 22-24
-    semnatura_expeditor: "",
-    semnatura_transportator: "",
-    semnatura_destinatar: "",
-    // Additional fields
-    numar_cmr: "",
-    data_emitere: "",
-    transportator: "",
-    transportatori_succesivi: "",
-    rezerve_observatii: "",
-    prescriptii_francare: "",
-    rambursare: ""
-};
+
 
 export default function CreateTransportPage() {
     const [formData, setFormData] = useState({
@@ -123,7 +76,10 @@ export default function CreateTransportPage() {
         prescriptii_francare: "",
         rambursare: ""
     });
-
+    // First, add these state variables at the top with your other state declarations
+    const [showDataIncarcarePickerVisible, setShowDataIncarcarePickerVisible] = useState(false);
+    const [showDataEmiterePickerVisible, setShowDataEmiterePickerVisible] = useState(false);
+    const [showIncheiereDataPickerVisible, setShowIncheiereDataPickerVisible] = useState(false);
     const [drivers, setDrivers] = useState([]);
     const [selectedDriver, setSelectedDriver] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -162,8 +118,16 @@ export default function CreateTransportPage() {
         getAuthToken();
     }, []);
     const navigation = useNavigation();
+    const [uploadStates, setUploadStates] = useState({});
 
 
+    const toggleUploadForm = (driverId) => {
+        updateDriverUploadState(
+            driverId,
+            'isUploadExpanded',
+            !(uploadStates[driverId]?.isUploadExpanded || false)
+        );
+    };
     // Function to update CMR data fields
     // Function to update top-level CMR data fields
     const handleCMRChange = (field, value) => {
@@ -190,8 +154,8 @@ export default function CreateTransportPage() {
     const handleSubmit = async () => {
         // Validate required fields for the basic transport form
         // Update with actual required CMR fields
-const requiredFields = ['expeditor_nume', 'destinatar_nume', 'loc_livrare']; // Add any other required fields
-const missingFields = requiredFields.filter(field => !formData[field]);
+        const requiredFields = ['expeditor_nume', 'destinatar_nume', 'loc_livrare']; // Add any other required fields
+        const missingFields = requiredFields.filter(field => !formData[field]);
         if (missingFields.length > 0) {
             Alert.alert('Missing Fields', `Please complete the following fields: ${missingFields.join(', ')}`);
             return;
@@ -399,16 +363,73 @@ const missingFields = requiredFields.filter(field => !formData[field]);
                     </View>
 
                     <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>DATA ÎNCĂRCARE</Text>
-                        <TextInput
-                            value={formData.data_incarcare}
-                            onChangeText={(text) => handleCMRChange('data_incarcare', text)}
-                            style={styles.input}
-                            placeholder="DD.MM.YYYY"
-                            placeholderTextColor={COLORS.text.light}
-                        />
-                    </View>
+                        <View style={styles.datePickerContainer}>
+                            <Text style={styles.inputLabel}>DATA ÎNCĂRCARE</Text>
+                            <TouchableOpacity
+                                style={[styles.input, styles.dropdownContainer]}
+                                onPress={() => setShowDataIncarcarePickerVisible(true)}
+                            >
+                                <Text style={formData.data_incarcare ? styles.dropdownText : styles.dropdownPlaceholder}>
+                                    {formData.data_incarcare ? new Date(formData.data_incarcare).toLocaleDateString() : 'Selectează data'}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#5C6BC0" />
+                            </TouchableOpacity>
+
+                            {showDataIncarcarePickerVisible && (
+                                <View style={styles.calendarContainer}>
+                                    {Platform.OS === 'ios' || Platform.OS === 'android' ? (
+                                        <DateTimePicker
+                                            value={formData.data_incarcare ? new Date(formData.data_incarcare) : new Date()}
+                                            mode="date"
+                                            display="default"
+                                            onChange={(event, selectedDate) => {
+                                                setShowDataIncarcarePickerVisible(false);
+                                                if (selectedDate) {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        data_incarcare: selectedDate.toISOString().split('T')[0]
+                                                    }));
+                                                }
+                                            }}
+                                        />
+                                    ) : (
+                                        <Calendar
+                                            onDayPress={(day) => {
+                                                const selectedDate = new Date(day.timestamp);
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    data_incarcare: selectedDate.toISOString().split('T')[0]
+                                                }));
+                                                setShowDataIncarcarePickerVisible(false);
+                                            }}
+                                            markedDates={{
+                                                [formData.data_incarcare ? formData.data_incarcare : '']: {
+                                                    selected: true,
+                                                    selectedColor: "#5C6BC0"
+                                                }
+                                            }}
+                                            theme={{
+                                                calendarBackground: '#FFFFFF',
+                                                textSectionTitleColor: '#303F9F',
+                                                selectedDayBackgroundColor: '#5C6BC0',
+                                                selectedDayTextColor: '#FFFFFF',
+                                                todayTextColor: '#5C6BC0',
+                                                dayTextColor: '#424242',
+                                                textDisabledColor: '#BDBDBD',
+                                                arrowColor: '#5C6BC0',
+                                                monthTextColor: '#303F9F',
+                                                textDayFontWeight: '400',
+                                                textMonthFontWeight: 'bold',
+                                                textDayHeaderFontWeight: '500'
+                                            }}
+                                        />
+                                    )}
+                                </View>
+                            )}
+                        </View>
                 </View>
+                </View>
+
 
                 {/* Cargo Details */}
                 <View style={styles.cmrSection}>
@@ -628,16 +649,77 @@ const missingFields = requiredFields.filter(field => !formData[field]);
                                 placeholderTextColor={COLORS.text.light}
                             />
                         </View>
+                        
+                        <View style={styles.inputContainer}>
+                        <View style={styles.datePickerContainer}>
+                            <Text style={styles.inputLabel}>DATA ÎNCHEIERE</Text>
+                            <TouchableOpacity
+                                style={[styles.input, styles.dropdownContainer]}
+                                onPress={() => setShowIncheiereDataPickerVisible(true)}
+                            >
+                                <Text style={formData.incheiat_la.data ? styles.dropdownText : styles.dropdownPlaceholder}>
+                                    {formData.incheiat_la.data ? new Date(formData.incheiat_la.data).toLocaleDateString() : 'Selectează data'}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#5C6BC0" />
+                            </TouchableOpacity>
 
-                        <View style={[styles.inputWrapper, { flex: 1, marginLeft: 8 }]}>
-                            <Text style={styles.inputLabel}>DATA</Text>
-                            <TextInput
-                                value={formData.incheiat_la.data}
-                                onChangeText={(text) => handleNestedCMRChange('incheiat_la', 'data', text)}
-                                style={styles.input}
-                                placeholder="DD.MM.YYYY"
-                                placeholderTextColor={COLORS.text.light}
-                            />
+                            {showIncheiereDataPickerVisible && (
+                                <View style={styles.calendarContainer}>
+                                    {Platform.OS === 'ios' || Platform.OS === 'android' ? (
+                                        <DateTimePicker
+                                            value={formData.incheiat_la.data ? new Date(formData.incheiat_la.data) : new Date()}
+                                            mode="date"
+                                            display="default"
+                                            onChange={(event, selectedDate) => {
+                                                setShowIncheiereDataPickerVisible(false);
+                                                if (selectedDate) {
+                                                  setFormData(prev => ({
+                                                    ...prev,
+                                                    incheiat_la: {
+                                                      ...prev.incheiat_la,  // Preserve other properties like locatie
+                                                      data: selectedDate.toISOString().split('T')[0]
+                                                    }
+                                                  }));
+                                                }
+                                              }}
+                                        />
+                                    ) : (
+                                        <Calendar
+                                            onDayPress={(day) => {
+                                                const selectedDate = new Date(day.timestamp);
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    incheiat_la: {
+                                                        ...prev.incheiat_la,  // Preserve other properties like locatie
+                                                        data: selectedDate.toISOString().split('T')[0]
+                                                      }                                                }));
+                                                setShowIncheiereDataPickerVisible(false);
+                                            }}
+                                            markedDates={{
+                                                [formData.incheiat_la.data ? formData.incheiat_la.data : '']: {
+                                                    selected: true,
+                                                    selectedColor: "#5C6BC0"
+                                                }
+                                            }}
+                                            theme={{
+                                                calendarBackground: '#FFFFFF',
+                                                textSectionTitleColor: '#303F9F',
+                                                selectedDayBackgroundColor: '#5C6BC0',
+                                                selectedDayTextColor: '#FFFFFF',
+                                                todayTextColor: '#5C6BC0',
+                                                dayTextColor: '#424242',
+                                                textDisabledColor: '#BDBDBD',
+                                                arrowColor: '#5C6BC0',
+                                                monthTextColor: '#303F9F',
+                                                textDayFontWeight: '400',
+                                                textMonthFontWeight: 'bold',
+                                                textDayHeaderFontWeight: '500'
+                                            }}
+                                        />
+                                    )}
+                                </View>
+                            )}
+                        </View>
                         </View>
                     </View>
                 </View>
@@ -658,16 +740,71 @@ const missingFields = requiredFields.filter(field => !formData[field]);
                     </View>
 
                     <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>DATA EMITERE</Text>
-                        <TextInput
-                            value={formData.data_emitere}
-                            onChangeText={(text) => handleCMRChange('data_emitere', text)}
-                            style={styles.input}
-                            placeholder="DD.MM.YYYY"
-                            placeholderTextColor={COLORS.text.light}
-                        />
-                    </View>
+                        <View style={styles.datePickerContainer}>
+                            <Text style={styles.inputLabel}>DATA EMITERE</Text>
+                            <TouchableOpacity
+                                style={[styles.input, styles.dropdownContainer]}
+                                onPress={() => setShowDataEmiterePickerVisible(true)}
+                            >
+                                <Text style={formData.data_emitere ? styles.dropdownText : styles.dropdownPlaceholder}>
+                                    {formData.data_emitere ? new Date(formData.data_emitere).toLocaleDateString() : 'Selectează data'}
+                                </Text>
+                                <Ionicons name="calendar" size={20} color="#5C6BC0" />
+                            </TouchableOpacity>
 
+                            {showDataEmiterePickerVisible && (
+                                <View style={styles.calendarContainer}>
+                                    {Platform.OS === 'ios' || Platform.OS === 'android' ? (
+                                        <DateTimePicker
+                                            value={formData.data_emitere ? new Date(formData.data_emitere) : new Date()}
+                                            mode="date"
+                                            display="default"
+                                            onChange={(event, selectedDate) => {
+                                                setShowDataIncarcarePickerVisible(false);
+                                                if (selectedDate) {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        data_incarcare: selectedDate.toISOString().split('T')[0]
+                                                    }));
+                                                }
+                                            }}
+                                        />
+                                    ) : (
+                                        <Calendar
+                                            onDayPress={(day) => {
+                                                const selectedDate = new Date(day.timestamp);
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    data_emitere: selectedDate.toISOString().split('T')[0]
+                                                }));
+                                                setShowDataEmiterePickerVisible(false);
+                                            }}
+                                            markedDates={{
+                                                [formData.data_emitere ? formData.data_emitere : '']: {
+                                                    selected: true,
+                                                    selectedColor: "#5C6BC0"
+                                                }
+                                            }}
+                                            theme={{
+                                                calendarBackground: '#FFFFFF',
+                                                textSectionTitleColor: '#303F9F',
+                                                selectedDayBackgroundColor: '#5C6BC0',
+                                                selectedDayTextColor: '#FFFFFF',
+                                                todayTextColor: '#5C6BC0',
+                                                dayTextColor: '#424242',
+                                                textDisabledColor: '#BDBDBD',
+                                                arrowColor: '#5C6BC0',
+                                                monthTextColor: '#303F9F',
+                                                textDayFontWeight: '400',
+                                                textMonthFontWeight: 'bold',
+                                                textDayHeaderFontWeight: '500'
+                                            }}
+                                        />
+                                    )}
+                                </View>
+                            )}
+                        </View>
+                            </View>
                     <View style={styles.inputContainer}>
                         <Text style={styles.inputLabel}>TRANSPORTATOR</Text>
                         <TextInput

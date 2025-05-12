@@ -361,4 +361,33 @@ export const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 2,
   },
+
+  // CALENDAR PICKER
+
+dropdownContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+},
+dropdownText: {
+    color: COLORS.text.dark || '#333333',
+    fontSize: 16,
+},
+dropdownPlaceholder: {
+    color: COLORS.text.light || '#999999',
+    fontSize: 16,
+},
+calendarContainer: {
+    marginTop: 8,
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    padding: 8,
+    marginBottom: 16,
+},
 });
