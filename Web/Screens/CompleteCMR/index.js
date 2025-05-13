@@ -24,57 +24,59 @@ import { Calendar } from 'react-native-calendars';
 // CMR Data Model - Default values for the form
 
 
-export default function CreateTransportPage() {
+const CreateTransportPage = ({ route }) => {
+    // Get the transport ID from route params
+    const { transportId } = route.params || {};
+    console.log('Transport ID:', transportId);
     const [formData, setFormData] = useState({
-        expeditor_nume: "",
-        expeditor_adresa: "",
-        expeditor_tara: "",
+        expeditor_nume: '',
+        expeditor_adresa: '',
+        expeditor_tara: '',
         // Destinatar (Recipient) information - Section 2
-        destinatar_nume: "",
-        destinatar_adresa: "",
-        destinatar_tara: "",
+        destinatar_nume: '',
+        destinatar_adresa: '',
+        destinatar_tara: '',
         // Location information - Sections 3-4
-        loc_livrare: "",
-        loc_incarcare: "",
-        data_incarcare: "",
+        loc_livrare: '',
+        loc_incarcare: '',
+        data_incarcare: '',
         // Cargo details - Sections 6-12
-        marci_numere: "",
-        numar_colete: "",
-        mod_ambalare: "",
-        natura_marfii: "",
-        nr_static: "",
-        greutate_bruta: "",
-        cubaj: "",
+        marci_numere: '',
+        numar_colete: '',
+        mod_ambalare: '',
+        natura_marfii: '',
+        nr_static: '',
+        greutate_bruta: '',
+        cubaj: '',
         // Special instructions - Section 13
-        instructiuni_expeditor: "",
+        instructiuni_expeditor: '',
         // Special conventions - Section 19
-        conventii_speciale: "",
+        conventii_speciale: '',
         // Payment information - Section 20
         de_plata: {
-            pret_transport: "",
-            reduceri: "",
-            sold: "",
-            suplimente: "",
-            alte_cheltuieli: "",
-            total: ""
+            pret_transport: '',
+            reduceri: '',
+            sold: '',
+            suplimente: '',
+            alte_cheltuieli: '',
         },
         // Closure information - Section 21
         incheiat_la: {
-            locatie: "",
-            data: ""
+            locatie: '',
+            data: ''
         },
         // Signatures - Sections 22-24
-        semnatura_expeditor: "",
-        semnatura_transportator: "",
-        semnatura_destinatar: "",
+        semnatura_expeditor: '',
+        semnatura_transportator: '',
+        semnatura_destinatar: '',
         // Additional fields
-        numar_cmr: "",
-        data_emitere: "",
-        transportator: "",
-        transportatori_succesivi: "",
-        rezerve_observatii: "",
-        prescriptii_francare: "",
-        rambursare: ""
+        numar_cmr: '',
+        data_emitere: '',
+        transportator: '',
+        transportatori_succesivi: '',
+        rezerve_observatii: '',
+        prescriptii_francare: '',
+        rambursare: ''
     });
     // First, add these state variables at the top with your other state declarations
     const [showDataIncarcarePickerVisible, setShowDataIncarcarePickerVisible] = useState(false);
@@ -152,94 +154,89 @@ export default function CreateTransportPage() {
 
 
     const handleSubmit = async () => {
-        // Validate required fields for the basic transport form
-        // Update with actual required CMR fields
-        const requiredFields = ['expeditor_nume', 'destinatar_nume', 'loc_livrare']; // Add any other required fields
+        const requiredFields = ['expeditor_nume', 'destinatar_nume', 'loc_livrare'];
         const missingFields = requiredFields.filter(field => !formData[field]);
         if (missingFields.length > 0) {
             Alert.alert('Missing Fields', `Please complete the following fields: ${missingFields.join(', ')}`);
             return;
         }
-
-        console.log('Submitting form data:', formData);
-
+    
+        // Câmpuri care trebuie să fie numere
+        const integerFields = ['numar_colete', 'nr_static', 'numar_cmr', 'cubaj', 'greutate_bruta'];
+        const floatFields = ['pret_transport', 'reduceri', 'sold', 'suplimente', 'alte_cheltuieli'];
+        const dateFields = ['data_emitere', 'data_incarcare', 'incheiat_la.data'];
+    
+        // Funcție de curățare a valorilor goale
+        const cleanField = (value, isNumeric = false) => {
+            if (value === "") return null;
+            if (isNumeric && !isNaN(value)) return Number(value);
+            return value;
+        };
+    
+        const cleanedFormData = {
+            ...formData,
+            // Numeric + date cleanup
+            numar_colete: cleanField(formData.numar_colete, true),
+            nr_static: cleanField(formData.nr_static, true),
+            numar_cmr: cleanField(formData.numar_cmr, true),
+            cubaj: cleanField(formData.cubaj, true),
+            greutate_bruta: cleanField(formData.greutate_bruta, true),
+            data_emitere: formData.data_emitere || null,
+            data_incarcare: formData.data_incarcare || null,
+            incheiat_la: {
+                locatie: formData.incheiat_la.locatie || "",
+                data: formData.incheiat_la.data || null,
+            },
+            de_plata: {
+                pret_transport: cleanField(formData.de_plata.pret_transport, true),
+                reduceri: cleanField(formData.de_plata.reduceri, true),
+                sold: cleanField(formData.de_plata.sold, true),
+                suplimente: cleanField(formData.de_plata.suplimente, true),
+                alte_cheltuieli: cleanField(formData.de_plata.alte_cheltuieli, true)
+            }
+        };
+    
+        console.log('Submitting cleaned form data:', cleanedFormData);
+    
         setLoading(true);
         try {
-            console.log('Submitting form data:', formData);
             const token = localStorage.getItem('authToken');
-            const response = await fetch('https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/transport-cmr/1', {
+            const response = await fetch(`https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/transport-cmr/${transportId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Token ${token}`,
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(cleanedFormData),
             });
-
+    
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Failed to create transport');
             }
-
+    
             const data = await response.json();
             Alert.alert('Success', 'Transport CMR edited successfully!');
             console.log('Success:', data);
-
-            // Reset form
+    
+            // Reset
             setFormData({
-
-                expeditor_nume: "",
-                expeditor_adresa: "",
-                expeditor_tara: "",
-                // Destinatar (Recipient) information - Section 2
-                destinatar_nume: "",
-                destinatar_adresa: "",
-                destinatar_tara: "",
-                // Location information - Sections 3-4
-                loc_livrare: "",
-                loc_incarcare: "",
-                data_incarcare: "",
-                // Cargo details - Sections 6-12
-                marci_numere: "",
-                numar_colete: "",
-                mod_ambalare: "",
-                natura_marfii: "",
-                nr_static: "",
-                greutate_bruta: "",
-                cubaj: "",
-                // Special instructions - Section 13
-                instructiuni_expeditor: "",
-                // Special conventions - Section 19
-                conventii_speciale: "",
-                // Payment information - Section 20
+                expeditor_nume: "", expeditor_adresa: "", expeditor_tara: "",
+                destinatar_nume: "", destinatar_adresa: "", destinatar_tara: "",
+                loc_livrare: "", loc_incarcare: "", data_incarcare: "",
+                marci_numere: "", numar_colete: "", mod_ambalare: "",
+                natura_marfii: "", nr_static: "", greutate_bruta: "", cubaj: "",
+                instructiuni_expeditor: "", conventii_speciale: "",
                 de_plata: {
-                    pret_transport: "",
-                    reduceri: "",
-                    sold: "",
-                    suplimente: "",
-                    alte_cheltuieli: "",
-                    total: ""
+                    pret_transport: "", reduceri: "", sold: "", suplimente: "", alte_cheltuieli: "",
                 },
-                // Closure information - Section 21
-                incheiat_la: {
-                    locatie: "",
-                    data: ""
-                },
-                // Signatures - Sections 22-24
-                semnatura_expeditor: "",
-                semnatura_transportator: "",
-                semnatura_destinatar: "",
-                // Additional fields
-                numar_cmr: "",
-                data_emitere: "",
-                transportator: "",
-                transportatori_succesivi: "",
-                rezerve_observatii: "",
-                prescriptii_francare: "",
-                rambursare: ""
+                incheiat_la: { locatie: "", data: "" },
+                semnatura_expeditor: "", semnatura_transportator: "", semnatura_destinatar: "",
+                numar_cmr: "", data_emitere: "", transportator: "",
+                transportatori_succesivi: "", rezerve_observatii: "", prescriptii_francare: "", rambursare: ""
             });
             setSelectedDriver(null);
-
+    
         } catch (error) {
             console.error('Error:', error.message);
             Alert.alert('Error', error.message);
@@ -247,6 +244,7 @@ export default function CreateTransportPage() {
             setLoading(false);
         }
     };
+    
 
     // Driver selection modal
 
@@ -620,17 +618,7 @@ export default function CreateTransportPage() {
                             />
                         </View>
 
-                        <View style={[styles.inputWrapper, { flex: 1, marginLeft: 8 }]}>
-                            <Text style={styles.inputLabel}>TOTAL</Text>
-                            <TextInput
-                                value={formData.de_plata.total}
-                                onChangeText={(text) => handleNestedCMRChange('de_plata', 'total', text)}
-                                style={styles.input}
-                                placeholder="Total"
-                                keyboardType="numeric"
-                                placeholderTextColor={COLORS.text.light}
-                            />
-                        </View>
+                       
                     </View>
                 </View>
 
@@ -892,3 +880,4 @@ export default function CreateTransportPage() {
         </SafeAreaView>
     )
 };
+export default CreateTransportPage;
