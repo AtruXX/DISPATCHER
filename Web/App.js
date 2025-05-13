@@ -20,6 +20,7 @@ import CompleteCMR from './Screens/CompleteCMR';
 import FinalTransports from './Screens/TransporturiFinalizate/index.js';
 import Profile from "./Screens/Profile/index.js"; 
 import Route from "./Screens/Route/index.js";
+import UpdateCMR from "./Screens/UpdateCMR/index.js";
 enableScreens();
 
 class ErrorBoundary extends React.Component {
@@ -173,6 +174,11 @@ function App() {
             <Stack.Screen
             name={"Route"}
             component = {Route}
+            options = {{ headerShown: false }}
+            />
+            <Stack.Screen
+            name={"UpdateCMR"}
+            component = {UpdateCMR}
             options = {{ headerShown: false }}
             />
           </Stack.Navigator>

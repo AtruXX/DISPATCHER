@@ -147,7 +147,13 @@ const TransportsScreen = ({ navigation }) => {
                 style={styles.editButton} 
                 onPress={() => navigation.navigate('CompleteCMR', { transportId: item.id })}
               >
-                <Text style={styles.editButtonText}>Completeaza CMR</Text>
+                <Text style={styles.editButtonText}>Creeaza CMR</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.editButton} 
+                onPress={() => navigation.navigate('UpdateCMR', { transportId: item.id })}
+              >
+                <Text style={styles.editButtonText}>Editeaza CMR</Text>
               </TouchableOpacity>
             </View>
             
