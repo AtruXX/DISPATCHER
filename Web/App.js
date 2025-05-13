@@ -19,6 +19,7 @@ import AddDriver from './Screens/AddDriver/index.js'
 import CompleteCMR from './Screens/CompleteCMR';
 import FinalTransports from './Screens/TransporturiFinalizate/index.js';
 import Profile from "./Screens/Profile/index.js"; 
+import Route from "./Screens/Route/index.js";
 enableScreens();
 
 class ErrorBoundary extends React.Component {
@@ -168,6 +169,11 @@ function App() {
               name = {"Profile"}
               component = {Profile}
               options = {{ headerShown: false }}
+            />
+            <Stack.Screen
+            name={"Route"}
+            component = {Route}
+            options = {{ headerShown: false }}
             />
           </Stack.Navigator>
         </NavigationContainer>

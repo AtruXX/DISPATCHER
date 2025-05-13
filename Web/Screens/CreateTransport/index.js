@@ -646,6 +646,22 @@ export default function CreateTransportPage() {
               <Text style={styles.submitButtonText || { color: COLORS.white, fontWeight: 'bold', fontSize: 16 }}>CREEAZĂ TRANSPORT</Text>
             </TouchableOpacity>
           </LinearGradient>
+          <LinearGradient
+            colors={[COLORS.secondary, COLORS.primary]}
+            style={styles.submitButtonGradient || { borderRadius: 8, marginTop: 16 }}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <TouchableOpacity 
+              style={styles.submitButton || { padding: 16, alignItems: 'center' }} 
+              onPress={() => {
+                navigation.navigate('Route');
+              }}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.submitButtonText || { color: COLORS.white, fontWeight: 'bold', fontSize: 16 }}>ATRIBUIE RUTA</Text>
+            </TouchableOpacity>
+          </LinearGradient>
         </View>
       </ScrollView>
 

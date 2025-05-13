@@ -1,433 +1,322 @@
-import React, { useState } from 'react';
-import { 
-  ScrollView, 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
   StyleSheet,
+  ScrollView,
   ActivityIndicator,
   Alert,
-  SafeAreaView,
-  StatusBar,
-  Modal,
-  FlatList,
-  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
-// Import Calendar properly if you're using react-native-calendars
-import { Calendar } from 'react-native-calendars';
+import { styles } from './styles';
 
-// Define styles directly in the file since the imported styles might be causing issues
-
-import {styles } from './styles';
-export default function CreateDriver() {
-  const [formData, setFormData] = useState({
-    license_plate: '',
-    vin: '',
-    make: '',
-    model: '',
-    year: '',
-    next_service_date: '',
-    last_service_date: ''
-  });
+const AddDriverScreen = ({ navigation }) => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [hireDate, setHireDate] = useState(new Date());
+  const [licenseExpiryDate, setLicenseExpiryDate] = useState(new Date());
+  const [showHireDatePicker, setShowHireDatePicker] = useState(false);
+  const [showLicenseDatePicker, setShowLicenseDatePicker] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
   const COLORS = {
-    background: "#ECEFF1", // Light background from your TransportScreen
-    card: "#F5F5F5", // White card background
-    primary: "#303F9F", // Primary blue color
-    secondary: "#3F51B5", // Secondary blue
-    accent: "#5C6BC0", // Light blue accent
-    lightAccent: "#7986CB", // Very light blue text
-    text: {
-      dark: "#424242", // Dark text
-      medium: "#757575", // Medium text
-      light: "#9E9E9E", // Light text
-    },
-    border: "#E0E0E0", // Light border
-    success: "#66BB6A", // Green for success messages
-    error: "#EF5350", // Red for errors
-    warning: "#FFA726", // Orange for warnings
-    available: "#81C784", // Green for available drivers
-    unavailable: "#E57373", // Red for unavailable drivers
-    white: "#FFFFFF", // White color for modal backgrounds
+    background: "#F6F7FF",    // Lighter lavender for a fresh feel
+    card: "#FFFFFF",          // White
+    primary: "#6366F1",       // More vibrant purple-blue (primary)
+    primaryLight: "#EEF0FF",  // Light primary for subtle highlights
+    secondary: "#7C8FFF",     // Enhanced light blue
+    accent: "#FF9F7A",        // Warmer soft orange
+    accent2: "#78C6FF",       // Brighter sky blue
+    dark: "#2D3154",          // Softer dark navy
+    medium: "#6E75A4",        // Warmer medium navy-gray
+    light: "#A8ADCE",         // Slightly warmer light gray-purple
+    border: "#E6E9F9",        // Subtle border
+    success: "#4DD4B9",       // Brighter turquoise
+    warning: "#FFCA6E",       // Brighter amber
+    danger: "#FF8A94",        // Warmer soft red
+    shadow: "#6366F1",        // Shadow color based on primary
   };
   
-  const [loading, setLoading] = useState(false);
-  const [showNextServiceDateCalendar, setShowNextServiceDateCalendar] = useState(false);
-  const [showLastServiceDateCalendar, setShowLastServiceDateCalendar] = useState(false);
-  const [isMakeModalVisible, setMakeModalVisible] = useState(false);
+  // Generate username when firstName or lastName changes
+  useEffect(() => {
+    if (firstName && lastName) {
+      // Replace diacritics and special chars, convert to lowercase
+      const normalizedFirstName = firstName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+      
+      const normalizedLastName = lastName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+      
+      setUsername(`${normalizedLastName}_${normalizedFirstName}`);
+    }
+  }, [firstName, lastName]);
   
-  const navigation = useNavigation();
-
-  // Predefined options for make dropdown
-  const truckMakes = [
-    'Volvo',
-    'Mercedes-Benz',
-    'Scania',
-    'MAN',
-    'DAF',
-    'Iveco',
-    'Renault',
-    'Ford'
-  ];
-
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-  
-  const selectMake = (make) => {
-    setFormData(prev => ({ ...prev, make: make }));
-    setMakeModalVisible(false);
-  };
-  
-  const handleNextServiceDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || new Date();
-    setShowNextServiceDateCalendar(Platform.OS === 'ios');
-    setFormData(prev => ({ 
-      ...prev, 
-      next_service_date: currentDate.toISOString().split('T')[0]
-    }));
-  };
-  
-  const handleLastServiceDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || new Date();
-    setShowLastServiceDateCalendar(Platform.OS === 'ios');
-    setFormData(prev => ({ 
-      ...prev, 
-      last_service_date: currentDate.toISOString().split('T')[0]
-    }));
-  };
-
-  const handleCalendarDayPress = (day) => {
-    setFormData(prev => ({ ...prev, next_service_date: day.dateString }));
-    setShowNextServiceDateCalendar(false);
-  };
-  const handleCalendarDayPressLat = (day) => {
-    setFormData(prev => ({ ...prev, last_service_date: day.dateString }));
-    setShowLastServiceDateCalendar(false);
-  };
-  const handleSubmit = async () => {
-    // Validate required fields
-    const requiredFields = ['license_plate', 'vin', 'make', 'model', 'year'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
+  // Function to generate a random strong password
+  const generateStrongPassword = () => {
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    const special = '!@#$%^&*()_-+=<>?';
     
-    if (missingFields.length > 0) {
-      Alert.alert('Missing Fields', `Please complete the following fields: ${missingFields.join(', ')}`);
-      return;
+    const allChars = lowercase + uppercase + numbers + special;
+    let newPassword = '';
+    
+    // Ensure at least one character from each group
+    newPassword += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
+    newPassword += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
+    newPassword += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    newPassword += special.charAt(Math.floor(Math.random() * special.length));
+    
+    // Fill the rest randomly to reach 16 characters
+    for (let i = 4; i < 16; i++) {
+      newPassword += allChars.charAt(Math.floor(Math.random() * allChars.length));
     }
     
-    setLoading(true);
+    // Shuffle the password to avoid predictable pattern
+    newPassword = newPassword
+      .split('')
+      .sort(() => 0.5 - Math.random())
+      .join('');
+    
+    setPassword(newPassword);
+  };
+  
+  // Generate a password when component mounts
+  useEffect(() => {
+    generateStrongPassword();
+  }, []);
+  
+  const formatDate = (date) => {
+    return date.toLocaleDateString('ro-RO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  };
+
+  const onHireDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || hireDate;
+    setShowHireDatePicker(false);
+    setHireDate(currentDate);
+  };
+
+  const onLicenseDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || licenseExpiryDate;
+    setShowLicenseDatePicker(false);
+    setLicenseExpiryDate(currentDate);
+  };
+
+  const validateForm = () => {
+    if (!firstName.trim()) {
+      Alert.alert('Eroare', 'Vă rugăm introduceți prenumele');
+      return false;
+    }
+    if (!lastName.trim()) {
+      Alert.alert('Eroare', 'Vă rugăm introduceți numele');
+      return false;
+    }
+    if (!phoneNumber.trim()) {
+      Alert.alert('Eroare', 'Vă rugăm introduceți numărul de telefon');
+      return false;
+    }
+    // Basic phone number validation
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(phoneNumber.trim())) {
+      Alert.alert('Eroare', 'Vă rugăm introduceți un număr de telefon valid (10 cifre)');
+      return false;
+    }
+    return true;
+  };
+
+  const handleCreateDriver = async () => {
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+
     try {
-        console.log(formData);
-      const token = typeof localStorage !== 'undefined' ? localStorage.getItem('authToken') : null;
-      console.log(token);
-      const response = await fetch('https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/trucks/', {
+      const driverData = {
+        nume: lastName,
+        prenume: firstName,
+        dataAngajarii: formatDate(hireDate),
+        nrTelefon: phoneNumber,
+        dataExpirariiPermisului: formatDate(licenseExpiryDate),
+        username: username,
+        password: password, // Include the generated strong password
+      };
+
+      // Replace with your actual API endpoint
+      const response = await fetch('https://your-api-endpoint.com/drivers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(driverData),
       });
-      
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create truck');
+        throw new Error('Network response was not ok');
       }
+
+      const result = await response.json();
       
-      const data = await response.json();
-      Alert.alert('Success', 'Truck created successfully!');
-      console.log('Success:', data);
-      
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        phone_number: '',
-        vechime:'',
-        
-      });
+      // Show success message with credentials
+      Alert.alert(
+        'Șofer adăugat cu succes',
+        `Nume utilizator: ${username}\nParolă: ${password}\n\nVă rugăm să salvați aceste informații într-un loc sigur.`,
+        [
+          { 
+            text: 'OK', 
+            onPress: () => navigation.goBack() 
+          }
+        ]
+      );
       
     } catch (error) {
-      console.error('Error:', error.message);
-      Alert.alert('Error', error.message);
+      console.error('Error creating driver:', error);
+      Alert.alert('Eroare', 'A apărut o eroare la adăugarea șoferului. Vă rugăm încercați din nou.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // Make selection modal
-  const renderMakeModal = () => {
-    return (
-      <Modal
-        visible={isMakeModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setMakeModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Marca</Text>
-              <TouchableOpacity onPress={() => setMakeModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-            
-            <FlatList
-              data={truckMakes}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity 
-                  style={styles.optionItem}
-                  onPress={() => selectMake(item)}
-                >
-                  <Text style={styles.optionText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <View style={styles.loadingCard}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Se incarca...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      
-      <View style={styles.navigationHeader}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-            } else {
-              navigation.navigate("Main");
-            }
-          }}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
-      </View>
-      
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Header Card */}
-        <View style={styles.headerCard}>
-          <Text style={styles.headerTitle}>Creare Camion</Text>
-          <Text style={styles.headerSubtitle}>
-            Completati detaliile pentru camion nou
-          </Text>
-        </View>
-
-        {/* Form Card */}
-        <View style={styles.formCard}>
-          <View style={styles.inputRow}>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>NUMĂR ÎNMATRICULARE</Text>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  value={formData.license_plate}
-                  onChangeText={(text) => handleChange('license_plate', text)}
-                  style={styles.input}
-                  placeholder="B-123-ABC"
-                  placeholderTextColor={COLORS.text.light}
-                />
-              </View>
-            </View>
-            
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>NUMĂR VIN</Text>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  value={formData.vin}
-                  onChangeText={(text) => handleChange('vin', text)}
-                  style={styles.input}
-                  placeholder="WDB9634031L123456"
-                  placeholderTextColor={COLORS.text.light}
-                />
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.inputRow}>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>MARCĂ</Text>
-              <TouchableOpacity 
-                style={[styles.inputContainer, styles.dropdownContainer]}
-                onPress={() => setMakeModalVisible(true)}
-              >
-                <Text style={formData.make ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {formData.make || 'Selectează marca'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>MODEL</Text>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  value={formData.model}
-                  onChangeText={(text) => handleChange('model', text)}
-                  style={styles.input}
-                  placeholder="Actros"
-                  placeholderTextColor={COLORS.text.light}
-                />
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.inputRow}>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>AN FABRICAȚIE</Text>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  value={formData.year}
-                  onChangeText={(text) => handleChange('year', text)}
-                  style={styles.input}
-                  placeholder="2023"
-                  keyboardType="numeric"
-                  placeholderTextColor={COLORS.text.light}
-                />
-              </View>
-            </View>
-            
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>DATA ULTIMULUI SERVICE</Text>
-              <TouchableOpacity 
-                style={[styles.inputContainer, styles.dropdownContainer]}
-                onPress={() => setShowLastServiceDateCalendar(true)}
-              >
-                <Text style={formData.last_service_date ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {formData.last_service_date || 'Selectează data'}
-                </Text>
-                <Ionicons name="calendar" size={20} color={COLORS.primary} />
-              </TouchableOpacity>
-              {showLastServiceDateCalendar && (
-                <View style={styles.calendarContainer}>
-                  {Platform.OS === 'ios' || Platform.OS === 'android' ? (
-                    <DateTimePicker
-                      value={formData.last_service_date ? new Date(formData.last_service_date) : new Date()}
-                      mode="date"
-                      display="default"
-                      onChange={handleLastServiceDateChange}
-                    />
-                  ) : (
-                    <Calendar
-                      onDayPress={handleCalendarDayPressLat}
-                      markedDates={{
-                        [formData.last_service_date]: {
-                          selected: true,
-                          selectedColor: COLORS.primary
-                        }
-                      }}
-                      theme={{
-                        calendarBackground: COLORS.card,
-                        textSectionTitleColor: COLORS.text.dark,
-                        selectedDayBackgroundColor: COLORS.primary,
-                        selectedDayTextColor: COLORS.white,
-                        todayTextColor: COLORS.accent,
-                        dayTextColor: COLORS.text.dark,
-                        textDisabledColor: COLORS.text.light,
-                        arrowColor: COLORS.primary,
-                        monthTextColor: COLORS.primary,
-                        textDayFontWeight: '400',
-                        textMonthFontWeight: 'bold',
-                        textDayHeaderFontWeight: '500'
-                      }}
-                    />
-                  )}
-                </View>
-              )}
-            </View>
-            
-          </View>
-
-          <View style={styles.inputRow}>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>DATA URMĂTORULUI SERVICE</Text>
-              <TouchableOpacity 
-                style={[styles.inputContainer, styles.dropdownContainer]}
-                onPress={() => setShowNextServiceDateCalendar(!showNextServiceDateCalendar)}
-              >
-                <Text style={formData.next_service_date ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {formData.next_service_date || 'Selectează data'}
-                </Text>
-                <Ionicons name="calendar" size={20} color={COLORS.primary} />
-              </TouchableOpacity>
-              {showNextServiceDateCalendar && (
-                <View style={styles.calendarContainer}>
-                  {Platform.OS === 'ios' || Platform.OS === 'android' ? (
-                    <DateTimePicker
-                      value={formData.next_service_date ? new Date(formData.next_service_date) : new Date()}
-                      mode="date"
-                      display="default"
-                      onChange={handleNextServiceDateChange}
-                    />
-                  ) : (
-                    <Calendar
-                      onDayPress={handleCalendarDayPress}
-                      markedDates={{
-                        [formData.next_service_date]: {
-                          selected: true,
-                          selectedColor: COLORS.primary
-                        }
-                      }}
-                      theme={{
-                        calendarBackground: COLORS.card,
-                        textSectionTitleColor: COLORS.text.dark,
-                        selectedDayBackgroundColor: COLORS.primary,
-                        selectedDayTextColor: COLORS.white,
-                        todayTextColor: COLORS.accent,
-                        dayTextColor: COLORS.text.dark,
-                        textDisabledColor: COLORS.text.light,
-                        arrowColor: COLORS.primary,
-                        monthTextColor: COLORS.primary,
-                        textDayFontWeight: '400',
-                        textMonthFontWeight: 'bold',
-                        textDayHeaderFontWeight: '500'
-                      }}
-                    />
-                  )}
-                </View>
-              )}
-            </View>
-            <View style={styles.inputWrapper} />
-          </View>
-
-          <LinearGradient
-            colors={[COLORS.secondary, COLORS.primary]}
-            style={styles.submitButtonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
           >
-            <TouchableOpacity 
-              style={styles.submitButton} 
-              onPress={handleSubmit}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.submitButtonText}>CREEAZĂ CAMION</Text>
-            </TouchableOpacity>
-          </LinearGradient>
+            <Ionicons name="arrow-back" size={24} color={COLORS.dark} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Adaugă Șofer Nou</Text>
+          <View style={{ width: 24 }} />
         </View>
-      </ScrollView>
+      </View>
 
-      {renderMakeModal()}
-    </SafeAreaView>
+      <ScrollView 
+        style={styles.formContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>Informații Personale</Text>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Prenume</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Introduceți prenumele"
+                value={firstName}
+                onChangeText={setFirstName}
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Nume</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Introduceți numele"
+                value={lastName}
+                onChangeText={setLastName}
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Număr de Telefon</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Introduceți numărul de telefon"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                keyboardType="phone-pad"
+                maxLength={10}
+              />
+            </View>
+          </View>
+        </View>
+        
+        <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>Informații Cont</Text>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Nume Utilizator</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Generat automat"
+                value={username}
+                editable={false}
+              />
+            </View>
+            <Text style={styles.helpText}>Generat automat din nume și prenume</Text>
+          </View>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Parolă</Text>
+            <View style={[styles.inputContainer, { flexDirection: 'row', alignItems: 'center' }]}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                placeholder="Parolă generată automat"
+                value={password}
+                secureTextEntry={!passwordVisible}
+                editable={false}
+              />
+              <TouchableOpacity 
+                onPress={() => setPasswordVisible(!passwordVisible)}
+                style={{ padding: 10 }}
+              >
+                <Ionicons 
+                  name={passwordVisible ? "eye-off-outline" : "eye-outline"} 
+                  size={22} 
+                  color={COLORS.medium}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={styles.helpText}>Parolă puternică generată automat</Text>
+              <TouchableOpacity 
+                onPress={generateStrongPassword}
+                style={styles.iconButton}
+              >
+                <Ionicons name="refresh-outline" size={18} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={handleCreateDriver}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color={COLORS.card} />
+          ) : (
+            <>
+              <Ionicons name="add-circle-outline" size={20} color={COLORS.card} style={styles.buttonIcon} />
+              <Text style={styles.createButtonText}>Creează Șofer</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
-}
+};
+
+export default AddDriverScreen;
