@@ -10,6 +10,8 @@ import {
   Image,
 } from 'react-native';
 import {styles} from './styles.js'; 
+import { Ionicons } from '@expo/vector-icons';
+
 const COLORS = {
   background: "#F4F5FB", // Light lavender background
   card: "#FFFFFF", // White
@@ -26,7 +28,9 @@ const COLORS = {
   danger: "#FF7285", // Soft red
 };
 
-const ModernInteractiveMap = () => {
+const ModernInteractiveMap = ({ route, navigation }) => {
+    // Get the transport ID from route params
+    const { transportId } = route.params || {};
   // State variables
   const [driverId, setDriverId] = useState('12');
   const [driverIdSet, setDriverIdSet] = useState(false);
@@ -37,7 +41,37 @@ const ModernInteractiveMap = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [authToken, setAuthToken] = useState(null);
+    const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const getAuthToken = () => {
+      try {
+        console.log("Attempting to get auth token from localStorage");
+        const token = localStorage.getItem('authToken');
+        console.log("Token from localStorage:", token ? "Token exists" : "No token found");
+
+        if (token) {
+          setAuthToken(token);
+          console.log("Auth token set in state");
+        } else {
+          console.log("No token found, setting error");
+          setError('Authentication required. Please log in first.');
+        }
+      } catch (err) {
+        console.error("Error getting auth token:", err);
+        setError('Failed to load authentication token.');
+      } finally {
+        console.log("Setting loading to false");
+        setLoading(false);
+      }
+    };
+
+    getAuthToken();
+  }, []);
+
+  // Fetch drivers when token is available
+ 
+
   // Refs
   const mapRef = useRef(null);
   const googleMapRef = useRef(null);
@@ -133,9 +167,9 @@ const ModernInteractiveMap = () => {
       setMapLoaded(true);
       
       // Add click listener when driver ID is set
-      if (driverIdSet) {
+      
         enableMap();
-      }
+      
     }
   };
 
@@ -160,16 +194,7 @@ const ModernInteractiveMap = () => {
     }
   };
 
-  // Set driver ID and enable map
-  const handleSetDriverId = () => {
-    if (!driverId.trim()) {
-      alert("Please enter a valid Driver ID.");
-      return;
-    }
-    setDriverIdSet(true);
-    enableMap();
-  };
-
+ 
   // Open popup with animation
   const openPopup = () => {
     setShowPopup(true);
@@ -243,39 +268,72 @@ const ModernInteractiveMap = () => {
   };
 
   // Send route
-  const sendRoute = () => {
+  const sendRoute = async () => {
     if (selectedLocations.length === 0) {
       alert("No locations to send!");
       return;
     }
-
+    
     // Close popup if it's open
     if (showPopup) {
       closePopup();
     }
     
-    // Show success message with animation
-    setShowSuccess(true);
-    Animated.timing(successFadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true
-    }).start();
-    
-    // Hide success message after 3 seconds and reset
-    setTimeout(() => {
+    try {
+      // Format the locations to match the required structure
+      const formattedLocations = selectedLocations.map(location => ({
+        name: location.name,
+        latitude: location.lat,
+        longitude: location.lng
+      }));
+      
+      // Prepare the payload with the correct structure
+      const payload = {
+        points: formattedLocations
+      };
+      console.log("Payload to send:", payload);
+      // Send the data to your API endpoint
+      const response = await fetch(`https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/transport-routes/${transportId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error('Server error:', errorData);
+        throw new Error('Failed to save route');
+      }
+      
+      // Show success message with animation
+      setShowSuccess(true);
       Animated.timing(successFadeAnim, {
-        toValue: 0,
+        toValue: 1,
         duration: 300,
         useNativeDriver: true
-      }).start(() => {
-        setShowSuccess(false);
-        setSelectedLocations([]);
-        clearMarkers();
-      });
-    }, 3000);
+      }).start();
+      
+      // Hide success message after 3 seconds and reset
+      setTimeout(() => {
+        Animated.timing(successFadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true
+        }).start(() => {
+          setShowSuccess(false);
+          setSelectedLocations([]);
+          clearMarkers();
+        });
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Error sending route:', error);
+      alert('Failed to save the route. Please try again.');
+    }
   };
-
   return (
     <View style={styles.container}>
       {/* Map */}
@@ -283,9 +341,28 @@ const ModernInteractiveMap = () => {
         ref={mapRef}
         style={styles.map}
       />
-
+        <View style={styles.navigationHeader}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate("Main"); // or your fallback screen
+            }
+          }}
+        >
+          <Ionicons name="arrow-back" size={24} color="#303F9F" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.refreshButton}
+          onPress={initializeMap}
+        >
+          <Ionicons name="refresh" size={24} color="#303F9F" />
+        </TouchableOpacity>
+      </View>
       {/* Search Bar - Only shown when driver is set */}
-      {driverIdSet && (
+     
         <View style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
             <TextInput
@@ -303,29 +380,10 @@ const ModernInteractiveMap = () => {
             </TouchableOpacity>
           </View>
         </View>
-      )}
+     
 
       {/* Driver ID Selection */}
-      {!driverIdSet && (
-        <View style={styles.driverIdPopup}>
-          <Text style={styles.popupTitle}>Enter Driver ID</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Driver ID"
-            value={driverId}
-            onChangeText={setDriverId}
-            keyboardType="numeric"
-            placeholderTextColor={COLORS.light}
-          />
-          <TouchableOpacity 
-            style={styles.button}
-            onPress={handleSetDriverId}
-          >
-            <Text style={styles.buttonText}>Continue</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
+     
       {/* Overlay and Popup */}
       {showPopup && (
         <Animated.View 

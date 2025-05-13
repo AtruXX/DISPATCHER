@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ScrollView, 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
+import {
+  ScrollView,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   Alert,
@@ -60,7 +60,7 @@ export default function CreateTransportPage() {
     'Container',
     'Box'
   ];
-  
+
   // New dropdown options for Tip Tractare
   const detractionTypes = [
     '4x2',
@@ -68,7 +68,7 @@ export default function CreateTransportPage() {
     '6x4',
     '8x4'
   ];
-  
+
   // New dropdown options for Tip Marfa
   const goodsTypes = [
     'Marfă generală',
@@ -189,13 +189,13 @@ export default function CreateTransportPage() {
     setFormData(prev => ({ ...prev, trailer_type: type }));
     setTrailerModalVisible(false);
   };
-  
+
   // New functions for the new dropdowns
   const selectDetraction = (detraction) => {
     setFormData(prev => ({ ...prev, detraction: detraction }));
     setDetractionModalVisible(false);
   };
-  
+
   const selectGoodsType = (goodsType) => {
     setFormData(prev => ({ ...prev, goods_type: goodsType }));
     setGoodsTypeModalVisible(false);
@@ -205,12 +205,12 @@ export default function CreateTransportPage() {
     // Validate required fields
     const requiredFields = ['truck_combination', 'trailer_type', 'trailer_number', 'origin_city', 'destination_city', 'goods_type', 'driver'];
     const missingFields = requiredFields.filter(field => !formData[field]);
-    
+
     if (missingFields.length > 0) {
       Alert.alert('Missing Fields', `Please complete the following fields: ${missingFields.join(', ')}`);
       return;
     }
-    
+
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
@@ -222,16 +222,17 @@ export default function CreateTransportPage() {
         },
         body: JSON.stringify(formData),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to create transport');
       }
-      
+
       const data = await response.json();
+      navigation.navigate('Route', { transportId: data.id });
       Alert.alert('Success', 'Transport created successfully!');
       console.log('Success:', data);
-      
+
       // Reset form
       setFormData({
         truck_combination: '',
@@ -244,7 +245,7 @@ export default function CreateTransportPage() {
         driver: null
       });
       setSelectedDriver(null);
-      
+
     } catch (error) {
       console.error('Error:', error.message);
       Alert.alert('Error', error.message);
@@ -270,20 +271,20 @@ export default function CreateTransportPage() {
                 <Ionicons name="close" size={24} color={COLORS.primary} />
               </TouchableOpacity>
             </View>
-            
+
             <FlatList
               data={drivers}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.driverItem}
                   onPress={() => selectDriver(item)}
                 >
                   <Text style={styles.driverName}>{item.name}</Text>
                   <Text style={styles.driverCompany}>{item.company}</Text>
-                  <View style={{flexDirection: 'row', marginTop: 4}}>
+                  <View style={{ flexDirection: 'row', marginTop: 4 }}>
                     <Text style={[
-                      styles.driverStatus, 
+                      styles.driverStatus,
                       item.is_active ? styles.driverStatusActive : styles.driverStatusInactive
                     ]}>
                       {item.is_active ? 'Activ' : 'Inactiv'}
@@ -324,12 +325,12 @@ export default function CreateTransportPage() {
                 <Ionicons name="close" size={24} color={COLORS.primary} />
               </TouchableOpacity>
             </View>
-            
+
             <FlatList
               data={truckCombinations}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.optionItem}
                   onPress={() => selectTruckCombination(item)}
                 >
@@ -360,12 +361,12 @@ export default function CreateTransportPage() {
                 <Ionicons name="close" size={24} color={COLORS.primary} />
               </TouchableOpacity>
             </View>
-            
+
             <FlatList
               data={trailerTypes}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.optionItem}
                   onPress={() => selectTrailerType(item)}
                 >
@@ -378,7 +379,7 @@ export default function CreateTransportPage() {
       </Modal>
     );
   };
-  
+
   // New modal for Detraction (Tip Tractare)
   const renderDetractionModal = () => {
     return (
@@ -396,12 +397,12 @@ export default function CreateTransportPage() {
                 <Ionicons name="close" size={24} color={COLORS.primary} />
               </TouchableOpacity>
             </View>
-            
+
             <FlatList
               data={detractionTypes}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.optionItem}
                   onPress={() => selectDetraction(item)}
                 >
@@ -414,7 +415,7 @@ export default function CreateTransportPage() {
       </Modal>
     );
   };
-  
+
   // New modal for Goods Type (Tip Marfa)
   const renderGoodsTypeModal = () => {
     return (
@@ -432,12 +433,12 @@ export default function CreateTransportPage() {
                 <Ionicons name="close" size={24} color={COLORS.primary} />
               </TouchableOpacity>
             </View>
-            
+
             <FlatList
               data={goodsTypes}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.optionItem}
                   onPress={() => selectGoodsType(item)}
                 >
@@ -465,9 +466,9 @@ export default function CreateTransportPage() {
   return (
     <SafeAreaView style={styles.container || { flex: 1, backgroundColor: COLORS.background }}>
       <StatusBar barStyle="dark-content" />
-      
+
       <View style={styles.navigationHeader || { flexDirection: 'row', justifyContent: 'space-between', padding: 16 }}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => {
             if (navigation.canGoBack()) {
@@ -479,14 +480,14 @@ export default function CreateTransportPage() {
         >
           <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.refreshButton}
           onPress={fetchDrivers}
         >
           <Ionicons name="refresh" size={24} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
-      
+
       <ScrollView contentContainerStyle={styles.scrollContainer || { padding: 16 }}>
         {/* Header Card */}
         <View style={styles.headerCard || { backgroundColor: COLORS.white, borderRadius: 10, padding: 16, marginBottom: 16 }}>
@@ -501,7 +502,7 @@ export default function CreateTransportPage() {
           {/* Driver Selection */}
           <View style={styles.driverSection}>
             <Text style={styles.sectionTitle}>SELECTEAZĂ ȘOFER</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.driverSelector}
               onPress={() => setDriverModalVisible(true)}
             >
@@ -523,7 +524,7 @@ export default function CreateTransportPage() {
               <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
                 COMBINATIE CAMION
               </Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
                 onPress={() => setTruckModalVisible(true)}
               >
@@ -533,12 +534,12 @@ export default function CreateTransportPage() {
                 <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
               <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
                 TIP REMORCĂ
               </Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
                 onPress={() => setTrailerModalVisible(true)}
               >
@@ -565,13 +566,13 @@ export default function CreateTransportPage() {
                 />
               </View>
             </View>
-            
+
             <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
               <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
                 TIP TRACTARE
               </Text>
               {/* Changed from TextInput to TouchableOpacity for dropdown */}
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
                 onPress={() => setDetractionModalVisible(true)}
               >
@@ -597,7 +598,7 @@ export default function CreateTransportPage() {
                 />
               </View>
             </View>
-            
+
             <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
               <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
                 ORAȘ DESTINAȚIE
@@ -619,7 +620,7 @@ export default function CreateTransportPage() {
                 TIP MARFĂ
               </Text>
               {/* Changed from TextInput to TouchableOpacity for dropdown */}
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
                 onPress={() => setGoodsTypeModalVisible(true)}
               >
@@ -638,30 +639,15 @@ export default function CreateTransportPage() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <TouchableOpacity 
-              style={styles.submitButton || { padding: 16, alignItems: 'center' }} 
+            <TouchableOpacity
+              style={styles.submitButton || { padding: 16, alignItems: 'center' }}
               onPress={handleSubmit}
               activeOpacity={0.9}
             >
               <Text style={styles.submitButtonText || { color: COLORS.white, fontWeight: 'bold', fontSize: 16 }}>CREEAZĂ TRANSPORT</Text>
             </TouchableOpacity>
           </LinearGradient>
-          <LinearGradient
-            colors={[COLORS.secondary, COLORS.primary]}
-            style={styles.submitButtonGradient || { borderRadius: 8, marginTop: 16 }}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <TouchableOpacity 
-              style={styles.submitButton || { padding: 16, alignItems: 'center' }} 
-              onPress={() => {
-                navigation.navigate('Route');
-              }}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.submitButtonText || { color: COLORS.white, fontWeight: 'bold', fontSize: 16 }}>ATRIBUIE RUTA</Text>
-            </TouchableOpacity>
-          </LinearGradient>
+          
         </View>
       </ScrollView>
 

@@ -271,8 +271,7 @@ const TrucksScreen = ({ onSearch }) => {
           clearButtonMode="while-editing"
           autoCapitalize="characters"
           onSubmitEditing={() => {
-            // No need to explicitly call filtering logic since useEffect handles it
-            // Just make sure we keep focus
+            
             setTimeout(() => {
               if (textInputRef.current) {
                 textInputRef.current.focus();

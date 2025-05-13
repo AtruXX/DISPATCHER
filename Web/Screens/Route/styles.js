@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
     },
     map: {
       width: '100%',
-      height: '100vh',
+      height: '100%',
       borderRadius: 24,
       overflow: 'hidden',
       margin: 10,
@@ -224,4 +224,38 @@ export const styles = StyleSheet.create({
       fontWeight: 'bold',
       textAlign: 'center',
     },
+    navigationHeader: {
+        position: 'absolute',
+        top: 40, // Give some space from the top edge
+        left: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: 100, // Enough width for both buttons
+        zIndex: 10, // Ensure it's above other elements
+      },
+      
+      // Fix for back button
+      backButton: {
+        backgroundColor: '#FFFFFF', // Add background for visibility
+        padding: 8,
+        borderRadius: 20,
+        marginRight: 15, // Space between buttons
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5, // Important for Android
+      },
+      
+      // Fix for refresh button
+      refreshButton: {
+        backgroundColor: '#FFFFFF',
+        padding: 8,
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+      },
   });
