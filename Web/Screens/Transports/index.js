@@ -1,19 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  StyleSheet, 
-  ActivityIndicator, 
-  SafeAreaView, 
-  StatusBar, 
-  Alert,
-  TouchableOpacity,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { styles } from './styles'; 
+import { Ionicons } from '@expo/vector-icons';
+import {styles} from './styles'; // Import your styles here
+import { FlatList, ActivityIndicator, SafeAreaView, StatusBar } from 'react-native';
 const TransportsScreen = ({ navigation }) => {
   const [transports, setTransports] = useState([]);
   const [totalTransports, setTotalTransports] = useState(0);
@@ -21,6 +11,7 @@ const TransportsScreen = ({ navigation }) => {
   const [error, setError] = useState(null);
   const [authToken, setAuthToken] = useState(null);
   const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
+  const [driverNames, setDriverNames] = useState({}); // Store driver names by ID
 
   useEffect(() => {
     const getAuthToken = () => {
@@ -28,7 +19,7 @@ const TransportsScreen = ({ navigation }) => {
         console.log("Attempting to get auth token from localStorage");
         const token = localStorage.getItem('authToken');
         console.log("Token from localStorage:", token ? "Token exists" : "No token found");
-        
+
         if (token) {
           setAuthToken(token);
           console.log("Auth token set in state");
@@ -44,17 +35,17 @@ const TransportsScreen = ({ navigation }) => {
         setLoading(false);
       }
     };
-    
+
     getAuthToken();
   }, []);
-  
+
   // Fetch transports when token is available
   useEffect(() => {
     if (authToken) {
       fetchTransports();
     }
   }, [authToken]);
-  
+
   const fetchTransports = async () => {
     try {
       setLoading(true);
@@ -72,11 +63,15 @@ const TransportsScreen = ({ navigation }) => {
 
       const data = await response.json();
       console.log('Fetched transports:', data);
-      
+
       // Set the total number of transports and the transports array
       setTotalTransports(data.number_of_transports || 0);
       setTransports(data.transports || []);
       
+      // Fetch driver names for all transports with drivers
+      const transportsWithDrivers = data.transports?.filter(t => t.driver) || [];
+      fetchDriverNames(transportsWithDrivers);
+
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -84,6 +79,36 @@ const TransportsScreen = ({ navigation }) => {
       Alert.alert('Error', 'Failed to fetch transports data');
       console.error('Error fetching transports:', err);
     }
+  };
+
+  const fetchDriverNames = async (transportsWithDrivers) => {
+    // Create a unique set of driver IDs to fetch
+    const driverIds = [...new Set(transportsWithDrivers.map(t => t.driver))];
+    
+    // Fetch each driver's details
+    const driverNamesMap = { ...driverNames };
+    
+    for (const driverId of driverIds) {
+      try {
+        const response = await fetch(`${BASE_URL}drivers/${driverId}`, {
+          headers: {
+            'Authorization': `Token ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          const driverData = await response.json();
+          driverNamesMap[driverId] = driverData.name;
+        } else {
+          console.error(`Failed to fetch driver data for ID: ${driverId}`);
+        }
+      } catch (error) {
+        console.error(`Error fetching driver data for ID: ${driverId}:`, error);
+      }
+    }
+    
+    setDriverNames(driverNamesMap);
   };
 
   const getRandomColor = (id) => {
@@ -102,7 +127,7 @@ const TransportsScreen = ({ navigation }) => {
 
   // Helper function to get status color based on status_transport
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'not started':
         return '#FFA500'; // Orange
       case 'in progress':
@@ -119,7 +144,8 @@ const TransportsScreen = ({ navigation }) => {
   const renderTransportItem = ({ item }) => {
     const gradientColors = getRandomColor(item.id);
     const statusColor = getStatusColor(item.status_transport);
-    
+    const driverName = item.driver ? (driverNames[item.driver] || 'Se încarcă...') : 'Neatribuit';
+
     return (
       <View style={styles.transportCardContainer}>
         <View style={styles.transportCard}>
@@ -133,45 +159,49 @@ const TransportsScreen = ({ navigation }) => {
               <Text style={styles.iconText}>#{item.id}</Text>
             </LinearGradient>
           </View>
-          
+
           <View style={styles.transportInfo}>
             <View style={styles.transportHeader}>
               <Text style={styles.transportTitle}>Transport #{item.id}</Text>
-              <TouchableOpacity 
-                style={styles.editButton} 
+              <TouchableOpacity
+                style={styles.editButton}
                 onPress={() => navigation.navigate('CMR', { transportId: item.id })}
               >
                 <Text style={styles.editButtonText}>Vezi CMR</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.editButton} 
+              <TouchableOpacity
+                style={styles.editButton}
                 onPress={() => navigation.navigate('CompleteCMR', { transportId: item.id })}
               >
                 <Text style={styles.editButtonText}>Creeaza CMR</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.editButton} 
+              <TouchableOpacity
+                style={styles.editButton}
                 onPress={() => navigation.navigate('UpdateCMR', { transportId: item.id })}
               >
                 <Text style={styles.editButtonText}>Editeaza CMR</Text>
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.divider} />
-            
+
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Sofer</Text>
-                <Text style={styles.detailValue}>{item.driver ? `ID: ${item.driver}` : 'Not assigned'}</Text>
+                <Text style={styles.detailValue}>
+                  {driverName}
+                </Text>
               </View>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Status</Text>
                 <Text style={[styles.detailValue, { color: statusColor }]}>
-                  {item.status_transport || 'Pending'}
+                  {item.status_transport || 'In curs de livrare'}
                 </Text>
               </View>
-            </View>
+              </View>
             
+   
+
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Origine</Text>
@@ -182,7 +212,7 @@ const TransportsScreen = ({ navigation }) => {
                 <Text style={styles.detailValue}>{item.destination_city || 'N/A'}</Text>
               </View>
             </View>
-            
+
             <View style={styles.detailRow}>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Tip marfa</Text>
@@ -190,7 +220,7 @@ const TransportsScreen = ({ navigation }) => {
               </View>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>Numar trailer</Text>
-                <Text style={styles.detailValue}>{item.trailer_number || 'None'}</Text>
+                <Text style={styles.detailValue}>{item.trailer_number || 'Nespecificat'}</Text>
               </View>
             </View>
           </View>
@@ -235,20 +265,20 @@ const TransportsScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <View style={styles.navigationHeader}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color="#303F9F" />
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.refreshButton}
           onPress={fetchTransports}
         >
           <Ionicons name="refresh" size={24} color="#303F9F" />
         </TouchableOpacity>
       </View>
-      
+
       {transports.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyCard}>

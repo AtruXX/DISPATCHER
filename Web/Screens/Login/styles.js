@@ -102,4 +102,24 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+   // Error styles - added here
+   errorContainer: {
+    backgroundColor: '#ffebee',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#f44336',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+  },
 });

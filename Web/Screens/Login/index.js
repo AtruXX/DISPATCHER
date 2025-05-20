@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, ActivityIndicator,TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, ActivityIndicator, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,13 +10,31 @@ function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
   const [error, setError] = useState(null);
+  const [loadingDots, setLoadingDots] = useState('');
+  useEffect(() => {
+    let dotsInterval;
+
+    if (isLoading) {
+      dotsInterval = setInterval(() => {
+        setLoadingDots(prev => {
+          if (prev === '...') return '';
+          return prev + '.';
+        });
+      }, 100); // Controls the speed of the animation
+    }
+
+    return () => {
+      if (dotsInterval) clearInterval(dotsInterval);
+    };
+  }, [isLoading]);
+
   const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
   const handleLogin = async () => {
     if (!email || !password) {
       alert('Please enter both email and password');
       return;
     }
-    
+
     setIsLoading(true);
     try {
       const loginData = { email, password };
@@ -28,16 +46,16 @@ function LoginScreen() {
           body: JSON.stringify(loginData),
         }
       );
-      
+
       if (response.ok) {
         const data = await response.json();
         // Store the auth token
         if (data.auth_token) {
           localStorage.setItem('authToken', data.auth_token);
           console.log('Token stored successfully');
-          try{
+          try {
             navigation.navigate('Main');
-          }catch(navError){
+          } catch (navError) {
             console.error('Navigation failed:', navError);
             window.location.href = '/main';
           }
@@ -63,7 +81,11 @@ function LoginScreen() {
       <View style={styles.card}>
         <Text style={styles.title}>Bine ai venit!</Text>
         <Text style={styles.subtitle}>Logheaza-te pentru a continua!</Text>
-        
+        {error ? (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Ne pare rău, credențialele dumneavoastră sunt invalide.</Text>
+      </View>
+    ) : null}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
           <View style={styles.inputWrapper}>
@@ -78,7 +100,7 @@ function LoginScreen() {
             />
           </View>
         </View>
-        
+
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Parola</Text>
           <View style={styles.inputWrapper}>
@@ -92,15 +114,15 @@ function LoginScreen() {
             />
           </View>
         </View>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.forgotPassword}
           onPress={() => alert('Password reset functionality')}
         >
           <Text style={styles.forgotPasswordText}>Ai uitat parola?</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.loginButton}
           onPress={handleLogin}
           disabled={isLoading}
@@ -112,11 +134,11 @@ function LoginScreen() {
             end={{ x: 1, y: 0 }}
           >
             <Text style={styles.loginButtonText}>
-              {isLoading ? 'LOGARE...' : 'LOGHEAZA-TE'}
+              {isLoading ? `LOGARE${loadingDots}` : 'LOGHEAZA-TE'}
             </Text>
           </LinearGradient>
         </TouchableOpacity>
-        
+
         <View style={styles.registerContainer}>
           <Text style={styles.registerText}>Nu ai cont? </Text>
           <TouchableOpacity onPress={() => alert('Register functionality')}>

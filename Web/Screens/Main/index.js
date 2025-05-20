@@ -408,7 +408,7 @@ const DispatcherDashboard = () => {
                         <View style={[styles.gridIconContainer, { backgroundColor: COLORS.secondary + '20' }]}>
                             <Feather name="clipboard" size={22} color={COLORS.secondary} />
                         </View>
-                        <Text style={styles.gridText}>Transporturi in curs de desfasurare</Text>
+                        <Text style={styles.gridText}>Transporturi active</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
