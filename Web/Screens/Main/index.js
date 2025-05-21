@@ -354,43 +354,55 @@ const DispatcherDashboard = () => {
             </View>
 
             {/* Dashboard summary */}
+            {/* Dashboard summary - Modified for single row layout */}
             <View style={styles.summarySection}>
                 <Text style={styles.sectionTitle}>Statistici generale</Text>
-                <View style={styles.summaryContainer}>
-                    <View style={styles.summaryCard}>
-                        <View style={styles.summaryIconContainer}>
-                            <Feather name="truck" size={18} color={COLORS.secondary} />
+                <View style={styles.summaryContainerRow}>
+                    {/* Active Shipments Card */}
+                    <View style={styles.summaryCardRow}>
+                        <View style={styles.summaryTextContainer}>
+                            <Text style={styles.summaryLabelRow}>Transporturi active</Text>
                         </View>
-                        <Text style={styles.summaryLabel}>Transporturi active</Text>
-                        <Text style={styles.summaryNumber}>{stats.activeShipments}</Text>
+                        <View style={styles.summaryIconContainerRow}>
+                            <Feather name="truck" size={30} color={COLORS.secondary} />
+                        </View>
+                        <Text style={styles.summaryNumberRow}>{stats.activeShipments}</Text>
                     </View>
 
-                    <View style={styles.summaryCard}>
-                        <View style={styles.summaryIconContainer}>
-                            <Feather name="alert-triangle" size={18} color={COLORS.warning} />
+                    {/* Completed Shipments Card */}
+                    <View style={styles.summaryCardRow}>
+                        <View style={styles.summaryTextContainer}>
+                            <Text style={styles.summaryLabelRow}>Transporturi finalizate</Text>
                         </View>
-                        <Text style={styles.summaryLabel}>Transporturi finalizate</Text>
-                        <Text style={styles.summaryNumber}>{stats.delayedShipments}</Text>
+                        <View style={styles.summaryIconContainerRow}>
+                            <Feather name="check-circle" size={30} color={COLORS.success} />
+                        </View>
+                        <Text style={styles.summaryNumberRow}>{stats.delayedShipments}</Text>
                     </View>
 
-                    <View style={styles.summaryCard}>
-                        <View style={styles.summaryIconContainer}>
-                            <Feather name="users" size={18} color={COLORS.success} />
+                    {/* Active Drivers Card */}
+                    <View style={styles.summaryCardRow}>
+                        <View style={styles.summaryTextContainer}>
+                            <Text style={styles.summaryLabelRow}>Șoferi activi</Text>
                         </View>
-                        <Text style={styles.summaryLabel}>Șoferi activi</Text>
-                        <Text style={styles.summaryNumber}>{stats.activeDrivers}</Text>
+                        <View style={styles.summaryIconContainerRow}>
+                            <Feather name="users" size={30} color={COLORS.success} />
+                        </View>
+                        <Text style={styles.summaryNumberRow}>{stats.activeDrivers}</Text>
                     </View>
 
-                    <View style={styles.summaryCard}>
-                        <View style={styles.summaryIconContainer}>
-                            <Feather name="pie-chart" size={18} color={COLORS.primary} />
+                    {/* Employed Drivers Card */}
+                    <View style={styles.summaryCardRow}>
+                        <View style={styles.summaryTextContainer}>
+                            <Text style={styles.summaryLabelRow}>Șoferi angajați</Text>
                         </View>
-                        <Text style={styles.summaryLabel}>Soferi angajati</Text>
-                        <Text style={styles.summaryNumber}>{stats.final_no}</Text>
+                        <View style={styles.summaryIconContainerRow}>
+                            <Feather name="pie-chart" size={30} color={COLORS.primary} />
+                        </View>
+                        <Text style={styles.summaryNumberRow}>{stats.final_no}</Text>
                     </View>
                 </View>
             </View>
-
             {/* Quick actions */}
             <View style={styles.actionsSection}>
                 <View style={styles.sectionHeader}>
@@ -532,7 +544,7 @@ const DispatcherDashboard = () => {
                                 </View>
                             </View>
 
-                            
+
 
                             <View style={styles.shipmentDetails}>
                                 <View style={styles.detailColumn}>
@@ -568,7 +580,7 @@ const DispatcherDashboard = () => {
                                     <Text style={styles.actionText}>Contact</Text>
                                 </TouchableOpacity>
 
-                                
+
 
                                 <TouchableOpacity style={styles.viewDetailsButton}>
                                     <Text style={styles.viewDetailsText}>Vezi detalii</Text>

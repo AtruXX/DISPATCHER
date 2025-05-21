@@ -153,52 +153,92 @@ export const styles = StyleSheet.create({
       fontWeight: "500",
       marginLeft: 6,
     },
+    
+    
+    
+    
     summarySection: {
       paddingHorizontal: 20,
       marginTop: 24,
     },
     sectionTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: 22,
+      fontWeight: "700",
       color: COLORS.dark,
-      marginBottom: 16,
+      marginBottom: 20,
     },
-    summaryContainer: {
+    // Summary container styles
+    summaryContainerRow: {
       flexDirection: "row",
-      flexWrap: "wrap",
       justifyContent: "space-between",
+      flexWrap: "wrap",
+      width: "100%",
+      maxWidth: 1200,
+      alignSelf: "center",
     },
-    summaryCard: {
-      width: "48%",
-      backgroundColor: COLORS.card,
+    // Card styles - adjusted height to accommodate larger label
+    summaryCardRow: {
+      width: "23%", 
+      maxWidth: 280,
+      minWidth: 140,
+      height: 140, // Increased height to fit larger label
       borderRadius: 16,
       padding: 16,
-      marginBottom: 16,
+      backgroundColor: COLORS.card,
       shadowColor: COLORS.dark,
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.06,
+      shadowOpacity: 0.1,
       shadowRadius: 8,
-      elevation: 3,
+      elevation: 4,
+      marginBottom: 16,
+      position: 'relative',
+      overflow: 'hidden',
     },
-    summaryIconContainer: {
+    // Text container styles - adjusted for larger text
+    summaryTextContainer: {
+      alignSelf: 'flex-start',
+      marginBottom: 10, // Increased spacing
+      maxWidth: '75%', // Slightly wider to accommodate larger text
+    },
+    // Label styles - increased size and weight
+    summaryLabelRow: {
+      fontSize: 25, // Increased from 14 to 20
+      color: COLORS.dark,
+      fontWeight: '600', // Increased from 600 to 700
+      textAlign: 'left',
+      lineHeight: 24, // Added line height for better spacing
+    },
+    // Icon container styles
+    summaryIconContainerRow: {
       width: 36,
       height: 36,
-      borderRadius: 18,
-      backgroundColor: COLORS.background,
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 12,
+      position: 'absolute',
+      left: 16,
+      bottom: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
-    summaryLabel: {
-      fontSize: 14,
+    // Number styles - adjusted positioning to prevent overlap with larger label
+    summaryNumberRow: {
+      fontSize: 60,
+      fontWeight: "700",
       color: COLORS.medium,
-      marginBottom: 6,
+      position: 'absolute',
+      right: 16,
+      top: '40%', // Position at 50% from the top
+      lineHeight: 60,
     },
-    summaryNumber: {
-      fontSize: 24,
-      fontWeight: "bold",
+   
+    // Other styles remain the same
+    summarySubLabelRow: {
+      fontSize: 16, // Increased to maintain proportion with label
       color: COLORS.dark,
+      fontWeight: '500',
+      textAlign: 'left',
+      opacity: 0.8,
+      marginTop: 2, // Added margin top for spacing
     },
+    
     actionsSection: {
       paddingHorizontal: 20,
       marginTop: 24,
