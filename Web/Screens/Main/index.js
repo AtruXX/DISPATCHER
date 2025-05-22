@@ -353,7 +353,6 @@ const DispatcherDashboard = () => {
                 </View>
             </View>
 
-            {/* Dashboard summary */}
             {/* Dashboard summary - Modified for single row layout */}
             <View style={styles.summarySection}>
                 <Text style={styles.sectionTitle}>Statistici generale</Text>
@@ -363,8 +362,8 @@ const DispatcherDashboard = () => {
                         <View style={styles.summaryTextContainer}>
                             <Text style={styles.summaryLabelRow}>Transporturi active</Text>
                         </View>
-                        <View style={styles.summaryIconContainerRow}>
-                            <Feather name="truck" size={30} color={COLORS.secondary} />
+                        <View style={[styles.summaryIconContainerRow, { backgroundColor: COLORS.secondary + '20' }]}>
+                            <Feather name="truck" size={28} color={COLORS.secondary} />
                         </View>
                         <Text style={styles.summaryNumberRow}>{stats.activeShipments}</Text>
                     </View>
@@ -374,9 +373,10 @@ const DispatcherDashboard = () => {
                         <View style={styles.summaryTextContainer}>
                             <Text style={styles.summaryLabelRow}>Transporturi finalizate</Text>
                         </View>
-                        <View style={styles.summaryIconContainerRow}>
-                            <Feather name="check-circle" size={30} color={COLORS.success} />
+                        <View style={[styles.summaryIconContainerRow, { backgroundColor: COLORS.success + '20' }]}>
+                            <Feather name="check-circle" size={28} color={COLORS.success} />
                         </View>
+
                         <Text style={styles.summaryNumberRow}>{stats.delayedShipments}</Text>
                     </View>
 
@@ -385,8 +385,8 @@ const DispatcherDashboard = () => {
                         <View style={styles.summaryTextContainer}>
                             <Text style={styles.summaryLabelRow}>Șoferi activi</Text>
                         </View>
-                        <View style={styles.summaryIconContainerRow}>
-                            <Feather name="users" size={30} color={COLORS.success} />
+                        <View style={[styles.summaryIconContainerRow, { backgroundColor: COLORS.primary + '20' }]}>
+                            <Feather name="users" size={28} color={COLORS.primary} />
                         </View>
                         <Text style={styles.summaryNumberRow}>{stats.activeDrivers}</Text>
                     </View>
@@ -396,13 +396,14 @@ const DispatcherDashboard = () => {
                         <View style={styles.summaryTextContainer}>
                             <Text style={styles.summaryLabelRow}>Șoferi angajați</Text>
                         </View>
-                        <View style={styles.summaryIconContainerRow}>
-                            <Feather name="pie-chart" size={30} color={COLORS.primary} />
+                        <View style={[styles.summaryIconContainerRow, { backgroundColor: COLORS.accent + '20' }]}>
+                            <Feather name="user-check" size={28} color={COLORS.accent} />
                         </View>
                         <Text style={styles.summaryNumberRow}>{stats.final_no}</Text>
                     </View>
                 </View>
             </View>
+
             {/* Quick actions */}
             <View style={styles.actionsSection}>
                 <View style={styles.sectionHeader}>
@@ -417,40 +418,60 @@ const DispatcherDashboard = () => {
                         style={styles.gridItem}
                         onPress={() => navigation.navigate('Transports')}
                     >
-                        <View style={[styles.gridIconContainer, { backgroundColor: COLORS.secondary + '20' }]}>
-                            <Feather name="clipboard" size={22} color={COLORS.secondary} />
+                        <View style={styles.gridContent}>
+                            <View style={[styles.gridIconContainer, { backgroundColor: COLORS.secondary + '20' }]}>
+                                <Feather name="clipboard" size={28} color={COLORS.secondary} />
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.gridText}>Transporturi active</Text>
+                                <Text style={styles.gridDescription}>Vezi toate transporturile aflate în desfășurare.</Text>
+                            </View>
                         </View>
-                        <Text style={styles.gridText}>Transporturi active</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                         style={styles.gridItem}
                         onPress={() => navigation.navigate('Drivers')}
                     >
-                        <View style={[styles.gridIconContainer, { backgroundColor: COLORS.primary + '20' }]}>
-                            <Feather name="users" size={22} color={COLORS.primary} />
+                        <View style={styles.gridContent}>
+                            <View style={[styles.gridIconContainer, { backgroundColor: COLORS.primary + '20' }]}>
+                                <Feather name="users" size={28} color={COLORS.primary} />
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.gridText}>Șoferi</Text>
+                                <Text style={styles.gridDescription}>Listă completă cu toți șoferii înregistrați.</Text>
+                            </View>
                         </View>
-                        <Text style={styles.gridText}>Șoferi</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                         style={styles.gridItem}
                         onPress={() => navigation.navigate('Trucks')}
                     >
-                        <View style={[styles.gridIconContainer, { backgroundColor: COLORS.accent + '20' }]}>
-                            <Feather name="truck" size={22} color={COLORS.accent} />
+                        <View style={styles.gridContent}>
+                            <View style={[styles.gridIconContainer, { backgroundColor: COLORS.accent + '20' }]}>
+                                <Feather name="truck" size={28} color={COLORS.accent} />
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.gridText}>Camioane</Text>
+                                <Text style={styles.gridDescription}>Vezi toate camioanele disponibile. </Text>
+                            </View>
                         </View>
-                        <Text style={styles.gridText}>Camioane</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                         style={styles.gridItem}
                         onPress={() => navigation.navigate('CreateTransport')}
                     >
-                        <View style={[styles.gridIconContainer, { backgroundColor: COLORS.success + '20' }]}>
-                            <Feather name="plus" size={22} color={COLORS.success} />
+                        <View style={styles.gridContent}>
+                            <View style={[styles.gridIconContainer, { backgroundColor: COLORS.success + '20' }]}>
+                                <Feather name="plus" size={28} color={COLORS.success} />
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.gridText}>Creare transport</Text>
+                                <Text style={styles.gridDescription}>Adaugă un nou transport în sistem.</Text>
+                            </View>
                         </View>
-                        <Text style={styles.gridText}>Creare transport</Text>
                     </TouchableOpacity>
 
                     {/* Additional buttons that show when expanded */}
@@ -460,59 +481,67 @@ const DispatcherDashboard = () => {
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('AddTruck')}
                             >
-                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.warning + '20' }]}>
-                                    <Feather name="plus-circle" size={22} color={COLORS.warning} />
+                                <View style={styles.gridContent}>
+                                    <View style={[styles.gridIconContainer, { backgroundColor: COLORS.warning + '20' }]}>
+                                        <Feather name="plus-circle" size={28} color={COLORS.warning} />
+                                    </View>
+                                    <View style={styles.textContainer}>
+                                        <Text style={styles.gridText}>Adaugă camion</Text>
+                                        <Text style={styles.gridDescription}>Înregistrează un camion nou în flotă.</Text>
+                                    </View>
                                 </View>
-                                <Text style={styles.gridText}>Adaugă camion</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('AddDriver')}
                             >
-                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.accent2 + '20' }]}>
-                                    <Feather name="user-plus" size={22} color={COLORS.accent2} />
+                                <View style={styles.gridContent}>
+                                    <View style={[styles.gridIconContainer, { backgroundColor: COLORS.accent2 + '20' }]}>
+                                        <Feather name="user-plus" size={28} color={COLORS.accent2} />
+                                    </View>
+                                    <View style={styles.textContainer}>
+                                        <Text style={styles.gridText}>Adaugă șofer</Text>
+                                        <Text style={styles.gridDescription}>Adaugă un șofer nou în sistem.</Text>
+                                    </View>
                                 </View>
-                                <Text style={styles.gridText}>Adaugă șofer</Text>
                             </TouchableOpacity>
+
+
 
                             <TouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('AddTrailer')}
                             >
-                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.danger + '20' }]}>
-                                    <Feather name="upload" size={22} color={COLORS.danger} />
+                                <View style={styles.gridContent}>
+                                    <View style={[styles.gridIconContainer, { backgroundColor: COLORS.primary + '20' }]}>
+                                        <Feather name="plus" size={28} color={COLORS.primary} />
+                                    </View>
+                                    <View style={styles.textContainer}>
+                                        <Text style={styles.gridText}>Adaugă remorcă</Text>
+                                        <Text style={styles.gridDescription}>Înregistrează o remorcă nouă.</Text>
+                                    </View>
                                 </View>
-                                <Text style={styles.gridText}>Adaugă trailer</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.gridItem}
-                                onPress={() => navigation.navigate('AddTrailer')}
-                            >
-                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.primary + '20' }]}>
-                                    <Feather name="plus" size={22} color={COLORS.primary} />
-                                </View>
-                                <Text style={styles.gridText}>Adaugă remorca</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 style={styles.gridItem}
                                 onPress={() => navigation.navigate('AllTrailers')}
                             >
-                                <View style={[styles.gridIconContainer, { backgroundColor: COLORS.accent2 + '20' }]}>
-                                    <Feather name="eye" size={22} color={COLORS.accent2} />
-
-
+                                <View style={styles.gridContent}>
+                                    <View style={[styles.gridIconContainer, { backgroundColor: COLORS.accent2 + '20' }]}>
+                                        <Feather name="eye" size={28} color={COLORS.accent2} />
+                                    </View>
+                                    <View style={styles.textContainer}>
+                                        <Text style={styles.gridText}>Vezi remorcile</Text>
+                                        <Text style={styles.gridDescription}>Consultă toate remorcile disponibile.</Text>
+                                    </View>
                                 </View>
-                                <Text style={styles.gridText}>Vezi remorcile</Text>
                             </TouchableOpacity>
-
-
                         </>
                     )}
                 </View>
             </View>
-
             {/* Recent Shipments */}
             <View style={styles.shipmentsSection}>
                 <View style={styles.sectionHeader}>

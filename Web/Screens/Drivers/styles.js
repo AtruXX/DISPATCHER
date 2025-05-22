@@ -195,10 +195,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-
-
-
-
   editButtonText: {
     color: 'white',
     fontWeight: '600',
@@ -429,62 +425,159 @@ buttonIcon: {
 },
 
 // Document upload styles - more spacious and airy
+// Document upload styles - neomorphic, airy and well-designed
 uploadContainer: {
-  backgroundColor: '#FAFBFD',
-  borderRadius: 20,
-  padding: 32,
-  marginHorizontal: 20,
-  marginTop: 12,
-  marginBottom: 32,
-  elevation: 3,
-  borderColor: '#E8EAF6',
-  borderWidth: 1,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.08,
-  shadowRadius: 8,
+  backgroundColor: '#ECF0F7',
+  borderRadius: 24,
+  padding: 40,
+  marginHorizontal: 28,
+  marginTop: 20,
+  marginBottom: 40,
+  shadowColor: '#FFFFFF',
+  shadowOffset: { width: -8, height: -8 },
+  shadowOpacity: 0.7,
+  shadowRadius: 10,
+  elevation: 5,
+  position: 'relative',
+  overflow: 'hidden',
 },
 uploadTitle: {
-  fontSize: 22,
-  fontWeight: '600',
-  color: '#3949AB',
-  marginBottom: 28,
+  fontSize: 24,
+  fontWeight: '700',
+  color: '#445580',
+  marginBottom: 36,
   textAlign: 'center',
+  letterSpacing: 0.6,
 },
 fileSelectButton: {
   flexDirection: 'row',
   alignItems: 'center',
   justifyContent: 'center',
-  borderWidth: 2,
-  borderColor: '#D1D9FF',
-  borderStyle: 'dashed',
-  borderRadius: 16,
-  padding: 36,
-  marginBottom: 28,
-  backgroundColor: '#FFFFFF',
-  minHeight: 150,
-  transition: 'all 0.2s ease',
+  borderRadius: 20,
+  padding: 40,
+  marginBottom: 36,
+  backgroundColor: '#ECF0F7',
+  minHeight: 160,
+  shadowColor: '#FFFFFF',
+  shadowOffset: { width: -6, height: -6 },
+  shadowOpacity: 0.8,
+  shadowRadius: 6,
+  elevation: 1,
+  // Inner shadow effect
+  borderWidth: 0,
+  position: 'relative',
 },
 fileSelectText: {
-  marginLeft: 16,
-  color: '#5C6BC0',
+  marginLeft: 18,
+  color: '#5A678C',
   flex: 1,
   fontSize: 18,
   textAlign: 'center',
-  lineHeight: 24,
+  lineHeight: 26,
+  fontWeight: '500',
 },
 textInput: {
-  backgroundColor: '#FFFFFF',
-  borderRadius: 14,
-  borderWidth: 1,
-  borderColor: '#E8EAF6',
-  padding: 18,
-  marginBottom: 24,
+  backgroundColor: '#ECF0F7',
+  borderRadius: 16,
+  borderWidth: 0,
+  padding: 20,
+  marginBottom: 32,
   fontSize: 17,
-  minHeight: 60,
-  color: '#424242',
+  minHeight: 64,
+  color: '#3D4561',
+  // Inner shadow effect for pressed appearance
+  shadowColor: '#B8C5D9',
+  shadowOffset: { width: 4, height: 4 },
+  shadowOpacity: 0.5,
+  shadowRadius: 5,
+  // Outer light shadow
+  elevation: 1,
 },
-
+pickerContainer: {
+  backgroundColor: '#ECF0F7',
+  borderRadius: 16,
+  borderWidth: 0,
+  marginBottom: 32,
+  overflow: 'hidden',
+  // Neomorphic shadows
+  shadowColor: '#B8C5D9',
+  shadowOffset: { width: 4, height: 4 },
+  shadowOpacity: 0.5,
+  shadowRadius: 5,
+  // Outer light shadow
+  elevation: 1,
+},
+picker: {
+  height: 64,
+  color: '#3D4561',
+  fontSize: 17,
+},
+datePickerContainer: {
+  marginBottom: 32,
+},
+inputLabel: {
+  fontSize: 16,
+  fontWeight: '600',
+  color: '#445580',
+  marginBottom: 12,
+  marginLeft: 6,
+  letterSpacing: 0.5,
+},
+inputContainer: {
+  backgroundColor: '#ECF0F7',
+  borderRadius: 16,
+  borderWidth: 0,
+  minHeight: 64,
+  // Neomorphic effect - inner pressed shadow
+  shadowColor: '#B8C5D9',
+  shadowOffset: { width: 4, height: 4 },
+  shadowOpacity: 0.5,
+  shadowRadius: 5,
+  // Outer light shadow
+  elevation: 1,
+},
+calendarContainer: {
+  marginTop: 10,
+  backgroundColor: '#ECF0F7',
+  borderRadius: 16,
+  overflow: 'hidden',
+  borderWidth: 0,
+  // Neomorphic effect - raised shadow
+  shadowColor: '#FFFFFF',
+  shadowOffset: { width: -6, height: -6 },
+  shadowOpacity: 0.7,
+  shadowRadius: 8,
+  // Dark shadow
+  elevation: 3,
+},
+uploadButton: {
+  backgroundColor: '#ECF0F7',
+  borderRadius: 16,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 20,
+  marginTop: 16,
+  minHeight: 64,
+  // Neomorphic effect - raised shadow
+  shadowColor: '#FFFFFF',
+  shadowOffset: { width: -8, height: -8 },
+  shadowOpacity: 0.7,
+  shadowRadius: 10,
+  // Dark shadow
+  shadowColor: '#B8C5D9',
+  shadowOffset: { width: 8, height: 8 },
+  shadowOpacity: 0.5,
+  shadowRadius: 10,
+  elevation: 5,
+},
+uploadButtonText: {
+  color: '#445580',
+  fontSize: 18,
+  fontWeight: '600',
+  marginLeft: 12,
+  letterSpacing: 0.5,
+},
 // Completely redesigned picker (document type selector)
 // Button styles - more subtle and airy
 buttonsContainer: {
@@ -563,30 +656,10 @@ fileSelectButton: {
   minHeight: 150,
   transition: 'all 0.2s ease',
 },
-fileSelectText: {
-  marginLeft: 16,
-  color: '#5C6BC0',
-  flex: 1,
-  fontSize: 18,
-  textAlign: 'center',
-  lineHeight: 24,
-},
-textInput: {
-  backgroundColor: '#FFFFFF',
-  borderRadius: 14,
-  borderWidth: 1,
-  borderColor: '#E8EAF6',
-  padding: 18,
-  marginBottom: 24,
-  fontSize: 17,
-  minHeight: 60,
-  color: '#424242',
-},
 
-// Compact document type selector
-pickerContainer: {
-  marginBottom: 20,
-},
+
+
+
 picker: {
   height: 44,
   backgroundColor: '#FFFFFF',
@@ -644,27 +717,8 @@ datePickerPlaceholder: {
   fontSize: 15,
 },
 
-uploadButton: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  backgroundColor: '#5C6BC0',
-  borderRadius: 14,
-  padding: 18,
-  minHeight: 60,
-  elevation: 2,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-  marginTop: 8,
-},
-uploadButtonText: {
-  color: 'white',
-  fontSize: 18,
-  fontWeight: '600',
-  marginLeft: 14,
-},
+
+
 dataInput: {
   flex: 1,
   paddingHorizontal: 18,
@@ -677,14 +731,7 @@ dataInput: {
   outline: 'none',
 },
 
-inputContainer: {
-  backgroundColor: COLORS.card,
-  borderRadius: 8,
-  paddingHorizontal: 12,
-  paddingVertical: 10,
-  height: 48,
-  justifyContent: 'center',
-},
+
 input: {
   fontSize: 16,
   color: COLORS.text.dark,
@@ -702,15 +749,5 @@ dropdownPlaceholder: {
   fontSize: 16,
   color: COLORS.text.light,
 },
-calendarContainer: {
-  backgroundColor: COLORS.white,
-  borderRadius: 8,
-  marginTop: 8,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-  elevation: 3,
-  zIndex: 1000,
-},
+
 });

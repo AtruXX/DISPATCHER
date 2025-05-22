@@ -24,6 +24,23 @@ import * as DocumentPicker from 'expo-document-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 // Import Calendar properly if you're using react-native-calendars
 import { Calendar } from 'react-native-calendars';
+
+const COLORS = {
+  background: "#F4F5FB", // Light lavender background
+  card: "#FFFFFF", // White
+  primary: "#5A5BDE", // Purple-blue (primary)
+  secondary: "#6F89FF", // Light blue
+  accent: "#FF8C66", // Soft orange
+  accent2: "#81C3F8", // Sky blue
+  dark: "#373A56", // Dark navy
+  medium: "#6B6F8D", // Medium navy-gray
+  light: "#A0A4C1", // Light gray-purple
+  border: "#E2E5F1", // Light border
+  success: "#63C6AE", // Turquoise
+  warning: "#FFBD59", // Amber
+  danger: "#FF7285", // Soft red
+};
+
 const DriversScreen = () => {
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -191,15 +208,15 @@ const DriversScreen = () => {
       console.error('Error picking document:', err);
     }
   };
-  
+
   // When using the file in the upload function, make sure to construct the form data properly:
   // In handleUploadDocument function:
   const handleUploadDocument = (driverId) => {
     // Get the current state for this specific driver
     const driverState = getDriverState(driverId); // You need to implement this function
-    
+
     const formData = new FormData();
-    
+
     // Make sure the file object is properly structured for FormData
     if (driverState.selectedFile) {
       const fileToUpload = {
@@ -208,60 +225,27 @@ const DriversScreen = () => {
         name: driverState.selectedFile.name
       };
       formData.append('document', fileToUpload);
-      
+
       // Continue with your upload logic
       // uploadDocument(formData);
     } else {
       console.log("No file selected for driver:", driverId);
     }
   };
-const handleDateChange = (driverId, event) => {
-  if (event && event.target && event.target.value) {
-    // Get the date value from the input element
-    const selectedDate = new Date(event.target.value);
-    
-    // Update the date if it's valid
-    if (!isNaN(selectedDate.getTime())) {
-      updateDriverUploadState(driverId, 'expirationDate', selectedDate);
-    }
-  }
-};
+  const handleDateChange = (driverId, event) => {
+    if (event && event.target && event.target.value) {
+      // Get the date value from the input element
+      const selectedDate = new Date(event.target.value);
 
-// Add this for web platform date input component
-const renderWebDatePicker = (driverId, driverUploadState) => {
-  return (
-    <View style={styles.datePickerContainer}>
-      <Text style={styles.inputLabel}>DATA EXPIRÅRII</Text>
-      <View style={[styles.inputContainer, styles.dropdownContainer]}>
-        <input
-          type="date"
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#424242',
-            width: '100%',
-            fontSize: 16,
-            fontFamily: 'inherit',
-          }}
-          value={driverUploadState.expirationDate ? 
-                 driverUploadState.expirationDate.toISOString().split('T')[0] : ''}
-          onChange={(e) => handleDateChange(driverId, e)}
-        />
-        <Ionicons name="calendar" size={20} color="#5C6BC0" />
-      </View>
-    </View>
-  );
-};
-const initialUploadState = {
-  isUploadExpanded: false,
-  selectedFile: null,
-  documentTitle: '',
-  documentCategory: '',
-  expirationDate: null,
-  showDatePicker: false,
-  isUploading: false
-};
-  
+      // Update the date if it's valid
+      if (!isNaN(selectedDate.getTime())) {
+        updateDriverUploadState(driverId, 'expirationDate', selectedDate);
+      }
+    }
+  };
+
+
+
 
   const openDocument = (url) => {
     Linking.openURL(url).catch(err => {
@@ -288,13 +272,32 @@ const initialUploadState = {
     return colors[id % colors.length];
   };
 
+
+
+  // Format date helper
   const formatDate = (dateString) => {
-    if (!dateString) return 'No expiration';
+    if (!dateString) return 'Fără dată de expirare';
 
     const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
+    if (isNaN(date.getTime())) return 'Dată invalidă';
 
+    const today = new Date();
+    const expiringSoon = new Date(today);
+    expiringSoon.setDate(today.getDate() + 30);
+
+    const isExpired = date < today;
+    const isExpiringSoon = !isExpired && date < expiringSoon;
+
+    return {
+      formattedDate: date.toLocaleDateString('ro-RO', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }),
+      isExpired,
+      isExpiringSoon
+    };
+  };
   const renderDocumentItem = ({ item }) => (
     <TouchableOpacity
       style={styles.documentItem}
@@ -469,65 +472,65 @@ const initialUploadState = {
 
             {/* Replace the expiration date input section in the upload form with this updated code */}
 
-<View style={styles.datePickerContainer}>
-  <Text style={styles.inputLabel}>DATA EXPIRÅRII</Text>
-  <TouchableOpacity 
-    style={[styles.inputContainer, styles.dropdownContainer]}
-    onPress={() => updateDriverUploadState(item.id, 'showDatePicker', true)}
-  >
-    <Text style={driverUploadState.expirationDate ? styles.dropdownText : styles.dropdownPlaceholder}>
-      {driverUploadState.expirationDate ? driverUploadState.expirationDate.toLocaleDateString() : 'Selectează data'}
-    </Text>
-    <Ionicons name="calendar" size={20} color="#5C6BC0" />
-  </TouchableOpacity>
-  
-  {driverUploadState.showDatePicker && (
-    <View style={styles.calendarContainer}>
-      {Platform.OS === 'ios' || Platform.OS === 'android' ? (
-        <DateTimePicker
-          value={driverUploadState.expirationDate || new Date()}
-          mode="date"
-          display="default"
-          onChange={(event, selectedDate) => {
-            updateDriverUploadState(item.id, 'showDatePicker', false);
-            if (selectedDate) {
-              updateDriverUploadState(item.id, 'expirationDate', selectedDate);
-            }
-          }}
-        />
-      ) : (
-        <Calendar
-          onDayPress={(day) => {
-            const selectedDate = new Date(day.timestamp);
-            updateDriverUploadState(item.id, 'expirationDate', selectedDate);
-            updateDriverUploadState(item.id, 'showDatePicker', false);
-          }}
-          markedDates={{
-            [driverUploadState.expirationDate ? 
-              driverUploadState.expirationDate.toISOString().split('T')[0] : '']: {
-              selected: true,
-              selectedColor: "#5C6BC0"
-            }
-          }}
-          theme={{
-            calendarBackground: '#FFFFFF',
-            textSectionTitleColor: '#303F9F',
-            selectedDayBackgroundColor: '#5C6BC0',
-            selectedDayTextColor: '#FFFFFF',
-            todayTextColor: '#5C6BC0',
-            dayTextColor: '#424242',
-            textDisabledColor: '#BDBDBD',
-            arrowColor: '#5C6BC0',
-            monthTextColor: '#303F9F',
-            textDayFontWeight: '400',
-            textMonthFontWeight: 'bold',
-            textDayHeaderFontWeight: '500'
-          }}
-        />
-      )}
-    </View>
-  )}
-</View>
+            <View style={styles.datePickerContainer}>
+              <Text style={styles.inputLabel}>DATA EXPIRǍRII</Text>
+              <TouchableOpacity
+                style={[styles.inputContainer, styles.dropdownContainer]}
+                onPress={() => updateDriverUploadState(item.id, 'showDatePicker', true)}
+              >
+                <Text style={driverUploadState.expirationDate ? styles.dropdownText : styles.dropdownPlaceholder}>
+                  {driverUploadState.expirationDate ? driverUploadState.expirationDate.toLocaleDateString() : 'Selectează data'}
+                </Text>
+                <Ionicons name="calendar" size={20} color="#5C6BC0" />
+              </TouchableOpacity>
+
+              {driverUploadState.showDatePicker && (
+                <View style={styles.calendarContainer}>
+                  {Platform.OS === 'ios' || Platform.OS === 'android' ? (
+                    <DateTimePicker
+                      value={driverUploadState.expirationDate || new Date()}
+                      mode="date"
+                      display="default"
+                      onChange={(event, selectedDate) => {
+                        updateDriverUploadState(item.id, 'showDatePicker', false);
+                        if (selectedDate) {
+                          updateDriverUploadState(item.id, 'expirationDate', selectedDate);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <Calendar
+                      onDayPress={(day) => {
+                        const selectedDate = new Date(day.timestamp);
+                        updateDriverUploadState(item.id, 'expirationDate', selectedDate);
+                        updateDriverUploadState(item.id, 'showDatePicker', false);
+                      }}
+                      markedDates={{
+                        [driverUploadState.expirationDate ?
+                          driverUploadState.expirationDate.toISOString().split('T')[0] : '']: {
+                          selected: true,
+                          selectedColor: "#5C6BC0"
+                        }
+                      }}
+                      theme={{
+                        calendarBackground: '#FFFFFF',
+                        textSectionTitleColor: '#303F9F',
+                        selectedDayBackgroundColor: '#5C6BC0',
+                        selectedDayTextColor: '#FFFFFF',
+                        todayTextColor: '#5C6BC0',
+                        dayTextColor: '#424242',
+                        textDisabledColor: '#BDBDBD',
+                        arrowColor: '#5C6BC0',
+                        monthTextColor: '#303F9F',
+                        textDayFontWeight: '400',
+                        textMonthFontWeight: 'bold',
+                        textDayHeaderFontWeight: '500'
+                      }}
+                    />
+                  )}
+                </View>
+              )}
+            </View>
             <TouchableOpacity
               style={styles.uploadButton}
               onPress={() => handleUploadDocument(item.id)}

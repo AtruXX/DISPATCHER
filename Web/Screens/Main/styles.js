@@ -155,7 +155,7 @@ export const styles = StyleSheet.create({
     },
     
     
-    
+    //-----------------SUMMARY SECTION STYLES-------------------
     
     summarySection: {
       paddingHorizontal: 20,
@@ -180,7 +180,7 @@ export const styles = StyleSheet.create({
     summaryCardRow: {
       width: "23%", 
       maxWidth: 280,
-      minWidth: 140,
+      minWidth: 220,
       height: 140, // Increased height to fit larger label
       borderRadius: 16,
       padding: 16,
@@ -207,17 +207,18 @@ export const styles = StyleSheet.create({
       fontWeight: '600', // Increased from 600 to 700
       textAlign: 'left',
       lineHeight: 24, // Added line height for better spacing
+
     },
-    // Icon container styles
     summaryIconContainerRow: {
-      width: 36,
-      height: 36,
+      width: 56,
+      height: 56,
+      borderRadius: 16,
+      justifyContent: "center",
+      alignItems: "center",
       position: 'absolute',
       left: 16,
       bottom: 16,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
+  },
     // Number styles - adjusted positioning to prevent overlap with larger label
     summaryNumberRow: {
       fontSize: 60,
@@ -238,28 +239,28 @@ export const styles = StyleSheet.create({
       opacity: 0.8,
       marginTop: 2, // Added margin top for spacing
     },
-    
+    //----------------QUICK ACTIONS SECTION STYLES-------------------
     actionsSection: {
       paddingHorizontal: 20,
       marginTop: 24,
-    },
-    sectionHeader: {
+  },
+  sectionHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: 16,
-    },
-    seeAllText: {
+  },
+  seeAllText: {
       fontSize: 14,
       color: COLORS.primary,
       fontWeight: "500",
-    },
-    gridContainer: {
+  },
+  gridContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
       justifyContent: "space-between",
-    },
-    gridItem: {
+  },
+  gridItem: {
       width: "48%",
       backgroundColor: COLORS.card,
       borderRadius: 16,
@@ -270,20 +271,43 @@ export const styles = StyleSheet.create({
       shadowOpacity: 0.06,
       shadowRadius: 8,
       elevation: 3,
-    },
-    gridIconContainer: {
-      width: 48,
-      height: 48,
-      borderRadius: 12,
+      minHeight: 120, // Ensure consistent height
+  },
+  gridContent: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+  },
+  gridIconContainer: {
+      width: 56,
+      height: 56,
+      borderRadius: 16,
       justifyContent: "center",
       alignItems: "center",
       marginBottom: 12,
-    },
-    gridText: {
-      fontSize: 16,
+  },
+  textContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      flex: 1,
+  },
+  gridText: {
+      fontSize: 20,
       fontWeight: "600",
       color: COLORS.dark,
-    },
+      textAlign: 'center',
+      marginBottom: 4,
+      lineHeight: 24,
+  },
+  gridDescription: {
+      fontSize: 14,
+      fontWeight: "400",
+      color: COLORS.medium,
+      textAlign: 'center',
+      lineHeight: 16,
+      paddingHorizontal: 4,
+  },
+    //-----------------SHIPMENTS SECTION STYLES-------------------
     shipmentsSection: {
       paddingHorizontal: 20,
       marginTop: 24,
