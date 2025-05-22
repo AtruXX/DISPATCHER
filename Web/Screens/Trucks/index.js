@@ -18,7 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles';
 import EditTruckForm from './EditComponent';
-
+import AddDocumentForm from './AddDocuments';
 const TrucksScreen = ({ onSearch }) => {
   const [trucksData, setTrucksData] = useState({ number_of_trucks: 0, trucks: [] });
   const [loading, setLoading] = useState(true);
@@ -31,6 +31,7 @@ const TrucksScreen = ({ onSearch }) => {
   const [filteredTrucks, setFilteredTrucks] = useState(trucksData.trucks || []);
   const [selectedTruck, setSelectedTruck] = useState(null);
   const [isEditFormVisible, setIsEditFormVisible] = useState(false);
+  const [isAddDocumentsFormVisible, setIsAddDocumentsFormVisible] = useState(false);
   const handleViewDocuments = (truck) => {
     navigation.navigate('Documentstruck', {
       truckId: truck.id,
@@ -102,7 +103,10 @@ const TrucksScreen = ({ onSearch }) => {
     setSelectedTruck(truck);
     setIsEditFormVisible(true);
   };
-
+  const handleAddDocuments = (truck) => {
+    setSelectedTruck(truck);
+    setIsAddDocumentsFormVisible(true);
+  };
   const handleTruckUpdated = (updatedTruck) => {
     // Update the trucks list with the updated truck
     const updatedTrucks = trucksData.trucks.map(truck => 
@@ -242,12 +246,19 @@ const TrucksScreen = ({ onSearch }) => {
               
               {/* Edit Button */}
               <View style={styles.actionButtonsContainer}>
+              <TouchableOpacity 
+                  style={styles.editButton}
+                  onPress={() => handleAddDocuments(item)}
+                >
+                  <Ionicons name="folder-outline" size={18} color="#FFFFFF" />
+                  <Text style={styles.editButtonText}>Adauga Documente</Text>
+                </TouchableOpacity>
                 <TouchableOpacity 
-                  style={styles.documentsButton}
+                  style={styles.editButton}
                   onPress={() => handleViewDocuments(item)}
                 >
                   <Ionicons name="folder-outline" size={18} color="#FFFFFF" />
-                  <Text style={styles.documentsButtonText}>Documente</Text>
+                  <Text style={styles.editButtonText}>Vezi Documente</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
@@ -255,7 +266,7 @@ const TrucksScreen = ({ onSearch }) => {
                   onPress={() => handleEditTruck(item)}
                 >
                   <Ionicons name="create-outline" size={18} color="#FFFFFF" />
-                  <Text style={styles.editButtonText}>Edit</Text>
+                  <Text style={styles.editButtonText}>Editeaza</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -403,6 +414,18 @@ const TrucksScreen = ({ onSearch }) => {
           isVisible={isEditFormVisible}
           onClose={() => {
             setIsEditFormVisible(false);
+            setSelectedTruck(null);
+          }}
+          truck={selectedTruck}
+          authToken={authToken}
+          onTruckUpdated={handleTruckUpdated}
+        />
+      )}
+      { selectedTruck&& (
+        <AddDocumentForm
+          isVisible={isAddDocumentsFormVisible}
+          onClose={() => {
+            setIsAddDocumentsFormVisible(false);
             setSelectedTruck(null);
           }}
           truck={selectedTruck}
