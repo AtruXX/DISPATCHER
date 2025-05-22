@@ -21,6 +21,7 @@ import FinalTransports from './Screens/TransporturiFinalizate/index.js';
 import Profile from "./Screens/Profile/index.js"; 
 import Route from "./Screens/Route/index.js";
 import UpdateCMR from "./Screens/UpdateCMR/index.js";
+import Documentstruck from "/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/TruckDocuments";
 enableScreens();
 
 class ErrorBoundary extends React.Component {
@@ -180,6 +181,11 @@ function App() {
             name={"UpdateCMR"}
             component = {UpdateCMR}
             options = {{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Documentstruck"
+              component={Documentstruck}
+              options={{ headerShown: false }}
             />
           </Stack.Navigator>
         </NavigationContainer>

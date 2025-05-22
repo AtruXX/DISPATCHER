@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image, Easing, Animated, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image, Easing, Animated, ActivityIndicator, Linking, Alert } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { styles } from "./styles";
@@ -569,7 +569,7 @@ const DispatcherDashboard = () => {
                                     </View>
                                 </View>
                                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(shipment.status) }]}>
-                                    <Text style={styles.statusText}>{getStatusLabel(shipment.status)}</Text>
+                                    <Text style={styles.statusText}>{getStatusLabel(shipment.status_loaded_truck)}</Text>
                                 </View>
                             </View>
 
@@ -611,9 +611,7 @@ const DispatcherDashboard = () => {
 
 
 
-                                <TouchableOpacity style={styles.viewDetailsButton}>
-                                    <Text style={styles.viewDetailsText}>Vezi detalii</Text>
-                                </TouchableOpacity>
+                                
                             </View>
                         </TouchableOpacity>
                     ))}

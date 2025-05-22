@@ -31,7 +31,12 @@ const TrucksScreen = ({ onSearch }) => {
   const [filteredTrucks, setFilteredTrucks] = useState(trucksData.trucks || []);
   const [selectedTruck, setSelectedTruck] = useState(null);
   const [isEditFormVisible, setIsEditFormVisible] = useState(false);
-
+  const handleViewDocuments = (truck) => {
+    navigation.navigate('Documentstruck', {
+      truckId: truck.id,
+      truckData: truck
+    });
+  };
   // Load auth token on component mount
   useEffect(() => {
     const getAuthToken = () => {
@@ -236,13 +241,23 @@ const TrucksScreen = ({ onSearch }) => {
               </View>
               
               {/* Edit Button */}
-              <TouchableOpacity 
-                style={styles.editButton}
-                onPress={() => handleEditTruck(item)}
-              >
-                <Ionicons name="create-outline" size={18} color="#FFFFFF" />
-                <Text style={styles.editButtonText}>Edit</Text>
-              </TouchableOpacity>
+              <View style={styles.actionButtonsContainer}>
+                <TouchableOpacity 
+                  style={styles.documentsButton}
+                  onPress={() => handleViewDocuments(item)}
+                >
+                  <Ionicons name="folder-outline" size={18} color="#FFFFFF" />
+                  <Text style={styles.documentsButtonText}>Documente</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.editButton}
+                  onPress={() => handleEditTruck(item)}
+                >
+                  <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                  <Text style={styles.editButtonText}>Edit</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
