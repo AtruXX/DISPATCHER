@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { styles } from './styles';
+import RegistrationForm from './registrationFormComp';
 function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,6 +12,8 @@ function LoginScreen() {
   const navigation = useNavigation();
   const [error, setError] = useState(null);
   const [loadingDots, setLoadingDots] = useState('');
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+
   useEffect(() => {
     let dotsInterval;
 
@@ -140,11 +143,17 @@ function LoginScreen() {
         </TouchableOpacity>
 
         <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>Nu ai cont? </Text>
-          <TouchableOpacity onPress={() => alert('Register functionality')}>
-            <Text style={styles.registerLink}>Inregistrare</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.registerText}>Nu ai cont? </Text>
+        <TouchableOpacity onPress={() => setShowRegistrationForm(true)}>
+          <Text style={styles.registerLink}>Înregistrare</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Registration form modal */}
+      <RegistrationForm
+        visible={showRegistrationForm}
+        onClose={() => setShowRegistrationForm(false)}
+      />
       </View>
     </LinearGradient>
   );
