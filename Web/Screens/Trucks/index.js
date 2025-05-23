@@ -431,6 +431,8 @@ const TrucksScreen = ({ onSearch }) => {
           truck={selectedTruck}
           authToken={authToken}
           onTruckUpdated={handleTruckUpdated}
+          truckId={selectedTruck.id}
+          authTokenForm={authToken}
         />
       )}
     </SafeAreaView>

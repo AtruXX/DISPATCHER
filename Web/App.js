@@ -56,10 +56,10 @@ function App() {
       try {
         // Get the token from localStorage
          
-        //const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
+        const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
         
         // Get the last visited route if available
-        //const lastRoute = localStorage.getItem('lastRoute');
+        const lastRoute = localStorage.getItem('lastRoute');
         
         if (token) {
           setUserToken(token);
@@ -187,6 +187,7 @@ function App() {
               component={Documentstruck}
               options={{ headerShown: false }}
             />
+            
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

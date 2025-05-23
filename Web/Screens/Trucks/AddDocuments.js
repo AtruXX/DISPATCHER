@@ -1,38 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  ActivityIndicator,
-  Animated
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import * as DocumentPicker from 'expo-document-picker';
 
 const COLORS = {
-  background: "#F4F5FB", // Light lavender background
-  card: "#FFFFFF",       // White
-  primary: "#5A5BDE",    // Purple-blue (primary)
-  secondary: "#6F89FF",  // Light blue
-  accent: "#FF8C66",     // Soft orange
-  accent2: "#81C3F8",    // Sky blue
-  dark: "#373A56",       // Dark navy
-  medium: "#6B6F8D",     // Medium navy-gray
-  light: "#A0A4C1",      // Light gray-purple
-  border: "#E2E5F1",     // Light border
-  success: "#63C6AE",    // Turquoise
-  warning: "#FFBD59",    // Amber
-  danger: "#FF7285",     // Soft red
-  selected: "#E8F5E8",   // Light green background for selected
+  background: "#F4F5FB",
+  card: "#FFFFFF",
+  primary: "#5A5BDE",
+  secondary: "#6F89FF",
+  accent: "#FF8C66",
+  accent2: "#81C3F8",
+  dark: "#373A56",
+  medium: "#6B6F8D",
+  light: "#A0A4C1",
+  border: "#E2E5F1",
+  success: "#63C6AE",
+  warning: "#FFBD59",
+  danger: "#FF7285",
+  selected: "#E8F5E8",
 };
+
+const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 
 const DOCUMENT_TYPES = [
   { label: 'Certificat de conformitate', value: 'certificat_conformitate' },
@@ -44,75 +29,43 @@ const DOCUMENT_TYPES = [
   { label: 'Procedura de instalare', value: 'procedura_instalare' },
 ];
 
-const AddDocumentForm = ({ isVisible, onClose, onDocumentAdded }) => {
+const AddDocumentForm = ({ isVisible, onClose, onDocumentAdded, truckId, authTokenForm }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    title: '',
     description: '',
     category: '',
-    incepere_valabilitate: '',
-    sfarsit_valabilitate: '',
-    data_emitere: '',
+    expiration_date: '',
+    issuing_date: '',
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [successToast, setSuccessToast] = useState(false);
-  const toastOpacity = useState(new Animated.Value(0))[0];
-  const dropdownAnimation = useState(new Animated.Value(0))[0];
 
   // Reset form when modal opens
   useEffect(() => {
     if (isVisible) {
       setFormData({
-        name: '',
+        title: '',
         description: '',
         category: '',
-        incepere_valabilitate: '',
-        sfarsit_valabilitate: '',
-        data_emitere: '',
+        expiration_date: '',
+        issuing_date: '',
       });
       setSelectedFile(null);
       setShowDropdown(false);
     }
   }, [isVisible]);
 
-  // Animation for the success toast
+  // Success toast timer
   useEffect(() => {
     if (successToast) {
-      Animated.timing(toastOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
       const timer = setTimeout(() => {
-        Animated.timing(toastOpacity, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }).start(() => {
-          setSuccessToast(false);
-        });
+        setSuccessToast(false);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [successToast, toastOpacity]);
-
-  // Dropdown animation
-  useEffect(() => {
-    if (showDropdown) {
-      Animated.timing(dropdownAnimation, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: false,
-      }).start();
-    } else {
-      Animated.timing(dropdownAnimation, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: false,
-      }).start();
-    }
-  }, [showDropdown]);
+  }, [successToast]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({
@@ -121,24 +74,22 @@ const AddDocumentForm = ({ isVisible, onClose, onDocumentAdded }) => {
     }));
   };
 
-  const handleFileUpload = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: '*/*',
-        copyToCacheDirectory: true,
-      });
-      
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setSelectedFile(result.assets[0]);
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to select file');
-      console.error('File selection error:', error);
+  // Web file upload handler
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      console.log('Selected file:', file);
+      setSelectedFile(file);
     }
   };
 
   const removeFile = () => {
     setSelectedFile(null);
+    // Reset file input
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) {
+      fileInput.value = '';
+    }
   };
 
   const selectCategory = (category) => {
@@ -160,30 +111,26 @@ const AddDocumentForm = ({ isVisible, onClose, onDocumentAdded }) => {
   };
 
   const validateForm = () => {
-    if (!formData.name.trim()) {
-      Alert.alert('Validation Error', 'Numele documentului este obligatoriu');
+    if (!formData.title.trim()) {
+      alert('Numele documentului este obligatoriu');
       return false;
     }
     if (!formData.category.trim()) {
-      Alert.alert('Validation Error', 'Categoria documentului este obligatorie');
+      alert('Categoria documentului este obligatorie');
       return false;
     }
     if (!selectedFile) {
-      Alert.alert('Validation Error', 'Vă rugăm să atașați un fișier');
+      alert('Vă rugăm să atașați un fișier');
       return false;
     }
     
     // Validate dates if they're not empty
-    if (formData.incepere_valabilitate && !isValidDateFormat(formData.incepere_valabilitate)) {
-      Alert.alert('Validation Error', 'Data de început a valabilității trebuie să fie în formatul AAAA-LL-ZZ');
+    if (formData.issuing_date && !isValidDateFormat(formData.issuing_date)) {
+      alert('Data emiterii trebuie să fie în formatul AAAA-LL-ZZ');
       return false;
     }
-    if (formData.sfarsit_valabilitate && !isValidDateFormat(formData.sfarsit_valabilitate)) {
-      Alert.alert('Validation Error', 'Data de sfârșit a valabilității trebuie să fie în formatul AAAA-LL-ZZ');
-      return false;
-    }
-    if (formData.data_emitere && !isValidDateFormat(formData.data_emitere)) {
-      Alert.alert('Validation Error', 'Data emiterii trebuie să fie în formatul AAAA-LL-ZZ');
+    if (formData.expiration_date && !isValidDateFormat(formData.expiration_date)) {
+      alert('Data de sfârșit a valabilității trebuie să fie în formatul AAAA-LL-ZZ');
       return false;
     }
     
@@ -196,23 +143,71 @@ const AddDocumentForm = ({ isVisible, onClose, onDocumentAdded }) => {
     try {
       setLoading(true);
       
-      // Simulate API call since no backend for now
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Create FormData for web
+      const formDataToSubmit = new FormData();
       
-      setSuccessToast(true);
+      // Add form fields
+      formDataToSubmit.append('title', formData.title);
+      formDataToSubmit.append('description', formData.description);
+      formDataToSubmit.append('category', formData.category);
       
-      Alert.alert(
-        'Success',
-        'Documentul a fost adăugat cu succes!',
-        [{ text: 'OK', onPress: () => {
-          if (onDocumentAdded) {
-            onDocumentAdded({ ...formData, file: selectedFile });
+      // Only append dates if they have values
+      if (formData.expiration_date) {
+        formDataToSubmit.append('expiration_date', formData.expiration_date);
+      }
+      if (formData.issuing_date) {
+        formDataToSubmit.append('issuing_date', formData.issuing_date);
+      }
+      
+      // Add file for web - much simpler than React Native
+      if (selectedFile) {
+        console.log('Adding file to FormData:', selectedFile);
+        formDataToSubmit.append('document', selectedFile, selectedFile.name);
+      }
+
+      // For web, don't set Content-Type header - browser will set it automatically with boundary
+      const response = await fetch(`${BASE_URL}truck-documents/${truckId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${authTokenForm}`,
+        },
+        body: formDataToSubmit,
+      });
+      
+      console.log('Response status:', response.status);
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Success result:', result);
+        setSuccessToast(true);
+        
+        alert('Documentul a fost adăugat cu succes!');
+        if (onDocumentAdded) {
+          onDocumentAdded({ ...formData, file: selectedFile });
+        }
+        onClose();
+      } else {
+        const errorText = await response.text();
+        console.error('Server response error:', errorText);
+        console.error('Response status:', response.status);
+        
+        // Try to parse error response
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.document && Array.isArray(errorJson.document)) {
+            errorMessage = errorJson.document.join(', ');
+          } else if (errorJson.message) {
+            errorMessage = errorJson.message;
           }
-          onClose();
-        }}]
-      );
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+        }
+        
+        throw new Error(errorMessage);
+      }
     } catch (error) {
-      Alert.alert('Error', `Failed to add document: ${error.message}`);
+      alert(`Failed to add document: ${error.message}`);
       console.error('Error adding document:', error);
     } finally {
       setLoading(false);
@@ -225,522 +220,566 @@ const AddDocumentForm = ({ isVisible, onClose, onDocumentAdded }) => {
 
   const renderDateInput = (dateType, label) => {
     return (
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>{label}</Text>
-        <TextInput
-          style={styles.input}
+      <div className="input-group">
+        <label className="label">{label}</label>
+        <input
+          type="text"
+          className="input"
           value={formData[dateType]}
-          onChangeText={(text) => handleChange(dateType, text)}
+          onChange={(e) => handleChange(dateType, e.target.value)}
           placeholder="YYYY-MM-DD"
-          placeholderTextColor={COLORS.light}
-          keyboardType="numeric"
         />
-        <Text style={styles.dateHint}>Format: YYYY-MM-DD</Text>
-      </View>
+        <span className="date-hint">Format: YYYY-MM-DD</span>
+      </div>
     );
   };
 
-  const renderCustomDropdown = () => {
-    return (
-      <View style={styles.dropdownContainer}>
-        <TouchableOpacity
-          style={[styles.dropdownButton, showDropdown && styles.dropdownButtonActive]}
-          onPress={() => setShowDropdown(!showDropdown)}
-        >
-          <Text style={[
-            styles.dropdownButtonText,
-            !formData.category && styles.dropdownPlaceholder
-          ]}>
-            {getSelectedCategoryLabel()}
-          </Text>
-          <Ionicons 
-            name={showDropdown ? "chevron-up" : "chevron-down"} 
-            size={20} 
-            color={COLORS.medium} 
-          />
-        </TouchableOpacity>
-        
-        {/* Render dropdown as a separate Modal for better positioning */}
-        <Modal
-          visible={showDropdown}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowDropdown(false)}
-        >
-          <TouchableOpacity 
-            style={styles.dropdownOverlay}
-            activeOpacity={1}
-            onPress={() => setShowDropdown(false)}
-          >
-            <View style={styles.dropdownListModal}>
-              <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
-                {DOCUMENT_TYPES.map((type, index) => (
-                  <TouchableOpacity
-                    key={type.value}
-                    style={[
-                      styles.dropdownItem,
-                      formData.category === type.value && styles.dropdownItemSelected,
-                      index === DOCUMENT_TYPES.length - 1 && styles.dropdownItemLast
-                    ]}
-                    onPress={() => selectCategory(type)}
-                  >
-                    <Text style={[
-                      styles.dropdownItemText,
-                      formData.category === type.value && styles.dropdownItemTextSelected
-                    ]}>
-                      {type.label}
-                    </Text>
-                    {formData.category === type.value && (
-                      <Ionicons name="checkmark" size={18} color={COLORS.success} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          </TouchableOpacity>
-        </Modal>
-      </View>
-    );
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
+  if (!isVisible) return null;
 
   return (
-    <Modal
-      visible={isVisible}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.modalOverlay}
-      >
-        <View style={styles.modalContent}>
-          {successToast && (
-            <Animated.View style={[styles.successToast, { opacity: toastOpacity }]}>
-              <Ionicons name="checkmark-circle" size={20} color={COLORS.card} />
-              <Text style={styles.successToastText}>Documentul a fost adăugat!</Text>
-            </Animated.View>
-          )}
-          <LinearGradient
-            colors={[COLORS.primary, COLORS.secondary]}
-            style={styles.modalHeader}
-          >
-            <Text style={styles.modalTitle}>Adaugă document</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={COLORS.card} />
-            </TouchableOpacity>
-          </LinearGradient>
-          
-          <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
-            {/* File Upload Section */}
-            <View style={styles.fileSection}>
-              <Text style={styles.sectionTitle}>Fișier document</Text>
-              {!selectedFile ? (
-                <TouchableOpacity style={styles.fileUploadButton} onPress={handleFileUpload}>
-                  <Ionicons name="cloud-upload-outline" size={32} color={COLORS.primary} />
-                  <Text style={styles.fileUploadText}>Atașează fișier</Text>
-                  <Text style={styles.fileUploadSubtext}>PDF, DOC, JPG, PNG</Text>
-                </TouchableOpacity>
-              ) : (
-                <View style={styles.filePreview}>
-                  <View style={styles.fileInfo}>
-                    <Ionicons name="document-outline" size={24} color={COLORS.primary} />
-                    <View style={styles.fileDetails}>
-                      <Text style={styles.fileName} numberOfLines={1}>{selectedFile.name}</Text>
-                      <Text style={styles.fileSize}>
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </Text>
-                    </View>
-                  </View>
-                  <TouchableOpacity onPress={removeFile} style={styles.removeFileButton}>
-                    <Ionicons name="close-circle" size={24} color={COLORS.danger} />
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        {successToast && (
+          <div className="success-toast">
+            <span>✓</span>
+            <span>Documentul a fost adăugat!</span>
+          </div>
+        )}
+        
+        <div className="modal-header" style={{
+          background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`
+        }}>
+          <h2 className="modal-title">Adaugă document</h2>
+          <button onClick={onClose} className="close-button">
+            ×
+          </button>
+        </div>
+        
+        <div className="form-container">
+          {/* File Upload Section */}
+          <div className="file-section">
+            <h3 className="section-title">Fișier document</h3>
+            {!selectedFile ? (
+              <div className="file-upload-area">
+                <input
+                  type="file"
+                  id="file-input"
+                  onChange={handleFileUpload}
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="file-input" className="file-upload-button">
+                  <div className="upload-icon">📁</div>
+                  <div className="file-upload-text">Atașează fișier</div>
+                  <div className="file-upload-subtext">PDF, DOC, JPG, PNG</div>
+                </label>
+              </div>
+            ) : (
+              <div className="file-preview">
+                <div className="file-info">
+                  <div className="file-icon">📄</div>
+                  <div className="file-details">
+                    <div className="file-name">{selectedFile.name}</div>
+                    <div className="file-size">{formatFileSize(selectedFile.size)}</div>
+                  </div>
+                </div>
+                <button onClick={removeFile} className="remove-file-button">
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
 
-            {/* Form Fields */}
-            <View style={styles.formFieldsContainer}>
-              <View style={styles.rowContainer}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Numele documentului *</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={formData.name}
-                    onChangeText={(text) => handleChange('name', text)}
-                    placeholder="Introduceți numele documentului"
-                    placeholderTextColor={COLORS.light}
-                  />
-                </View>
-              </View>
+          {/* Form Fields */}
+          <div className="form-fields-container">
+            <div className="input-group">
+              <label className="label">Numele documentului *</label>
+              <input
+                type="text"
+                className="input"
+                value={formData.title}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Introduceți numele documentului"
+              />
+            </div>
 
-              <View style={styles.rowContainer}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Categoria documentului *</Text>
-                  {renderCustomDropdown()}
-                </View>
-              </View>
-
-              <View style={styles.rowContainer}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Descriere</Text>
-                  <TextInput
-                    style={[styles.input, styles.textArea]}
-                    value={formData.description}
-                    onChangeText={(text) => handleChange('description', text)}
-                    placeholder="Introduceți descrierea documentului"
-                    placeholderTextColor={COLORS.light}
-                    multiline
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.dateRow}>
-                {renderDateInput('data_emitere', 'Data emiterii')}
-              </View>
-
-              <View style={styles.dateRow}>
-                <View style={styles.dateInputHalf}>
-                  {renderDateInput('incepere_valabilitate', 'Început valabilitate')}
-                </View>
-                <View style={styles.dateInputHalf}>
-                  {renderDateInput('sfarsit_valabilitate', 'Sfârșit valabilitate')}
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={handleCancel}
-                disabled={loading}
-              >
-                <Text style={[styles.buttonText, { color: COLORS.dark }]}>Anulează</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.submitButton]}
-                onPress={handleSubmit}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator size="small" color={COLORS.card} />
-                ) : (
-                  <>
-                    <Ionicons name="add-circle-outline" size={20} color={COLORS.card} />
-                    <Text style={[styles.buttonText, { marginLeft: 8 }]}>Adaugă document</Text>
-                  </>
+            <div className="input-group">
+              <label className="label">Categoria documentului *</label>
+              <div className="dropdown-container">
+                <button
+                  type="button"
+                  className={`dropdown-button ${showDropdown ? 'active' : ''}`}
+                  onClick={() => setShowDropdown(!showDropdown)}
+                >
+                  <span className={!formData.category ? 'placeholder' : ''}>
+                    {getSelectedCategoryLabel()}
+                  </span>
+                  <span className="dropdown-arrow">
+                    {showDropdown ? '▲' : '▼'}
+                  </span>
+                </button>
+                
+                {showDropdown && (
+                  <div className="dropdown-overlay" onClick={() => setShowDropdown(false)}>
+                    <div className="dropdown-list" onClick={(e) => e.stopPropagation()}>
+                      {DOCUMENT_TYPES.map((type) => (
+                        <button
+                          key={type.value}
+                          type="button"
+                          className={`dropdown-item ${formData.category === type.value ? 'selected' : ''}`}
+                          onClick={() => selectCategory(type)}
+                        >
+                          <span>{type.label}</span>
+                          {formData.category === type.value && <span className="checkmark">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label className="label">Descriere</label>
+              <textarea
+                className="input textarea"
+                value={formData.description}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Introduceți descrierea documentului"
+                rows={3}
+              />
+            </div>
+
+            <div className="date-row">
+              {renderDateInput('issuing_date', 'Data emiterii')}
+            </div>
+
+            <div className="date-row">
+              {renderDateInput('expiration_date', 'Sfârșit valabilitate')}
+            </div>
+          </div>
+
+          <div className="button-container">
+            <button
+              type="button"
+              className="button cancel-button"
+              onClick={handleCancel}
+              disabled={loading}
+            >
+              Anulează
+            </button>
+            <button
+              type="button"
+              className="button submit-button"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? (
+                <span>Se încarcă...</span>
+              ) : (
+                <>
+                  <span>➕</span>
+                  <span>Adaugă document</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(55, 58, 86, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+
+        .modal-content {
+          width: 92%;
+          max-width: 600px;
+          max-height: 88vh;
+          background-color: ${COLORS.card};
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 8px 32px rgba(167, 169, 175, 0.3);
+          display: flex;
+          flex-direction: column;
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px;
+          color: white;
+        }
+
+        .modal-title {
+          font-size: 20px;
+          font-weight: bold;
+          margin: 0;
+        }
+
+        .close-button {
+          background: none;
+          border: none;
+          color: white;
+          font-size: 24px;
+          cursor: pointer;
+          padding: 6px;
+          border-radius: 4px;
+        }
+
+        .close-button:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .form-container {
+          flex: 1;
+          overflow-y: auto;
+        }
+
+        .file-section {
+          padding: 20px;
+          border-bottom: 1px solid ${COLORS.border};
+        }
+
+        .section-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: ${COLORS.dark};
+          margin: 0 0 12px 0;
+        }
+
+        .file-upload-area {
+          border: 2px dashed ${COLORS.border};
+          border-radius: 12px;
+          padding: 24px;
+          text-align: center;
+          background-color: ${COLORS.background};
+        }
+
+        .file-upload-button {
+          display: block;
+          width: 100%;
+          background: none;
+          border: none;
+          cursor: pointer;
+        }
+
+        .upload-icon {
+          font-size: 32px;
+          margin-bottom: 8px;
+        }
+
+        .file-upload-text {
+          font-size: 16px;
+          font-weight: 600;
+          color: ${COLORS.primary};
+          margin-bottom: 4px;
+        }
+
+        .file-upload-subtext {
+          font-size: 12px;
+          color: ${COLORS.medium};
+        }
+
+        .file-preview {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px;
+          background-color: ${COLORS.background};
+          border-radius: 12px;
+          border: 1px solid ${COLORS.border};
+        }
+
+        .file-info {
+          display: flex;
+          align-items: center;
+          flex: 1;
+        }
+
+        .file-icon {
+          font-size: 24px;
+          margin-right: 12px;
+        }
+
+        .file-details {
+          flex: 1;
+        }
+
+        .file-name {
+          font-size: 14px;
+          font-weight: 500;
+          color: ${COLORS.dark};
+          margin-bottom: 2px;
+        }
+
+        .file-size {
+          font-size: 12px;
+          color: ${COLORS.medium};
+        }
+
+        .remove-file-button {
+          background: none;
+          border: none;
+          color: ${COLORS.danger};
+          font-size: 24px;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+        }
+
+        .remove-file-button:hover {
+          background-color: rgba(255, 114, 133, 0.1);
+        }
+
+        .form-fields-container {
+          padding: 20px;
+        }
+
+        .input-group {
+          margin-bottom: 20px;
+        }
+
+        .label {
+          display: block;
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 8px;
+          color: ${COLORS.dark};
+        }
+
+        .input {
+          width: 100%;
+          height: 48px;
+          border: 1px solid ${COLORS.border};
+          border-radius: 12px;
+          padding: 0 16px;
+          background-color: ${COLORS.background};
+          color: ${COLORS.dark};
+          font-size: 16px;
+          box-sizing: border-box;
+        }
+
+        .input:focus {
+          outline: none;
+          border-color: ${COLORS.primary};
+          box-shadow: 0 0 0 3px rgba(90, 91, 222, 0.1);
+        }
+
+        .textarea {
+          height: 88px;
+          padding: 16px;
+          resize: vertical;
+          font-family: inherit;
+        }
+
+        .dropdown-container {
+          position: relative;
+        }
+
+        .dropdown-button {
+          width: 100%;
+          height: 48px;
+          border: 1px solid ${COLORS.border};
+          border-radius: 12px;
+          padding: 0 16px;
+          background-color: ${COLORS.background};
+          color: ${COLORS.dark};
+          font-size: 16px;
+          text-align: left;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .dropdown-button:hover, .dropdown-button.active {
+          border-color: ${COLORS.primary};
+        }
+
+        .dropdown-button .placeholder {
+          color: ${COLORS.light};
+        }
+
+        .dropdown-arrow {
+          font-size: 12px;
+          color: ${COLORS.medium};
+        }
+
+        .dropdown-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.1);
+          z-index: 1000;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .dropdown-list {
+          background-color: ${COLORS.card};
+          border-radius: 12px;
+          border: 1px solid ${COLORS.border};
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+          max-height: 280px;
+          width: 80%;
+          max-width: 400px;
+          overflow-y: auto;
+        }
+
+        .dropdown-item {
+          width: 100%;
+          padding: 16px;
+          border: none;
+          background: none;
+          text-align: left;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid ${COLORS.border};
+          font-size: 15px;
+          color: ${COLORS.dark};
+        }
+
+        .dropdown-item:last-child {
+          border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+          background-color: ${COLORS.background};
+        }
+
+        .dropdown-item.selected {
+          background-color: ${COLORS.selected};
+          font-weight: 600;
+          color: ${COLORS.success};
+        }
+
+        .checkmark {
+          color: ${COLORS.success};
+          font-weight: bold;
+        }
+
+        .date-row {
+          display: flex;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        .date-row .input-group {
+          flex: 1;
+          margin-bottom: 0;
+        }
+
+        .date-hint {
+          font-size: 11px;
+          color: ${COLORS.medium};
+          margin-top: 4px;
+          font-style: italic;
+        }
+
+        .button-container {
+          display: flex;
+          gap: 12px;
+          padding: 20px;
+          padding-top: 10px;
+        }
+
+        .button {
+          flex: 1;
+          height: 52px;
+          border-radius: 12px;
+          border: none;
+          font-weight: bold;
+          font-size: 16px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          box-shadow: 0 3px 12px rgba(167, 169, 175, 0.2);
+          transition: all 0.2s;
+        }
+
+        .button:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(167, 169, 175, 0.3);
+        }
+
+        .button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .cancel-button {
+          background-color: ${COLORS.light};
+          color: ${COLORS.dark};
+        }
+
+        .submit-button {
+          background-color: ${COLORS.primary};
+          color: white;
+        }
+
+        .success-toast {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          background-color: ${COLORS.success};
+          color: white;
+          padding: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          font-weight: bold;
+          z-index: 1001;
+          border-top-left-radius: 20px;
+          border-top-right-radius: 20px;
+        }
+
+        @media (max-width: 768px) {
+          .modal-content {
+            width: 95%;
+            margin: 20px;
+          }
+          
+          .date-row {
+            flex-direction: column;
+            gap: 0;
+          }
+          
+          .date-row .input-group {
+            margin-bottom: 20px;
+          }
+        }
+      `}</style>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(55, 58, 86, 0.5)',
-  },
-  modalContent: {
-    width: '92%',
-    maxHeight: '88%',
-    backgroundColor: COLORS.card,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.card,
-  },
-  closeButton: {
-    padding: 6,
-  },
-  formContainer: {
-    flex: 1,
-  },
-  
-  // File Section
-  fileSection: {
-    padding: 20,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.dark,
-    marginBottom: 12,
-  },
-  fileUploadButton: {
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    borderStyle: 'dashed',
-    borderRadius: 12,
-    padding: 24,
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
-  fileUploadText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.primary,
-    marginTop: 8,
-  },
-  fileUploadSubtext: {
-    fontSize: 12,
-    color: COLORS.medium,
-    marginTop: 4,
-  },
-  filePreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  fileInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  fileDetails: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  fileName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.dark,
-  },
-  fileSize: {
-    fontSize: 12,
-    color: COLORS.medium,
-    marginTop: 2,
-  },
-  removeFileButton: {
-    padding: 4,
-  },
-  
-  // Form Fields
-  formFieldsContainer: {
-    padding: 20,
-  },
-  rowContainer: {
-    marginBottom: 20,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  dateInputHalf: {
-    flex: 1,
-    marginHorizontal: 4,
-  },
-  inputGroup: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: COLORS.dark,
-  },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    backgroundColor: COLORS.background,
-    color: COLORS.dark,
-    fontSize: 16,
-  },
-  textArea: {
-    height: 88,
-    paddingTop: 16,
-    textAlignVertical: 'top',
-  },
-  
-  // Custom Dropdown
-  dropdownContainer: {
-    position: 'relative',
-    zIndex: 9999, // Increased z-index
-  },
-  
-  dropdownButton: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    backgroundColor: COLORS.background,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  dropdownButtonActive: {
-    borderColor: COLORS.primary,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  dropdownButtonText: {
-    fontSize: 16,
-    color: COLORS.dark,
-    flex: 1,
-  },
-  dropdownPlaceholder: {
-    color: COLORS.light,
-  },
-  dropdownList: {
-    position: 'absolute',
-    top: 52,
-    left: 0,
-    right: 0,
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 12, // Increased elevation for Android
-    zIndex: 10000, // Higher z-index
-  },
-  dropdownScroll: {
-    maxHeight: 280,
-  },
-  dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  dropdownItemSelected: {
-    backgroundColor: COLORS.selected,
-  },
-  dropdownItemLast: {
-    borderBottomWidth: 0,
-  },
-  dropdownItemText: {
-    fontSize: 15,
-    color: COLORS.dark,
-    flex: 1,
-  },
-  dropdownItemTextSelected: {
-    fontWeight: '600',
-    color: COLORS.success,
-  },
-  
-  // Buttons
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 20,
-    paddingTop: 10,
-  },
-  dropdownOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dropdownListModal: {
-    width: '80%',
-    maxWidth: 300,
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 12,
-    maxHeight: 280,
-  },
-
-  button: {
-    flex: 1,
-    height: 52,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 6,
-    flexDirection: 'row',
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  cancelButton: {
-    backgroundColor: COLORS.light,
-  },
-  submitButton: {
-    backgroundColor: COLORS.primary,
-  },
-  buttonText: {
-    color: COLORS.card,
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  
-  // Toast
-  successToast: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: COLORS.success,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  successToastText: {
-    color: COLORS.card,
-    fontWeight: 'bold',
-    marginLeft: 10,
-    fontSize: 15,
-  },
-  dateHint: {
-    fontSize: 11,
-    color: COLORS.medium,
-    marginTop: 4,
-    fontStyle: 'italic'
-  }
-});
 
 export default AddDocumentForm;
