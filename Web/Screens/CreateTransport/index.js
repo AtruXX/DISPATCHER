@@ -24,22 +24,30 @@ export default function CreateTransportPage() {
     truck_combination: '',
     trailer_type: '',
     trailer_number: '',
-    detraction: '', // Will now be a dropdown selection
+    detraction: '',
     origin_city: '',
     destination_city: '',
-    goods_type: '', // Will now be a dropdown selection
-    driver: null // Will store the selected driver ID
+    goods_type: '',
+    driver: null,
+    truck: null, // New field for selected truck
+    trailer: null // New field for selected trailer
   });
   const [authToken, setAuthToken] = useState(null);
 
   const [drivers, setDrivers] = useState([]);
+  const [trucks, setTrucks] = useState([]); // New state for trucks
+  const [trailers, setTrailers] = useState([]); // New state for trailers
   const [selectedDriver, setSelectedDriver] = useState(null);
+  const [selectedTruck, setSelectedTruck] = useState(null); // New state for selected truck
+  const [selectedTrailer, setSelectedTrailer] = useState(null); // New state for selected trailer
   const [loading, setLoading] = useState(false);
   const [isDriverModalVisible, setDriverModalVisible] = useState(false);
   const [isTruckModalVisible, setTruckModalVisible] = useState(false);
   const [isTrailerModalVisible, setTrailerModalVisible] = useState(false);
   const [isDetractionModalVisible, setDetractionModalVisible] = useState(false);
   const [isGoodsTypeModalVisible, setGoodsTypeModalVisible] = useState(false);
+  const [isTruckSelectionModalVisible, setTruckSelectionModalVisible] = useState(false); // New modal state
+  const [isTrailerSelectionModalVisible, setTrailerSelectionModalVisible] = useState(false); // New modal state
   const [error, setError] = useState(null);
 
   const navigation = useNavigation();
@@ -81,28 +89,6 @@ export default function CreateTransportPage() {
     'Alimente uscate'
   ];
 
-  // Mock data for testing - replace with actual API call
-  const mockDriversData = {
-    "number_of_drivers": 1,
-    "drivers": [
-      {
-        "id": 2,
-        "driver": {
-          "average_rating": 0.0,
-          "on_road": false
-        },
-        "dispatcher": null,
-        "company": "C&C Logistics",
-        "last_login": "2025-05-04T11:39:00.341871Z",
-        "email": "pop-ion@gmail.com",
-        "name": "Pop Ion",
-        "is_active": true,
-        "is_admin": false,
-        "is_dispatcher": false,
-        "is_driver": true
-      }
-    ]
-  };
   useEffect(() => {
     const getAuthToken = () => {
       try {
@@ -128,13 +114,15 @@ export default function CreateTransportPage() {
 
     getAuthToken();
   }, []);
-  // Fetch drivers on component mount
+
+  // Fetch drivers, trucks, and trailers on component mount
   useEffect(() => {
     if (authToken) {
       fetchDrivers();
+      fetchTrucks(); // New fetch function
+      fetchTrailers(); // New fetch function
     }
   }, [authToken]);
-
 
   const fetchDrivers = async () => {
     try {
@@ -153,11 +141,9 @@ export default function CreateTransportPage() {
 
       const data = await response.json();
       console.log('Fetched drivers:', data);
-      // Check if the response has the new format
       if (data.drivers) {
         setDrivers(data.drivers);
       } else {
-        // If using old format, keep it as is
         setDrivers(data);
       }
 
@@ -167,6 +153,58 @@ export default function CreateTransportPage() {
       setLoading(false);
       Alert.alert('Error', 'Failed to fetch drivers data');
       console.error('Error fetching drivers:', err);
+    }
+  };
+
+  // New function to fetch trucks
+  const fetchTrucks = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}trucks`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Token ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Fetched trucks:', data);
+      if (data.trucks) {
+        setTrucks(data.trucks);
+      }
+    } catch (err) {
+      console.error('Error fetching trucks:', err);
+      Alert.alert('Error', 'Failed to fetch trucks data');
+    }
+  };
+
+  // New function to fetch trailers
+  const fetchTrailers = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}trailers`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Token ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Fetched trailers:', data);
+      if (data.trailers) {
+        setTrailers(data.trailers);
+      }
+    } catch (err) {
+      console.error('Error fetching trailers:', err);
+      Alert.alert('Error', 'Failed to fetch trailers data');
     }
   };
 
@@ -180,6 +218,31 @@ export default function CreateTransportPage() {
     setDriverModalVisible(false);
   };
 
+  // New function to select truck
+  const selectTruck = (truck) => {
+    setSelectedTruck(truck);
+    setFormData(prev => ({ 
+      ...prev, 
+      truck: truck.id,
+      // Auto-fill the model field
+      truck_model: truck.model
+    }));
+    setTruckSelectionModalVisible(false);
+  };
+
+  // New function to select trailer
+  const selectTrailer = (trailer) => {
+    setSelectedTrailer(trailer);
+    setFormData(prev => ({ 
+      ...prev, 
+      trailer: trailer.id,
+      // Auto-fill trailer_number and trailer_type
+      trailer_number: trailer.license_plate,
+      trailer_type: trailer.type
+    }));
+    setTrailerSelectionModalVisible(false);
+  };
+
   const selectTruckCombination = (combination) => {
     setFormData(prev => ({ ...prev, truck_combination: combination }));
     setTruckModalVisible(false);
@@ -190,7 +253,6 @@ export default function CreateTransportPage() {
     setTrailerModalVisible(false);
   };
 
-  // New functions for the new dropdowns
   const selectDetraction = (detraction) => {
     setFormData(prev => ({ ...prev, detraction: detraction }));
     setDetractionModalVisible(false);
@@ -201,9 +263,18 @@ export default function CreateTransportPage() {
     setGoodsTypeModalVisible(false);
   };
 
+  // New function to refresh all data
+  const refreshAllData = () => {
+    if (authToken) {
+      fetchDrivers();
+      fetchTrucks();
+      fetchTrailers();
+    }
+  };
+
   const handleSubmit = async () => {
-    // Validate required fields
-    const requiredFields = ['truck_combination', 'trailer_type', 'trailer_number', 'origin_city', 'destination_city', 'goods_type', 'driver'];
+    // Updated validation to include new required fields
+    const requiredFields = ['truck_combination', 'trailer_type', 'trailer_number', 'origin_city', 'destination_city', 'goods_type', 'driver', 'truck', 'trailer'];
     const missingFields = requiredFields.filter(field => !formData[field]);
 
     if (missingFields.length > 0) {
@@ -242,9 +313,13 @@ export default function CreateTransportPage() {
         origin_city: '',
         destination_city: '',
         goods_type: '',
-        driver: null
+        driver: null,
+        truck: null,
+        trailer: null
       });
       setSelectedDriver(null);
+      setSelectedTruck(null);
+      setSelectedTrailer(null);
 
     } catch (error) {
       console.error('Error:', error.message);
@@ -254,7 +329,92 @@ export default function CreateTransportPage() {
     }
   };
 
-  // Driver selection modal
+  // New modal for truck selection
+  const renderTruckSelectionModal = () => {
+    return (
+      <Modal
+        visible={isTruckSelectionModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setTruckSelectionModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selectează Camion</Text>
+              <TouchableOpacity onPress={() => setTruckSelectionModalVisible(false)}>
+                <Ionicons name="close" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={trucks}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.driverItem}
+                  onPress={() => selectTruck(item)}
+                >
+                  <Text style={styles.driverName}>{item.license_plate}</Text>
+                  <Text style={styles.driverCompany}>{item.make} {item.model} ({item.year})</Text>
+                  <Text style={styles.driverStatus}>{item.company}</Text>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                <Text style={styles.emptyText}>Nu există camioane disponibile</Text>
+              }
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  // New modal for trailer selection
+  const renderTrailerSelectionModal = () => {
+    return (
+      <Modal
+        visible={isTrailerSelectionModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setTrailerSelectionModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selectează Remorcă</Text>
+              <TouchableOpacity onPress={() => setTrailerSelectionModalVisible(false)}>
+                <Ionicons name="close" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={trailers}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.driverItem}
+                  onPress={() => selectTrailer(item)}
+                >
+                  <Text style={styles.driverName}>{item.license_plate}</Text>
+                  <Text style={styles.driverCompany}>{item.make} {item.model} ({item.year})</Text>
+                  <View style={{ flexDirection: 'row', marginTop: 4 }}>
+                    <Text style={styles.driverStatus}>Tip: {item.type}</Text>
+                    <Text style={styles.driverStatus}>{item.company}</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                <Text style={styles.emptyText}>Nu există remorci disponibile</Text>
+              }
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  // Driver selection modal (unchanged)
   const renderDriverModal = () => {
     return (
       <Modal
@@ -308,7 +468,7 @@ export default function CreateTransportPage() {
     );
   };
 
-  // Truck combination selection modal
+  // Truck combination selection modal (unchanged)
   const renderTruckModal = () => {
     return (
       <Modal
@@ -344,7 +504,7 @@ export default function CreateTransportPage() {
     );
   };
 
-  // Trailer type selection modal
+  // Trailer type selection modal (unchanged)
   const renderTrailerModal = () => {
     return (
       <Modal
@@ -380,7 +540,7 @@ export default function CreateTransportPage() {
     );
   };
 
-  // New modal for Detraction (Tip Tractare)
+  // Detraction modal (unchanged)
   const renderDetractionModal = () => {
     return (
       <Modal
@@ -416,7 +576,7 @@ export default function CreateTransportPage() {
     );
   };
 
-  // New modal for Goods Type (Tip Marfa)
+  // Goods type modal (unchanged)
   const renderGoodsTypeModal = () => {
     return (
       <Modal
@@ -452,7 +612,7 @@ export default function CreateTransportPage() {
     );
   };
 
-  if (loading && !isDriverModalVisible && !isTruckModalVisible && !isTrailerModalVisible && !isDetractionModalVisible && !isGoodsTypeModalVisible) {
+  if (loading && !isDriverModalVisible && !isTruckModalVisible && !isTrailerModalVisible && !isDetractionModalVisible && !isGoodsTypeModalVisible && !isTruckSelectionModalVisible && !isTrailerSelectionModalVisible) {
     return (
       <SafeAreaView style={styles.loadingContainer || { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
         <View style={styles.loadingCard || { padding: 20, backgroundColor: COLORS.white, borderRadius: 10, alignItems: 'center' }}>
@@ -482,7 +642,7 @@ export default function CreateTransportPage() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.refreshButton}
-          onPress={fetchDrivers}
+          onPress={refreshAllData}
         >
           <Ionicons name="refresh" size={24} color={COLORS.primary} />
         </TouchableOpacity>
@@ -513,6 +673,44 @@ export default function CreateTransportPage() {
                 </View>
               ) : (
                 <Text style={styles.driverPlaceholder}>Apasă pentru a selecta un șofer</Text>
+              )}
+              <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* NEW: Truck Selection */}
+          <View style={styles.driverSection}>
+            <Text style={styles.sectionTitle}>SELECTEAZĂ CAMION</Text>
+            <TouchableOpacity
+              style={styles.driverSelector}
+              onPress={() => setTruckSelectionModalVisible(true)}
+            >
+              {selectedTruck ? (
+                <View style={styles.selectedDriverContainer}>
+                  <Text style={styles.selectedDriverName}>{selectedTruck.license_plate}</Text>
+                  <Text style={styles.selectedDriverCompany}>{selectedTruck.make} {selectedTruck.model}</Text>
+                </View>
+              ) : (
+                <Text style={styles.driverPlaceholder}>Apasă pentru a selecta un camion</Text>
+              )}
+              <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* NEW: Trailer Selection */}
+          <View style={styles.driverSection}>
+            <Text style={styles.sectionTitle}>SELECTEAZĂ REMORCĂ</Text>
+            <TouchableOpacity
+              style={styles.driverSelector}
+              onPress={() => setTrailerSelectionModalVisible(true)}
+            >
+              {selectedTrailer ? (
+                <View style={styles.selectedDriverContainer}>
+                  <Text style={styles.selectedDriverName}>{selectedTrailer.license_plate}</Text>
+                  <Text style={styles.selectedDriverCompany}>{selectedTrailer.make} {selectedTrailer.model} - {selectedTrailer.type}</Text>
+                </View>
+              ) : (
+                <Text style={styles.driverPlaceholder}>Apasă pentru a selecta o remorcă</Text>
               )}
               <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
             </TouchableOpacity>
@@ -563,6 +761,7 @@ export default function CreateTransportPage() {
                   onChangeText={(text) => handleChange('trailer_number', text)}
                   style={styles.input || { padding: 12, fontSize: 16 }}
                   placeholderTextColor={COLORS.text.light}
+                  editable={!selectedTrailer} // Disable if trailer is selected
                 />
               </View>
             </View>
@@ -571,7 +770,6 @@ export default function CreateTransportPage() {
               <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
                 TIP TRACTARE
               </Text>
-              {/* Changed from TextInput to TouchableOpacity for dropdown */}
               <TouchableOpacity
                 style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
                 onPress={() => setDetractionModalVisible(true)}
@@ -650,12 +848,14 @@ export default function CreateTransportPage() {
           
         </View>
       </ScrollView>
-
-      {renderDriverModal()}
-      {renderTruckModal()}
-      {renderTrailerModal()}
-      {renderDetractionModal()} {/* New modal */}
-      {renderGoodsTypeModal()} {/* New modal */}
+{renderDriverModal()}
+{renderTruckSelectionModal()}  
+{renderTrailerSelectionModal()} 
+{renderTruckModal()}
+{renderTrailerModal()}
+{renderDetractionModal()}
+{renderGoodsTypeModal()}
+     
     </SafeAreaView>
   );
 }
