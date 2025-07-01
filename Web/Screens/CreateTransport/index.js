@@ -1,93 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import {
-  ScrollView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Alert,
-  SafeAreaView,
-  StatusBar,
-  Modal,
-  FlatList
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useEffect } from "react";
+import { View, Text, ScrollView, Platform, StyleSheet, TouchableOpacity, Image, Easing, Animated, ActivityIndicator, Linking, Alert, Picker, TextInput } from "react-native";
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { styles, COLORS } from './styles';
+import { Feather } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Calendar } from 'react-native-calendars';
+import { styles } from "./styles";
+
 const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 
-export default function CreateTransportPage() {
-  const [formData, setFormData] = useState({
-    truck_combination: '',
-    trailer_type: '',
-    trailer_number: '',
-    detraction: '',
-    origin_city: '',
-    destination_city: '',
-    goods_type: '',
-    driver: null,
-    truck: null, // New field for selected truck
-    trailer: null // New field for selected trailer
-  });
-  const [authToken, setAuthToken] = useState(null);
-
-  const [drivers, setDrivers] = useState([]);
-  const [trucks, setTrucks] = useState([]); // New state for trucks
-  const [trailers, setTrailers] = useState([]); // New state for trailers
-  const [selectedDriver, setSelectedDriver] = useState(null);
-  const [selectedTruck, setSelectedTruck] = useState(null); // New state for selected truck
-  const [selectedTrailer, setSelectedTrailer] = useState(null); // New state for selected trailer
-  const [loading, setLoading] = useState(false);
-  const [isDriverModalVisible, setDriverModalVisible] = useState(false);
-  const [isTruckModalVisible, setTruckModalVisible] = useState(false);
-  const [isTrailerModalVisible, setTrailerModalVisible] = useState(false);
-  const [isDetractionModalVisible, setDetractionModalVisible] = useState(false);
-  const [isGoodsTypeModalVisible, setGoodsTypeModalVisible] = useState(false);
-  const [isTruckSelectionModalVisible, setTruckSelectionModalVisible] = useState(false); // New modal state
-  const [isTrailerSelectionModalVisible, setTrailerSelectionModalVisible] = useState(false); // New modal state
-  const [error, setError] = useState(null);
-
+const FormPage = () => {
   const navigation = useNavigation();
-
-  // Predefined options for dropdowns
-  const truckCombinations = [
-    'Cap tractor + Semiremorcă',
-    'Cap tractor + Tandem',
-    'Autoutilitară',
-    'Solo'
-  ];
-
-  const trailerTypes = [
-    'Prelată',
-    'Frigorifică',
-    'Cisterna',
-    'Platformă',
-    'Container',
-    'Box'
-  ];
-
-  // New dropdown options for Tip Tractare
-  const detractionTypes = [
-    '4x2',
-    '6x2',
-    '6x4',
-    '8x4'
-  ];
-
-  // New dropdown options for Tip Marfa
-  const goodsTypes = [
-    'Marfă generală',
-    'Frigorifică',
-    'ADR (substanțe periculoase)',
-    'Textile',
-    'Mobilier',
-    'Autoturisme',
-    'Băuturi',
-    'Alimente uscate'
-  ];
+  
+  const [formData, setFormData] = useState({
+    driver: '',
+    truck: '',
+    trailer: '',
+    arrival: '', // arrival city
+    departure: '', // departure city
+    type_goods: '',
+    day_expected_to_deliver: '',
+    client_email: '',
+    // Auto-filled fields
+    truck_license_plate: '',
+    truck_make: '',
+    truck_model: '',
+    trailer_license_plate: '',
+    trailer_type: '',
+  });
+  
+  const [error, setError] = useState({});
+  const [drivers, setDrivers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [trucksData, setTrucksData] = useState([]);
+  const [authToken, setAuthToken] = useState(null);
+  const [trailer, setTrailer] = useState([]);
+  
+  // Modal states for custom dropdowns
+  const [showDriverModal, setShowDriverModal] = useState(false);
+  const [showTruckModal, setShowTruckModal] = useState(false);
+  const [showTrailerModal, setShowTrailerModal] = useState(false);
+  const [showGoodsModal, setShowGoodsModal] = useState(false);
+  
+  // Calendar states - only for delivery date
+  const [showDeliveryCalendar, setShowDeliveryCalendar] = useState(false);
 
   useEffect(() => {
     const getAuthToken = () => {
@@ -115,12 +71,12 @@ export default function CreateTransportPage() {
     getAuthToken();
   }, []);
 
-  // Fetch drivers, trucks, and trailers on component mount
+  // Fetch drivers when token is available
   useEffect(() => {
     if (authToken) {
       fetchDrivers();
-      fetchTrucks(); // New fetch function
-      fetchTrailers(); // New fetch function
+      fetchTrucks();
+      fetchTrailers();
     }
   }, [authToken]);
 
@@ -134,16 +90,18 @@ export default function CreateTransportPage() {
           'Content-Type': 'application/json',
         },
       });
-      console.log(authToken)
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('Fetched drivers:', data);
+
+      // Check if the response has the new format
       if (data.drivers) {
         setDrivers(data.drivers);
       } else {
+        // If using old format, keep it as is
         setDrivers(data);
       }
 
@@ -156,10 +114,10 @@ export default function CreateTransportPage() {
     }
   };
 
-  // New function to fetch trucks
   const fetchTrucks = async () => {
     try {
-      const response = await fetch(`${BASE_URL}trucks`, {
+      setLoading(true);
+      const response = await fetch(`${BASE_URL}trucks/`, {
         method: 'GET',
         headers: {
           'Authorization': `Token ${authToken}`,
@@ -173,19 +131,31 @@ export default function CreateTransportPage() {
 
       const data = await response.json();
       console.log('Fetched trucks:', data);
-      if (data.trucks) {
-        setTrucks(data.trucks);
+      
+      // Handle different API response formats
+      if (Array.isArray(data)) {
+        setTrucksData(data);
+      } else if (data.trucks && Array.isArray(data.trucks)) {
+        setTrucksData(data.trucks);
+      } else {
+        console.warn('Unexpected trucks data format:', data);
+        setTrucksData([]);
       }
+      
+      setLoading(false);
     } catch (err) {
-      console.error('Error fetching trucks:', err);
+      setError(err.message);
+      setLoading(false);
+      setTrucksData([]); // Set empty array on error
       Alert.alert('Error', 'Failed to fetch trucks data');
+      console.error('Error fetching trucks:', err);
     }
   };
 
-  // New function to fetch trailers
   const fetchTrailers = async () => {
     try {
-      const response = await fetch(`${BASE_URL}trailers`, {
+      setLoading(true);
+      const response = await fetch(`${BASE_URL}trailers/`, {
         method: 'GET',
         headers: {
           'Authorization': `Token ${authToken}`,
@@ -199,663 +169,541 @@ export default function CreateTransportPage() {
 
       const data = await response.json();
       console.log('Fetched trailers:', data);
-      if (data.trailers) {
-        setTrailers(data.trailers);
+      
+      // Handle different API response formats
+      if (Array.isArray(data)) {
+        setTrailer(data);
+      } else if (data.trailers && Array.isArray(data.trailers)) {
+        setTrailer(data.trailers);
+      } else {
+        console.warn('Unexpected trailers data format:', data);
+        setTrailer([]);
       }
+      
+      setLoading(false);
     } catch (err) {
-      console.error('Error fetching trailers:', err);
+      setError(err.message);
+      setLoading(false);
+      setTrailer([]); // Set empty array on error
       Alert.alert('Error', 'Failed to fetch trailers data');
+      console.error('Error fetching trailers:', err);
     }
   };
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const goodsTypeOptions = [
+    { value: '', label: 'Selecteaza tipul de marfa transportata' },
+    { value: 'Electronice', label: 'Electronice' },
+    { value: 'Materiale de constructii', label: 'Materiale de constructii' },
+    { value: 'Marfuri alimentare proaspete', label: 'Marfuri alimentare proaspete(Fructe/legume)' },
+    { value: 'Marfuri alimentare congelate', label: 'Marfuri alimentare congelate' },
+    { value: 'Combustibili', label: 'Combustibili' },
+    { value: 'Farmaceutice', label: 'Farmaceutice' },
+    { value: 'Cosmetice', label: 'Cosmetice' },
+    { value: 'Produse perisabile', label: 'Perisabile' },
+  ];
+
+  // Calendar handlers - only for delivery date
+  const handleDeliveryDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || new Date();
+    setShowDeliveryCalendar(Platform.OS === 'ios');
+    setFormData(prev => ({
+      ...prev,
+      day_expected_to_deliver: currentDate.toISOString().split('T')[0]
+    }));
   };
 
-  const selectDriver = (driver) => {
-    setSelectedDriver(driver);
+  const handleDeliveryCalendarDayPress = (day) => {
+    setFormData(prev => ({ ...prev, day_expected_to_deliver: day.dateString }));
+    setShowDeliveryCalendar(false);
+  };
+
+  // Custom dropdown handlers
+  const handleDriverSelect = (driver) => {
     setFormData(prev => ({ ...prev, driver: driver.id }));
-    setDriverModalVisible(false);
+    setShowDriverModal(false);
   };
 
-  // New function to select truck
-  const selectTruck = (truck) => {
-    setSelectedTruck(truck);
+  const handleTruckSelect = (truck) => {
     setFormData(prev => ({ 
       ...prev, 
       truck: truck.id,
-      // Auto-fill the model field
+      truck_license_plate: truck.license_plate,
+      truck_make: truck.make,
       truck_model: truck.model
     }));
-    setTruckSelectionModalVisible(false);
+    setShowTruckModal(false);
   };
 
-  // New function to select trailer
-  const selectTrailer = (trailer) => {
-    setSelectedTrailer(trailer);
+  const handleTrailerSelect = (trailerItem) => {
     setFormData(prev => ({ 
       ...prev, 
-      trailer: trailer.id,
-      // Auto-fill trailer_number and trailer_type
-      trailer_number: trailer.license_plate,
-      trailer_type: trailer.type
+      trailer: trailerItem.id,
+      trailer_license_plate: trailerItem.license_plate,
+      trailer_type: trailerItem.type
     }));
-    setTrailerSelectionModalVisible(false);
+    setShowTrailerModal(false);
   };
 
-  const selectTruckCombination = (combination) => {
-    setFormData(prev => ({ ...prev, truck_combination: combination }));
-    setTruckModalVisible(false);
+  const handleGoodsSelect = (goods) => {
+    setFormData(prev => ({ ...prev, type_goods: goods.value }));
+    setShowGoodsModal(false);
   };
 
-  const selectTrailerType = (type) => {
-    setFormData(prev => ({ ...prev, trailer_type: type }));
-    setTrailerModalVisible(false);
+  // Get selected item labels
+  const getSelectedDriverLabel = () => {
+    const selected = drivers.find(d => d.id === formData.driver);
+    return selected ? selected.name : 'Select Driver';
   };
 
-  const selectDetraction = (detraction) => {
-    setFormData(prev => ({ ...prev, detraction: detraction }));
-    setDetractionModalVisible(false);
+  const getSelectedTruckLabel = () => {
+    const selected = trucksData.find(t => t.id === formData.truck);
+    return selected ? `${selected.license_plate} - ${selected.model}` : 'Select Truck';
   };
 
-  const selectGoodsType = (goodsType) => {
-    setFormData(prev => ({ ...prev, goods_type: goodsType }));
-    setGoodsTypeModalVisible(false);
+  const getSelectedTrailerLabel = () => {
+    const selected = trailer.find(t => t.id === formData.trailer);
+    return selected ? `${selected.license_plate} - ${selected.type}` : 'Select Trailer';
   };
 
-  // New function to refresh all data
-  const refreshAllData = () => {
-    if (authToken) {
-      fetchDrivers();
-      fetchTrucks();
-      fetchTrailers();
+  const getSelectedGoodsLabel = () => {
+    const selected = goodsTypeOptions.find(g => g.value === formData.type_goods);
+    return selected ? selected.label : 'Selecteaza tipul de marfa transportata';
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.driver) newErrors.driver = 'Driver is required';
+    if (!formData.truck) newErrors.truck = 'Truck is required';
+    if (!formData.trailer) newErrors.trailer = 'Trailer is required';
+    if (!formData.arrival.trim()) newErrors.arrival = 'Arrival city is required';
+    if (!formData.departure.trim()) newErrors.departure = 'Departure city is required';
+    if (!formData.type_goods) newErrors.type_goods = 'Type of goods is required';
+    if (!formData.day_expected_to_deliver) newErrors.day_expected_to_deliver = 'Expected delivery date is required';
+    if (!formData.client_email.trim()) newErrors.client_email = 'Client email is required';
+
+    // Email validation
+    if (formData.client_email && !/\S+@\S+\.\S+/.test(formData.client_email)) {
+      newErrors.client_email = 'Please enter a valid email address';
     }
+
+    // Date validation - only for delivery date
+    if (formData.day_expected_to_deliver) {
+      const deliveryDate = new Date(formData.day_expected_to_deliver);
+      const today = new Date();
+      if (deliveryDate < today) {
+        newErrors.day_expected_to_deliver = 'Delivery date cannot be in the past';
+      }
+    }
+
+    return newErrors;
   };
 
   const handleSubmit = async () => {
-    // Updated validation to include new required fields
-    const requiredFields = ['truck_combination', 'trailer_type', 'trailer_number', 'origin_city', 'destination_city', 'goods_type', 'driver', 'truck', 'trailer'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
-
-    if (missingFields.length > 0) {
-      Alert.alert('Missing Fields', `Please complete the following fields: ${missingFields.join(', ')}`);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch('https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/transports', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create transport');
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length === 0) {
+      setSubmitted(true);
+      try {
+        const response = await fetch(`${BASE_URL}transports`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Token ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+        if (response.ok) {
+          Alert.alert("Success", "Form submitted successfully!");
+          handleReset();
+        } else {
+          throw new Error('Failed to submit form');
+        }
+      } catch (err) {
+        console.error('Error submitting form:', err);
+        setError({ submit: 'Failed to submit form. Please try again.' });
+      } finally {
+        setSubmitted(false);
       }
-
-      const data = await response.json();
-      navigation.navigate('Route', { transportId: data.id });
-      Alert.alert('Success', 'Transport created successfully!');
-      console.log('Success:', data);
-
-      // Reset form
-      setFormData({
-        truck_combination: '',
-        trailer_type: '',
-        trailer_number: '',
-        detraction: '',
-        origin_city: '',
-        destination_city: '',
-        goods_type: '',
-        driver: null,
-        truck: null,
-        trailer: null
-      });
-      setSelectedDriver(null);
-      setSelectedTruck(null);
-      setSelectedTrailer(null);
-
-    } catch (error) {
-      console.error('Error:', error.message);
-      Alert.alert('Error', error.message);
-    } finally {
-      setLoading(false);
+    } else {
+      setError(validationErrors);
     }
   };
 
-  // New modal for truck selection
-  const renderTruckSelectionModal = () => {
-    return (
-      <Modal
-        visible={isTruckSelectionModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setTruckSelectionModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Camion</Text>
-              <TouchableOpacity onPress={() => setTruckSelectionModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-
-            <FlatList
-              data={trucks}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.driverItem}
-                  onPress={() => selectTruck(item)}
-                >
-                  <Text style={styles.driverName}>{item.license_plate}</Text>
-                  <Text style={styles.driverCompany}>{item.make} {item.model} ({item.year})</Text>
-                  <Text style={styles.driverStatus}>{item.company}</Text>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>Nu există camioane disponibile</Text>
-              }
-            />
-          </View>
-        </View>
-      </Modal>
-    );
+  const handleReset = () => {
+    setFormData({
+      driver: '',
+      truck: '',
+      trailer: '',
+      arrival: '', // arrival city
+      departure: '', // departure city
+      type_goods: '',
+      day_expected_to_deliver: '',
+      client_email: '',
+      truck_license_plate: '',
+      truck_make: '',
+      truck_model: '',
+      trailer_license_plate: '',
+      trailer_type: '',
+    });
+    setError({});
   };
 
-  // New modal for trailer selection
-  const renderTrailerSelectionModal = () => {
+  if (loading) {
     return (
-      <Modal
-        visible={isTrailerSelectionModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setTrailerSelectionModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Remorcă</Text>
-              <TouchableOpacity onPress={() => setTrailerSelectionModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-
-            <FlatList
-              data={trailers}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.driverItem}
-                  onPress={() => selectTrailer(item)}
-                >
-                  <Text style={styles.driverName}>{item.license_plate}</Text>
-                  <Text style={styles.driverCompany}>{item.make} {item.model} ({item.year})</Text>
-                  <View style={{ flexDirection: 'row', marginTop: 4 }}>
-                    <Text style={styles.driverStatus}>Tip: {item.type}</Text>
-                    <Text style={styles.driverStatus}>{item.company}</Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>Nu există remorci disponibile</Text>
-              }
-            />
-          </View>
+      <View style={styles.loadingContainer}>
+        <View style={styles.loadingCard}>
+          <ActivityIndicator size="large" color="#5C6BC0" />
+          <Text style={styles.loadingText}>Se incarca...</Text>
         </View>
-      </Modal>
-    );
-  };
-
-  // Driver selection modal (unchanged)
-  const renderDriverModal = () => {
-    return (
-      <Modal
-        visible={isDriverModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setDriverModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Șofer</Text>
-              <TouchableOpacity onPress={() => setDriverModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-
-            <FlatList
-              data={drivers}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.driverItem}
-                  onPress={() => selectDriver(item)}
-                >
-                  <Text style={styles.driverName}>{item.name}</Text>
-                  <Text style={styles.driverCompany}>{item.company}</Text>
-                  <View style={{ flexDirection: 'row', marginTop: 4 }}>
-                    <Text style={[
-                      styles.driverStatus,
-                      item.is_active ? styles.driverStatusActive : styles.driverStatusInactive
-                    ]}>
-                      {item.is_active ? 'Activ' : 'Inactiv'}
-                    </Text>
-                    <Text style={[
-                      styles.driverStatus,
-                      item.driver && !item.driver.on_road ? styles.driverStatusAvailable : styles.driverStatusOnRoad
-                    ]}>
-                      {item.driver && !item.driver.on_road ? 'Disponibil' : 'În cursă'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>Nu există șoferi disponibili</Text>
-              }
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
-  // Truck combination selection modal (unchanged)
-  const renderTruckModal = () => {
-    return (
-      <Modal
-        visible={isTruckModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setTruckModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Combinație Camion</Text>
-              <TouchableOpacity onPress={() => setTruckModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-
-            <FlatList
-              data={truckCombinations}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.optionItem}
-                  onPress={() => selectTruckCombination(item)}
-                >
-                  <Text style={styles.optionText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
-  // Trailer type selection modal (unchanged)
-  const renderTrailerModal = () => {
-    return (
-      <Modal
-        visible={isTrailerModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setTrailerModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Tip Remorcă</Text>
-              <TouchableOpacity onPress={() => setTrailerModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-
-            <FlatList
-              data={trailerTypes}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.optionItem}
-                  onPress={() => selectTrailerType(item)}
-                >
-                  <Text style={styles.optionText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
-  // Detraction modal (unchanged)
-  const renderDetractionModal = () => {
-    return (
-      <Modal
-        visible={isDetractionModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setDetractionModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Tip Tractare</Text>
-              <TouchableOpacity onPress={() => setDetractionModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-
-            <FlatList
-              data={detractionTypes}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.optionItem}
-                  onPress={() => selectDetraction(item)}
-                >
-                  <Text style={styles.optionText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
-  // Goods type modal (unchanged)
-  const renderGoodsTypeModal = () => {
-    return (
-      <Modal
-        visible={isGoodsTypeModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setGoodsTypeModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selectează Tip Marfă</Text>
-              <TouchableOpacity onPress={() => setGoodsTypeModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-
-            <FlatList
-              data={goodsTypes}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.optionItem}
-                  onPress={() => selectGoodsType(item)}
-                >
-                  <Text style={styles.optionText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
-  if (loading && !isDriverModalVisible && !isTruckModalVisible && !isTrailerModalVisible && !isDetractionModalVisible && !isGoodsTypeModalVisible && !isTruckSelectionModalVisible && !isTrailerSelectionModalVisible) {
-    return (
-      <SafeAreaView style={styles.loadingContainer || { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
-        <View style={styles.loadingCard || { padding: 20, backgroundColor: COLORS.white, borderRadius: 10, alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText || { marginTop: 10, color: COLORS.primary, fontSize: 16 }}>Se incarca...</Text>
-        </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container || { flex: 1, backgroundColor: COLORS.background }}>
-      <StatusBar barStyle="dark-content" />
-
-      <View style={styles.navigationHeader || { flexDirection: 'row', justifyContent: 'space-between', padding: 16 }}>
+    <View style={styles.container}>
+      {/* Navigation Header */}
+      <View style={styles.navigationHeader}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-            } else {
-              navigation.navigate("Main");
-            }
-          }}
+          onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.refreshButton}
-          onPress={refreshAllData}
-        >
-          <Ionicons name="refresh" size={24} color={COLORS.primary} />
+          <Feather name="arrow-left" size={24} color="#303F9F" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer || { padding: 16 }}>
+      <ScrollView style={styles.scrollContainer}>
         {/* Header Card */}
-        <View style={styles.headerCard || { backgroundColor: COLORS.white, borderRadius: 10, padding: 16, marginBottom: 16 }}>
-          <Text style={styles.headerTitle || { fontSize: 24, fontWeight: 'bold', color: COLORS.primary }}>Creare Transport</Text>
-          <Text style={styles.headerSubtitle || { fontSize: 16, color: COLORS.text.light, marginTop: 8 }}>
-            Completati detaliile pentru transport nou
-          </Text>
+        <View style={styles.headerCard}>
+          <Text style={styles.headerTitle}>Transport Form</Text>
+          <Text style={styles.headerSubtitle}>Create new transport assignment</Text>
         </View>
 
         {/* Form Card */}
-        <View style={styles.formCard || { backgroundColor: COLORS.white, borderRadius: 10, padding: 16 }}>
+        <View style={styles.formCard}>
           {/* Driver Selection */}
-          <View style={styles.driverSection}>
-            <Text style={styles.sectionTitle}>SELECTEAZĂ ȘOFER</Text>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>DRIVER *</Text>
             <TouchableOpacity
-              style={styles.driverSelector}
-              onPress={() => setDriverModalVisible(true)}
+              style={[styles.inputContainer, styles.dropdownContainer]}
+              onPress={() => setShowDriverModal(true)}
             >
-              {selectedDriver ? (
-                <View style={styles.selectedDriverContainer}>
-                  <Text style={styles.selectedDriverName}>{selectedDriver.name}</Text>
-                  <Text style={styles.selectedDriverCompany}>{selectedDriver.company}</Text>
-                </View>
-              ) : (
-                <Text style={styles.driverPlaceholder}>Apasă pentru a selecta un șofer</Text>
-              )}
-              <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* NEW: Truck Selection */}
-          <View style={styles.driverSection}>
-            <Text style={styles.sectionTitle}>SELECTEAZĂ CAMION</Text>
-            <TouchableOpacity
-              style={styles.driverSelector}
-              onPress={() => setTruckSelectionModalVisible(true)}
-            >
-              {selectedTruck ? (
-                <View style={styles.selectedDriverContainer}>
-                  <Text style={styles.selectedDriverName}>{selectedTruck.license_plate}</Text>
-                  <Text style={styles.selectedDriverCompany}>{selectedTruck.make} {selectedTruck.model}</Text>
-                </View>
-              ) : (
-                <Text style={styles.driverPlaceholder}>Apasă pentru a selecta un camion</Text>
-              )}
-              <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* NEW: Trailer Selection */}
-          <View style={styles.driverSection}>
-            <Text style={styles.sectionTitle}>SELECTEAZĂ REMORCĂ</Text>
-            <TouchableOpacity
-              style={styles.driverSelector}
-              onPress={() => setTrailerSelectionModalVisible(true)}
-            >
-              {selectedTrailer ? (
-                <View style={styles.selectedDriverContainer}>
-                  <Text style={styles.selectedDriverName}>{selectedTrailer.license_plate}</Text>
-                  <Text style={styles.selectedDriverCompany}>{selectedTrailer.make} {selectedTrailer.model} - {selectedTrailer.type}</Text>
-                </View>
-              ) : (
-                <Text style={styles.driverPlaceholder}>Apasă pentru a selecta o remorcă</Text>
-              )}
-              <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Truck Combination Selection */}
-          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
-            <View style={styles.inputWrapper || { flex: 1, marginRight: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                COMBINATIE CAMION
+              <Text style={formData.driver ? styles.dropdownText : styles.dropdownPlaceholder}>
+                {getSelectedDriverLabel()}
               </Text>
+              <Feather name="chevron-down" size={20} color="#5C6BC0" />
+            </TouchableOpacity>
+            {error.driver && <Text style={{ color: '#EF5350', fontSize: 12, marginTop: 4 }}>{error.driver}</Text>}
+          </View>
+
+          {/* Vehicle Selection Row */}
+          <View style={styles.inputRow}>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>TRUCK *</Text>
               <TouchableOpacity
-                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
-                onPress={() => setTruckModalVisible(true)}
+                style={[styles.inputContainer, styles.dropdownContainer]}
+                onPress={() => setShowTruckModal(true)}
               >
-                <Text style={formData.truck_combination ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {formData.truck_combination || 'Selectează combinație'}
+                <Text style={formData.truck ? styles.dropdownText : styles.dropdownPlaceholder}>
+                  {getSelectedTruckLabel()}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
+                <Feather name="chevron-down" size={20} color="#5C6BC0" />
               </TouchableOpacity>
+              {error.truck && <Text style={{ color: '#EF5350', fontSize: 12, marginTop: 4 }}>{error.truck}</Text>}
             </View>
 
-            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                TIP REMORCĂ
-              </Text>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>TRAILER *</Text>
               <TouchableOpacity
-                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
-                onPress={() => setTrailerModalVisible(true)}
+                style={[styles.inputContainer, styles.dropdownContainer]}
+                onPress={() => setShowTrailerModal(true)}
               >
-                <Text style={formData.trailer_type ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {formData.trailer_type || 'Selectează tip remorcă'}
+                <Text style={formData.trailer ? styles.dropdownText : styles.dropdownPlaceholder}>
+                  {getSelectedTrailerLabel()}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
+                <Feather name="chevron-down" size={20} color="#5C6BC0" />
               </TouchableOpacity>
+              {error.trailer && <Text style={{ color: '#EF5350', fontSize: 12, marginTop: 4 }}>{error.trailer}</Text>}
             </View>
           </View>
 
-          {/* Other Form Fields */}
-          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
-            <View style={styles.inputWrapper || { flex: 1, marginRight: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                NUMĂR REMORCĂ
-              </Text>
-              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
-                <TextInput
-                  value={formData.trailer_number}
-                  onChangeText={(text) => handleChange('trailer_number', text)}
-                  style={styles.input || { padding: 12, fontSize: 16 }}
-                  placeholderTextColor={COLORS.text.light}
-                  editable={!selectedTrailer} // Disable if trailer is selected
-                />
+          {/* Auto-filled Vehicle Details */}
+          {formData.truck && (
+            <View style={styles.inputRow}>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.inputLabel}>NUMAR INMATRICULARE CAMION</Text>
+                <View style={[styles.inputContainer, { backgroundColor: '#F0F0F0' }]}>
+                  <Text style={styles.input}>{formData.truck_license_plate}</Text>
+                </View>
+              </View>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.inputLabel}>MARCA / MODEL</Text>
+                <View style={[styles.inputContainer, { backgroundColor: '#F0F0F0' }]}>
+                  <Text style={styles.input}>{formData.truck_make} {formData.truck_model}</Text>
+                </View>
               </View>
             </View>
+          )}
 
-            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                TIP TRACTARE
-              </Text>
-              <TouchableOpacity
-                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
-                onPress={() => setDetractionModalVisible(true)}
-              >
-                <Text style={formData.detraction ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {formData.detraction || 'Selectează tip tractare'}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
-            <View style={styles.inputWrapper || { flex: 1, marginRight: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                ORAȘ ORIGINE
-              </Text>
-              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
-                <TextInput
-                  value={formData.origin_city}
-                  onChangeText={(text) => handleChange('origin_city', text)}
-                  style={styles.input || { padding: 12, fontSize: 16 }}
-                  placeholderTextColor={COLORS.text.light}
-                />
+          {formData.trailer && (
+            <View style={styles.inputRow}>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.inputLabel}>NUMAR INMATRICULARE REMORCA</Text>
+                <View style={[styles.inputContainer, { backgroundColor: '#F0F0F0' }]}>
+                  <Text style={styles.input}>{formData.trailer_license_plate}</Text>
+                </View>
+              </View>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.inputLabel}>TIP REMORCA</Text>
+                <View style={[styles.inputContainer, { backgroundColor: '#F0F0F0' }]}>
+                  <Text style={styles.input}>{formData.trailer_type}</Text>
+                </View>
               </View>
             </View>
+          )}
 
-            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                ORAȘ DESTINAȚIE
-              </Text>
-              <View style={styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }}>
+          {/* Cities Row */}
+          <View style={styles.inputRow}>
+            {/* Arrival City */}
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>ARRIVAL CITY *</Text>
+              <View style={styles.inputContainer}>
                 <TextInput
-                  value={formData.destination_city}
-                  onChangeText={(text) => handleChange('destination_city', text)}
-                  style={styles.input || { padding: 12, fontSize: 16 }}
-                  placeholderTextColor={COLORS.text.light}
+                  style={styles.input}
+                  value={formData.arrival}
+                  onChangeText={(text) => setFormData(prev => ({ ...prev, arrival: text }))}
+                  placeholder="Enter arrival city"
                 />
               </View>
+              {error.arrival && <Text style={{ color: '#EF5350', fontSize: 12, marginTop: 4 }}>{error.arrival}</Text>}
+            </View>
+
+            {/* Departure City */}
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>DEPARTURE CITY *</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  value={formData.departure}
+                  onChangeText={(text) => setFormData(prev => ({ ...prev, departure: text }))}
+                  placeholder="Enter departure city"
+                />
+              </View>
+              {error.departure && <Text style={{ color: '#EF5350', fontSize: 12, marginTop: 4 }}>{error.departure}</Text>}
             </View>
           </View>
 
-          <View style={styles.inputRow || { flexDirection: 'row', marginBottom: 16 }}>
-            <View style={styles.inputWrapper || { flex: 1 }}>
-              <Text style={styles.inputLabel || { fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>
-                TIP MARFĂ
-              </Text>
-              {/* Changed from TextInput to TouchableOpacity for dropdown */}
+          {/* Goods and Delivery Row */}
+          <View style={styles.inputRow}>
+            {/* Type of Goods */}
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>TYPE OF GOODS *</Text>
               <TouchableOpacity
-                style={[styles.inputContainer || { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, overflow: 'hidden' }, styles.dropdownContainer]}
-                onPress={() => setGoodsTypeModalVisible(true)}
+                style={[styles.inputContainer, styles.dropdownContainer]}
+                onPress={() => setShowGoodsModal(true)}
               >
-                <Text style={formData.goods_type ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {formData.goods_type || 'Selectează tip marfă'}
+                <Text style={formData.type_goods ? styles.dropdownText : styles.dropdownPlaceholder}>
+                  {getSelectedGoodsLabel()}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color={COLORS.primary} />
+                <Feather name="chevron-down" size={20} color="#5C6BC0" />
               </TouchableOpacity>
+              {error.type_goods && <Text style={{ color: '#EF5350', fontSize: 12, marginTop: 4 }}>{error.type_goods}</Text>}
             </View>
-            <View style={styles.inputWrapper || { flex: 1, marginLeft: 8 }} />
+
+            {/* Expected Delivery Date */}
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>EXPECTED DELIVERY DATE *</Text>
+              <TouchableOpacity
+                style={[styles.inputContainer, styles.dropdownContainer]}
+                onPress={() => setShowDeliveryCalendar(true)}
+              >
+                <Text style={formData.day_expected_to_deliver ? styles.dropdownText : styles.dropdownPlaceholder}>
+                  {formData.day_expected_to_deliver ? new Date(formData.day_expected_to_deliver).toLocaleDateString() : 'Select delivery date'}
+                </Text>
+                <Feather name="calendar" size={20} color="#5C6BC0" />
+              </TouchableOpacity>
+
+              {showDeliveryCalendar && (
+                <View style={styles.calendarContainer}>
+                  {Platform.OS === 'ios' || Platform.OS === 'android' ? (
+                    <DateTimePicker
+                      value={formData.day_expected_to_deliver ? new Date(formData.day_expected_to_deliver) : new Date()}
+                      mode="date"
+                      display="default"
+                      onChange={handleDeliveryDateChange}
+                    />
+                  ) : (
+                    <Calendar
+                      onDayPress={handleDeliveryCalendarDayPress}
+                      markedDates={{
+                        [formData.day_expected_to_deliver]: {
+                          selected: true,
+                          selectedColor: "#303F9F"
+                        }
+                      }}
+                      theme={{
+                        calendarBackground: '#F5F5F5',
+                        textSectionTitleColor: '#424242',
+                        selectedDayBackgroundColor: '#303F9F',
+                        selectedDayTextColor: '#FFFFFF',
+                        todayTextColor: '#5C6BC0',
+                        dayTextColor: '#424242',
+                        textDisabledColor: '#9E9E9E',
+                        arrowColor: '#303F9F',
+                        monthTextColor: '#303F9F',
+                        textDayFontWeight: '400',
+                        textMonthFontWeight: 'bold',
+                        textDayHeaderFontWeight: '500'
+                      }}
+                    />
+                  )}
+                </View>
+              )}
+              {error.day_expected_to_deliver && <Text style={{ color: '#EF5350', fontSize: 12, marginTop: 4 }}>{error.day_expected_to_deliver}</Text>}
+            </View>
           </View>
 
-          <LinearGradient
-            colors={[COLORS.secondary, COLORS.primary]}
-            style={styles.submitButtonGradient || { borderRadius: 8, marginTop: 16 }}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          {/* Client Email */}
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>CLIENT EMAIL *</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                value={formData.client_email}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, client_email: text }))}
+                placeholder="client@example.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+            {error.client_email && <Text style={{ color: '#EF5350', fontSize: 12, marginTop: 4 }}>{error.client_email}</Text>}
+          </View>
+
+          {/* Submit Button */}
+          <TouchableOpacity
+            style={styles.submitButtonGradient}
+            onPress={handleSubmit}
+            disabled={submitted}
           >
-            <TouchableOpacity
-              style={styles.submitButton || { padding: 16, alignItems: 'center' }}
-              onPress={handleSubmit}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.submitButtonText || { color: COLORS.white, fontWeight: 'bold', fontSize: 16 }}>CREEAZĂ TRANSPORT</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-          
+            <View style={styles.submitButton}>
+              {submitted ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.submitButtonText}>Submit Transport</Text>
+              )}
+            </View>
+          </TouchableOpacity>
+
+          {/* Submit Error */}
+          {error.submit && <Text style={{ color: '#EF5350', fontSize: 12, marginTop: 8 }}>{error.submit}</Text>}
         </View>
+
+        {/* Custom Modals */}
+        {/* Driver Modal */}
+        {showDriverModal && (
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Select Driver</Text>
+                <TouchableOpacity onPress={() => setShowDriverModal(false)}>
+                  <Feather name="x" size={24} color="#303F9F" />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={styles.modalScrollView}>
+                {Array.isArray(drivers) && drivers.map(driver => (
+                  <TouchableOpacity
+                    key={driver.id}
+                    style={styles.optionItem}
+                    onPress={() => handleDriverSelect(driver)}
+                  >
+                    <Text style={styles.optionText}>{driver.name || 'Unknown Driver'}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        )}
+
+        {/* Truck Modal */}
+        {showTruckModal && (
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Select Truck</Text>
+                <TouchableOpacity onPress={() => setShowTruckModal(false)}>
+                  <Feather name="x" size={24} color="#303F9F" />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={styles.modalScrollView}>
+                {Array.isArray(trucksData) && trucksData.map(truck => (
+                  <TouchableOpacity
+                    key={truck.id}
+                    style={styles.optionItem}
+                    onPress={() => handleTruckSelect(truck)}
+                  >
+                    <Text style={styles.optionText}>
+                      {truck.license_plate || 'N/A'} - {truck.model || 'N/A'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        )}
+
+        {/* Trailer Modal */}
+        {showTrailerModal && (
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Select Trailer</Text>
+                <TouchableOpacity onPress={() => setShowTrailerModal(false)}>
+                  <Feather name="x" size={24} color="#303F9F" />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={styles.modalScrollView}>
+                {Array.isArray(trailer) && trailer.map(trailerItem => (
+                  <TouchableOpacity
+                    key={trailerItem.id}
+                    style={styles.optionItem}
+                    onPress={() => handleTrailerSelect(trailerItem)}
+                  >
+                    <Text style={styles.optionText}>
+                      {trailerItem.license_plate || 'N/A'} - {trailerItem.type || 'N/A'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        )}
+
+        {/* Goods Type Modal */}
+        {showGoodsModal && (
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Select Type of Goods</Text>
+                <TouchableOpacity onPress={() => setShowGoodsModal(false)}>
+                  <Feather name="x" size={24} color="#303F9F" />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={styles.modalScrollView}>
+                {goodsTypeOptions.map(option => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={styles.optionItem}
+                    onPress={() => handleGoodsSelect(option)}
+                  >
+                    <Text style={styles.optionText}>{option.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        )}
       </ScrollView>
-{renderDriverModal()}
-{renderTruckSelectionModal()}  
-{renderTrailerSelectionModal()} 
-{renderTruckModal()}
-{renderTrailerModal()}
-{renderDetractionModal()}
-{renderGoodsTypeModal()}
-     
-    </SafeAreaView>
+    </View>
   );
-}
+};
+
+export default FormPage;
