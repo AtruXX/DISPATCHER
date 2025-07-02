@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+
 const getRandomColor = (id) => {
     const colors = [
       ['#FF9966', '#FF5E62'],
@@ -11,27 +12,29 @@ const getRandomColor = (id) => {
       ['#834D9B', '#D04ED6']
     ];
     return colors[id % colors.length];
-  };
-  export const COLORS = {
-    background: "#ECEFF1", // Light background from your TransportScreen
-    card: "#FFFFFF", // White card background
-    primary: "#303F9F", // Primary blue color
-    secondary: "#3F51B5", // Secondary blue
-    accent: "#5C6BC0", // Light blue accent
-    lightAccent: "#7986CB", // Very light blue text
+};
+
+export const COLORS = {
+    background: "#ECEFF1",
+    card: "#FFFFFF",
+    primary: "#303F9F",
+    secondary: "#3F51B5",
+    accent: "#5C6BC0",
+    lightAccent: "#7986CB",
     text: {
-      dark: "#424242", // Dark text
-      medium: "#757575", // Medium text
-      light: "#9E9E9E", // Light text
+      dark: "#424242",
+      medium: "#757575",
+      light: "#9E9E9E",
     },
-    border: "#E0E0E0", // Light border
-    success: "#66BB6A", // Green for success messages
-    error: "#EF5350", // Red for errors
-    warning: "#FFA726", // Orange for warnings
-    available: "#81C784", // Green for available drivers
-    unavailable: "#E57373", // Red for unavailable drivers
-    white: "#FFFFFF", // White color for modal backgrounds
-  };
+    border: "#E0E0E0",
+    success: "#66BB6A",
+    error: "#EF5350",
+    warning: "#FFA726",
+    available: "#81C784",
+    unavailable: "#E57373",
+    white: "#FFFFFF",
+};
+
 export const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -52,7 +55,10 @@ export const styles = StyleSheet.create({
     refreshButton: {
       padding: 8,
     },
-    // Header styles
+    printButton: {
+      padding: 8,
+    },
+    // Header styles (keeping the same)
     headerCard: {
       marginHorizontal: 20,
       marginVertical: 16,
@@ -75,201 +81,432 @@ export const styles = StyleSheet.create({
       fontSize: 16,
       color: '#7986CB',
     },
-    // CMR Document styles
+    
+    // CMR Document styles - Official format with red borders (BIGGER & CLEARER)
     cmrContainer: {
-      marginHorizontal: 20,
+      marginHorizontal: 12,
       backgroundColor: '#FFFFFF',
-      borderRadius: 8,
+      borderRadius: 0,
       overflow: 'hidden',
-      borderWidth: 1,
-      borderColor: '#CFD8DC',
+      borderWidth: 3,
+      borderColor: '#DC143C', // Red border like official CMR
     },
-    cmrHeader: {
+    
+    // Header section with red background and CMR logo
+    cmrHeaderSection: {
+      backgroundColor: '#FFFFFF',
+      borderBottomWidth: 2,
+      borderBottomColor: '#DC143C',
+    },
+    cmrHeaderTop: {
       flexDirection: 'row',
-      borderBottomWidth: 1,
-      borderBottomColor: '#CFD8DC',
-      padding: 10,
+      padding: 12,
+      alignItems: 'center',
     },
-    cmrLogo: {
+    cmrCopyInfo: {
       flex: 1,
-      justifyContent: 'center',
     },
-    cmrLogoText: {
+    cmrCopyNumber: {
+      fontSize: 24,
       fontWeight: 'bold',
-      fontSize: 18,
-      color: '#303F9F',
+      color: '#DC143C',
     },
-    cmrTitle: {
-      flex: 1,
+    cmrCopyText: {
+      fontSize: 14,
+      color: '#DC143C',
+      fontStyle: 'italic',
+    },
+    cmrHeaderRight: {
+      flex: 2,
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: '#DC143C',
+      padding: 12,
     },
-    cmrTitleText: {
+    cmrHeaderRightLeft: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    cmrHeaderRightCenter: {
+      flex: 1,
+      alignItems: 'center',
+      borderLeftWidth: 2,
+      borderRightWidth: 2,
+      borderColor: '#DC143C',
+      paddingHorizontal: 16,
+    },
+    cmrHeaderRightRight: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    cmrInternationalText: {
+      fontSize: 11,
+      color: '#000000',
+      textAlign: 'center',
+      lineHeight: 14,
+      fontWeight: '600',
+    },
+    cmrBigText: {
+      fontSize: 36,
       fontWeight: 'bold',
-      fontSize: 24,
-      color: '#303F9F',
+      color: '#DC143C',
     },
-    cmrSubtitleText: {
-      fontSize: 12,
-      color: '#455A64',
+    cmrTransportText: {
+      fontSize: 11,
+      color: '#000000',
+      textAlign: 'center',
+      lineHeight: 14,
+      fontWeight: '600',
     },
+    
+    // Side text (rotated text simulation)
+    cmrSideText: {
+      position: 'absolute',
+      left: -20,
+      top: 50,
+      width: 400,
+      height: 20,
+      backgroundColor: 'transparent',
+    },
+    cmrSideTextContent: {
+      fontSize: 6,
+      color: '#DC143C',
+      transform: [{ rotate: '-90deg' }],
+      textAlign: 'center',
+      width: 400,
+    },
+    
     cmrContent: {
-      padding: 8,
+      backgroundColor: '#FFFFFF',
     },
+    
+    // Main content sections (BIGGER & CLEARER)
+    cmrMainRow: {
+      flexDirection: 'row',
+      borderBottomWidth: 2,
+      borderBottomColor: '#DC143C',
+    },
+    
+    // Left column (sections 1-5, 13-15, 21-22)
+    cmrLeftColumn: {
+      flex: 3,
+      borderRightWidth: 2,
+      borderRightColor: '#DC143C',
+    },
+    
+    // Right column (sections 16-20, 23-24)
+    cmrRightColumn: {
+      flex: 2,
+    },
+    
+    // Standard row (BIGGER)
     cmrRow: {
       flexDirection: 'row',
       borderBottomWidth: 1,
-      borderBottomColor: '#CFD8DC',
+      borderBottomColor: '#DC143C',
       minHeight: 60,
     },
     cmrNumberCell: {
-      width: 30,
-      justifyContent: 'center',
+      width: 35,
+      justifyContent: 'flex-start',
       alignItems: 'center',
-      borderRightWidth: 1,
-      borderRightColor: '#CFD8DC',
-      backgroundColor: '#F5F5F5',
+      borderRightWidth: 2,
+      borderRightColor: '#DC143C',
+      backgroundColor: '#FFFFFF',
+      paddingTop: 8,
     },
     cmrCellNumber: {
       fontWeight: 'bold',
-      fontSize: 16,
-      color: '#455A64',
+      fontSize: 18,
+      color: '#000000',
     },
     cmrCell: {
       flex: 1,
       padding: 8,
+      justifyContent: 'flex-start',
     },
     cmrCellLabel: {
       fontSize: 12,
-      color: '#78909C',
+      color: '#000000',
       marginBottom: 4,
+      fontWeight: '700',
+    },
+    cmrCellLabelSmall: {
+      fontSize: 10,
+      color: '#000000',
+      fontStyle: 'italic',
+      marginBottom: 2,
     },
     cmrCellValue: {
       fontSize: 14,
-      color: '#37474F',
+      color: '#000000',
+      lineHeight: 18,
+      fontWeight: '500',
+    },
+    
+    // Country code boxes (BIGGER)
+    cmrCountrySection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 6,
+    },
+    cmrCountryLabel: {
+      fontSize: 10,
+      color: '#000000',
+      marginRight: 8,
+      fontWeight: '600',
+    },
+    cmrCountryBox: {
+      borderWidth: 1,
+      borderColor: '#000000',
+      width: 40,
+      height: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    cmrCountryText: {
+      fontSize: 12,
+      color: '#000000',
+      fontWeight: 'bold',
+    },
+    
+    // Table section (6-12) (BIGGER)
+    cmrTableSection: {
+      borderBottomWidth: 2,
+      borderBottomColor: '#DC143C',
     },
     cmrTableHeader: {
       flexDirection: 'row',
-      borderBottomWidth: 1,
-      borderBottomColor: '#CFD8DC',
-      backgroundColor: '#F5F5F5',
+      borderBottomWidth: 2,
+      borderBottomColor: '#DC143C',
+      backgroundColor: '#FFFFFF',
+      minHeight: 70,
     },
     cmrTableHeaderCell: {
       flex: 1,
       padding: 6,
       alignItems: 'center',
+      justifyContent: 'center',
       borderRightWidth: 1,
-      borderRightColor: '#CFD8DC',
+      borderRightColor: '#DC143C',
+    },
+    cmrTableHeaderNumber: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: '#000000',
+      marginBottom: 4,
     },
     cmrTableHeaderText: {
       fontSize: 10,
       textAlign: 'center',
-      color: '#455A64',
+      color: '#000000',
+      lineHeight: 12,
+      fontWeight: '600',
     },
-    cmrTableRow: {
+    cmrTableData: {
       flexDirection: 'row',
-      borderBottomWidth: 1,
-      borderBottomColor: '#CFD8DC',
-      minHeight: 40,
+      minHeight: 120,
     },
-    cmrTableCell: {
+    cmrTableDataCell: {
       flex: 1,
-      padding: 8,
-      justifyContent: 'center',
-      alignItems: 'center',
+      padding: 6,
       borderRightWidth: 1,
-      borderRightColor: '#CFD8DC',
+      borderRightColor: '#DC143C',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
     },
     cmrTableCellText: {
       fontSize: 12,
-      color: '#37474F',
-    },
-    // Payment table styles
-    paymentTable: {
-      marginTop: 4,
-    },
-    paymentRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingVertical: 4,
-      borderBottomWidth: 1,
-      borderBottomColor: '#E0E0E0',
-    },
-    paymentRowTotal: {
-      borderTopWidth: 2,
-      borderTopColor: '#BDBDBD',
-      paddingTop: 8,
-      marginTop: 4,
-    },
-    paymentLabel: {
-      fontSize: 12,
-      color: '#616161',
-    },
-    paymentValue: {
-      fontSize: 12,
-      color: '#212121',
+      color: '#000000',
+      textAlign: 'center',
       fontWeight: '500',
     },
-    paymentLabelTotal: {
-      fontSize: 14,
-      color: '#303F9F',
-      fontWeight: 'bold',
-    },
-    paymentValueTotal: {
-      fontSize: 14,
-      color: '#303F9F',
-      fontWeight: 'bold',
-    },
-    cmrSignatures: {
+    
+    // Special sections in table area (BIGGER)
+    cmrTableBottomSection: {
       flexDirection: 'row',
-      marginTop: 16,
-      borderTopWidth: 1,
-      borderTopColor: '#CFD8DC',
+      borderTopWidth: 2,
+      borderTopColor: '#DC143C',
+      minHeight: 40,
+    },
+    cmrClassSection: {
+      flex: 1,
+      borderRightWidth: 1,
+      borderRightColor: '#DC143C',
+      padding: 6,
+    },
+    cmrClassRow: {
+      flexDirection: 'row',
+      marginBottom: 3,
+      alignItems: 'center',
+    },
+    cmrClassLabel: {
+      fontSize: 9,
+      color: '#000000',
+      width: 45,
+      fontWeight: '600',
+    },
+    cmrClassBox: {
+      borderWidth: 1,
+      borderColor: '#000000',
+      width: 25,
+      height: 15,
+      marginRight: 6,
+    },
+    
+    // Payment section (section 20) (BIGGER)
+    cmrPaymentSection: {
+      padding: 8,
+      borderBottomWidth: 2,
+      borderBottomColor: '#DC143C',
+    },
+    cmrPaymentHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    cmrPaymentNumber: {
+      width: 25,
+      alignItems: 'center',
+    },
+    cmrPaymentTitle: {
+      flex: 1,
+      marginLeft: 6,
+    },
+    cmrPaymentGrid: {
+      borderWidth: 2,
+      borderColor: '#DC143C',
+    },
+    cmrPaymentHeaderRow: {
+      flexDirection: 'row',
+      borderBottomWidth: 1,
+      borderBottomColor: '#DC143C',
+      backgroundColor: '#F8F8F8',
+    },
+    cmrPaymentHeaderCell: {
+      flex: 1,
+      padding: 6,
+      borderRightWidth: 1,
+      borderRightColor: '#DC143C',
+      alignItems: 'center',
+    },
+    cmrPaymentRow: {
+      flexDirection: 'row',
+      borderBottomWidth: 1,
+      borderBottomColor: '#DC143C',
+      minHeight: 25,
+    },
+    cmrPaymentCell: {
+      flex: 1,
+      padding: 6,
+      borderRightWidth: 1,
+      borderRightColor: '#DC143C',
+      justifyContent: 'center',
+    },
+    cmrPaymentLabel: {
+      fontSize: 10,
+      color: '#000000',
+      fontWeight: '600',
+    },
+    cmrPaymentValue: {
+      fontSize: 12,
+      color: '#000000',
+      textAlign: 'center',
+      fontWeight: '500',
+    },
+    
+    // Fare section (14) (BIGGER)
+    cmrFareSection: {
+      flexDirection: 'row',
+      borderBottomWidth: 1,
+      borderBottomColor: '#DC143C',
+      minHeight: 50,
+    },
+    cmrFareLeft: {
+      flex: 2,
+      flexDirection: 'row',
+    },
+    cmrFareRight: {
+      flex: 1,
+      flexDirection: 'row',
+    },
+    cmrCheckboxSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    cmrCheckbox: {
+      borderWidth: 2,
+      borderColor: '#000000',
+      width: 18,
+      height: 18,
+      marginRight: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    cmrCheckboxText: {
+      fontSize: 11,
+      color: '#000000',
+      fontWeight: '500',
+    },
+    cmrCheckMark: {
+      fontSize: 14,
+      color: '#000000',
+      fontWeight: 'bold',
+    },
+    
+    // Signature section (BIGGER)
+    cmrSignatureSection: {
+      flexDirection: 'row',
+      minHeight: 120,
     },
     cmrSignatureBox: {
       flex: 1,
-      borderRightWidth: 1,
-      borderRightColor: '#CFD8DC',
+      borderRightWidth: 2,
+      borderRightColor: '#DC143C',
     },
     cmrSignatureHeader: {
-      backgroundColor: '#F5F5F5',
-      padding: 4,
+      backgroundColor: '#FFFFFF',
+      padding: 6,
       alignItems: 'center',
       borderBottomWidth: 1,
-      borderBottomColor: '#CFD8DC',
+      borderBottomColor: '#DC143C',
+      minHeight: 30,
     },
     cmrSignatureNumber: {
       fontWeight: 'bold',
-      fontSize: 14,
-      color: '#455A64',
+      fontSize: 16,
+      color: '#000000',
     },
     cmrSignatureContent: {
-      minHeight: 80,
+      flex: 1,
       padding: 8,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: 'flex-end',
     },
     cmrSignatureText: {
       fontSize: 10,
       textAlign: 'center',
-      color: '#78909C',
+      color: '#000000',
+      lineHeight: 14,
+      fontWeight: '500',
     },
-    cmrStamp: {
-      width: 60,
-      height: 60,
-      borderRadius: 30,
-      borderWidth: 1,
-      borderColor: '#303F9F',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 8,
+    cmrDateLine: {
+      borderBottomWidth: 1,
+      borderBottomColor: '#000000',
+      marginTop: 15,
+      marginBottom: 4,
+      height: 1,
     },
-    cmrStampText: {
+    cmrDateText: {
       fontSize: 10,
-      fontWeight: 'bold',
-      color: '#303F9F',
+      color: '#000000',
+      textAlign: 'right',
+      fontWeight: '500',
     },
-    // Loading and error styles
+    
+    // Loading and error styles (keeping the same)
     loadingContainer: {
       flex: 1,
       justifyContent: 'center',
@@ -361,7 +598,6 @@ export const styles = StyleSheet.create({
       alignItems: 'center',
       padding: 20,
     },
-    
     emptyCard: {
       backgroundColor: '#FFFFFF',
       borderRadius: 16,
@@ -404,5 +640,4 @@ export const styles = StyleSheet.create({
       fontSize: 16,
       fontWeight: 'bold',
     },
-  });
-  
+});
