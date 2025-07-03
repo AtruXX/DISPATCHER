@@ -5,12 +5,32 @@ import { Feather } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Calendar } from 'react-native-calendars';
 import { styles } from "./styles";
-
+const COLORS = {
+  background: "#ECEFF1", // Light background from your TransportScreen
+  card: "#F5F5F5", // White card background
+  primary: "#303F9F", // Primary blue color
+  secondary: "#3F51B5", // Secondary blue
+  accent: "#5C6BC0", // Light blue accent
+  lightAccent: "#7986CB", // Very light blue text
+  text: {
+    dark: "#424242", // Dark text
+    medium: "#757575", // Medium text
+    light: "#9E9E9E", // Light text
+  },
+  border: "#E0E0E0", // Light border
+  success: "#66BB6A", // Green for success messages
+  error: "#EF5350", // Red for errors
+  warning: "#FFA726", // Orange for warnings
+  available: "#81C784", // Green for available drivers
+  unavailable: "#E57373", // Red for unavailable drivers
+  white: "#FFFFFF", // White color for modal backgrounds
+  placeholder: '#BDBDBD',
+};
 const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 
 const FormPage = () => {
   const navigation = useNavigation();
-  
+
   const [formData, setFormData] = useState({
     driver: '',
     truck: '',
@@ -27,7 +47,7 @@ const FormPage = () => {
     trailer_license_plate: '',
     trailer_type: '',
   });
-  
+
   const [error, setError] = useState({});
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -35,13 +55,13 @@ const FormPage = () => {
   const [trucksData, setTrucksData] = useState([]);
   const [authToken, setAuthToken] = useState(null);
   const [trailer, setTrailer] = useState([]);
-  
+
   // Modal states for custom dropdowns
   const [showDriverModal, setShowDriverModal] = useState(false);
   const [showTruckModal, setShowTruckModal] = useState(false);
   const [showTrailerModal, setShowTrailerModal] = useState(false);
   const [showGoodsModal, setShowGoodsModal] = useState(false);
-  
+
   // Calendar states - only for delivery date
   const [showDeliveryCalendar, setShowDeliveryCalendar] = useState(false);
 
@@ -131,7 +151,7 @@ const FormPage = () => {
 
       const data = await response.json();
       console.log('Fetched trucks:', data);
-      
+
       // Handle different API response formats
       if (Array.isArray(data)) {
         setTrucksData(data);
@@ -141,7 +161,7 @@ const FormPage = () => {
         console.warn('Unexpected trucks data format:', data);
         setTrucksData([]);
       }
-      
+
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -169,7 +189,7 @@ const FormPage = () => {
 
       const data = await response.json();
       console.log('Fetched trailers:', data);
-      
+
       // Handle different API response formats
       if (Array.isArray(data)) {
         setTrailer(data);
@@ -179,7 +199,7 @@ const FormPage = () => {
         console.warn('Unexpected trailers data format:', data);
         setTrailer([]);
       }
-      
+
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -224,8 +244,8 @@ const FormPage = () => {
   };
 
   const handleTruckSelect = (truck) => {
-    setFormData(prev => ({ 
-      ...prev, 
+    setFormData(prev => ({
+      ...prev,
       truck: truck.id,
       truck_license_plate: truck.license_plate,
       truck_make: truck.make,
@@ -235,8 +255,8 @@ const FormPage = () => {
   };
 
   const handleTrailerSelect = (trailerItem) => {
-    setFormData(prev => ({ 
-      ...prev, 
+    setFormData(prev => ({
+      ...prev,
       trailer: trailerItem.id,
       trailer_license_plate: trailerItem.license_plate,
       trailer_type: trailerItem.type
@@ -472,6 +492,7 @@ const FormPage = () => {
                   value={formData.arrival}
                   onChangeText={(text) => setFormData(prev => ({ ...prev, arrival: text }))}
                   placeholder="Enter arrival city"
+                  placeholderTextColor={COLORS.placeholder}
                 />
               </View>
               {error.arrival && <Text style={{ color: '#EF5350', fontSize: 12, marginTop: 4 }}>{error.arrival}</Text>}
@@ -486,6 +507,7 @@ const FormPage = () => {
                   value={formData.departure}
                   onChangeText={(text) => setFormData(prev => ({ ...prev, departure: text }))}
                   placeholder="Enter departure city"
+                  placeholderTextColor={COLORS.placeholder}
                 />
               </View>
               {error.departure && <Text style={{ color: '#EF5350', fontSize: 12, marginTop: 4 }}>{error.departure}</Text>}

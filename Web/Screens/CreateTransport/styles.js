@@ -19,6 +19,7 @@ const COLORS = {
   available: "#81C784", // Green for available drivers
   unavailable: "#E57373", // Red for unavailable drivers
   white: "#FFFFFF", // White color for modal backgrounds
+  placeholder: '#BDBDBD',
 };
 
 export const styles = StyleSheet.create({
