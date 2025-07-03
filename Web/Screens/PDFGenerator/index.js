@@ -1,856 +1,656 @@
-import React, { useRef, useState, useEffect } from 'react';
-import html2pdf from 'html2pdf.js';
-import { useNavigation } from '@react-navigation/native';
+// CMRPDFGenerator.js - Expo Web Compatible Version
+import { Platform } from 'react-native';
 
-function PdfGenerator() {
-  const contentRef = useRef();
-  const navigation = useNavigation();
-  const [cmrData, setCmrData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
-  const [authToken, setAuthToken] = useState(null);
-  // Function to fetch CMR data from API
- // Function to fetch CMR data from API
- useEffect(() => {
-  const getAuthToken = () => {
-      try {
-          console.log("Attempting to get auth token from localStorage");
-          const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
-          console.log("Token from localStorage:", token ? "Token exists" : "No token found");
+// For web, we'll use jsPDF with html2canvas
+let jsPDF, html2canvas;
 
-          if (token) {
-              setAuthToken(token);
-              console.log("Auth token set in state");
-          } else {
-              console.log("No token found, setting error");
-              setError('Authentication required. Please log in first.');
-          }
-      } catch (err) {
-          console.error("Error getting auth token:", err);
-          setError('Failed to load authentication token.');
-      } finally {
-          console.log("Setting loading to false");
-          setLoading(false);
-      }
-  };
+if (Platform.OS === 'web') {
+  // Dynamic imports for web only
+  import('jspdf').then(module => {
+    jsPDF = module.jsPDF;
+  });
+  import('html2canvas').then(module => {
+    html2canvas = module.default;
+  });
+}
 
-  getAuthToken();
-}, []);
-useEffect(() => {
-  const fetchCmrData = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${BASE_URL}transport-cmr/1`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-      
-      const dataArray = await response.json();
-      console.log("Fetched CMR data:", dataArray);
-      
-      // Check if we have data and it's an array
-      if (!Array.isArray(dataArray) || dataArray.length === 0) {
-        throw new Error('No CMR data available');
-      }
-      
-      // Get the last element from the array
-      const data = dataArray[dataArray.length - 1];
-      console.log("Selected last CMR record:", data);
-      
-      // Transform and normalize data to match the required format
-      const transformedData = {
-        expeditor_nume: data.expeditor_nume || "",
-        expeditor_adresa: data.expeditor_adresa || "",
-        expeditor_tara: data.expeditor_tara || "",
-        destinatar_nume: data.destinatar_nume || "",
-        destinatar_adresa: data.destinatar_adresa || "",
-        destinatar_tara: data.destinatar_tara || "",
-        loc_livrare: data.loc_livrare || "",
-        loc_incarcare: data.loc_incarcare || "",
-        data_incarcare: formatDate(data.data_incarcare) || "",
-        marci_numere: data.marci_numere || "",
-        numar_colete: data.numar_colete?.toString() || "",
-        mod_ambalare: data.mod_ambalare || "",
-        natura_marfii: data.natura_marfii || "",
-        nr_statistic: data.nr_static || "",
-        greutate_bruta: `${data.greutate_bruta || ""}`,
-        cubaj: data.cubaj || "",
-        instructiuni_expeditor: data.instructiuni_expeditor || "",
-        prescriptii_francare: data.prescriptii_francare || "---------",
-        rambursare: data.rambursare || "---------",
-        transportator: data.transportator || "C&C Logistic SRL", // Default if null
-        transportatori_succesivi: data.transportatori_succesivi || "-----------",
-        rezerve_observatii: data.rezerve_observatii || "---------",
-        conventii_speciale: data.conventii_speciale || "",
-        de_plata: {
-          pret_transport: (data.de_plata && data.de_plata.pret_transport) || "0",
-          reduceri: (data.de_plata && data.de_plata.reduceri) || "0",
-          sold: (data.de_plata && data.de_plata.sold) || "0",
-          suplimente: (data.de_plata && data.de_plata.suplimente) || "0",
-          alte_cheltuieli: (data.de_plata && data.de_plata.alte_cheltuieli) || "0",
-          total: (data.de_plata && data.de_plata.total) || "0"
-        },
-        incheiat_la: {
-          locatie: (data.incheiat_la && data.incheiat_la.locatie) || "Bucuresti",
-          data: (data.incheiat_la && data.incheiat_la.data) 
-            ? formatDate(data.incheiat_la.data) 
-            : formatDate(data.data_incarcare) || formatDate(new Date())
-        },
-        semnatura_expeditor: data.semnatura_expeditor || "Semnat electronic",
-        semnatura_transportator: data.semnatura_transportator || "Semnat electronic",
-        semnatura_destinatar: data.semnatura_destinatar || "Semnat electronic"
-      };
-      
-      setCmrData(transformedData);
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching CMR data:", err);
-      setError(err.message);
-      setLoading(false);
-    }
-  };
-  fetchCmrData();
-}, []);
-
-  // Helper function to format date from API (YYYY-MM-DD) to DD.MM.YYYY
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('ro-RO', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }).replace(/\//g, '.');
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return dateString; // Return the original string if parsing fails
-    }
-  };
-
-  // Function to handle PDF download with A4 optimization
-  const handleDownload = () => {
-    const opt = {
-      margin: [5, 5], // Reduced margins [top&bottom, left&right] in mm
-      filename: 'cmr_document.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 }, // Higher scale for better quality
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().from(contentRef.current).set(opt).save();
-  };
-
-  // Function to handle navigation back to main screen
-  const handleGoBack = () => {
-    navigation.navigate('Main');
-  };
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="container">
-        <div className="loading-message">
-          <h2>Loading CMR data...</h2>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error && !cmrData) {
-    return (
-      <div className="container">
-        <div className="error-message">
-          <h2>Error loading CMR data</h2>
-          <p>{error}</p>
-          <button onClick={handleGoBack} className="back-btn">Înapoi</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container">
-      
-      <div className="controls">
-        <h1>CMR Document Generator</h1>
-        {error && (
-          <div className="error-banner">
-            Warning: Using fallback data due to API error: {error}
+// Generate HTML content for CMR document
+const generateCMRHTML = (data) => {
+  return `
+    <div id="cmr-document" style="
+      width: 210mm;
+      min-height: 297mm;
+      padding: 15mm;
+      margin: 0 auto;
+      background: white;
+      font-family: Arial, sans-serif;
+      font-size: 8pt;
+      line-height: 1.2;
+      border: 2px solid #DC143C;
+      box-sizing: border-box;
+    ">
+      <!-- Header Section -->
+      <div style="border-bottom: 2px solid #DC143C; margin-bottom: 8px;">
+        <div style="
+          display: flex;
+          padding: 8px;
+          align-items: center;
+          border: 2px solid #DC143C;
+        ">
+          <div style="flex: 1; text-align: center;">
+            <div style="font-size: 24pt; font-weight: bold; color: #DC143C;">1</div>
+            <div style="font-size: 7pt; color: #DC143C; font-style: italic;">Copy for sender</div>
+            <div style="font-size: 7pt; color: #DC143C; font-style: italic;">Exemplaire de l'expéditeur</div>
           </div>
-        )}
-        <div className="buttons-container">
-          <button onClick={handleGoBack} className="back-btn">Înapoi</button>
-          <button onClick={handleDownload} className="download-btn">Descarcă</button>
-        </div>
-      </div>
-      
-      <div id="cmrContent" ref={contentRef}>
-        <div className="cmrContainer">
-          <div className="cmrHeader">
-            <div className="cmrLogo">
-              <div className="cmrLogoText">C&C LOGISTIC SRL</div>
+          <div style="
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #DC143C;
+            padding: 8px;
+            margin-left: 10px;
+          ">
+            <div style="flex: 1; text-align: center;">
+              <div style="font-size: 8pt; font-weight: bold; line-height: 1.2;">INTERNATIONAL</div>
+              <div style="font-size: 8pt; font-weight: bold; line-height: 1.2;">CONSIGNMENT NOTE</div>
             </div>
-            <div className="cmrTitle">
-              <h1 className="cmrTitleText">CMR</h1>
-              <p className="cmrSubtitleText">SCRISOARE DE TRANSPORT INTERNATIONAL</p>
+            <div style="
+              flex: 1;
+              text-align: center;
+              border-left: 1px solid #DC143C;
+              border-right: 1px solid #DC143C;
+              padding: 0 8px;
+            ">
+              <div style="font-size: 28pt; font-weight: bold; color: #DC143C;">CMR</div>
+            </div>
+            <div style="flex: 1; text-align: center;">
+              <div style="font-size: 8pt; font-weight: bold; line-height: 1.2;">LETTRE DE VOITURE</div>
+              <div style="font-size: 8pt; font-weight: bold; line-height: 1.2;">INTERNATIONALE</div>
             </div>
           </div>
-          
-          {/* CMR Main Content */}
-          <div className="cmrContent">
-            {/* Row 1 & 2 - Expeditor & Destinatar side by side */}
-            <div className="cmrFlexRow">
-              <div className="cmrHalfRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">1</div>
-                </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Expeditor (nume, adresa, tara)</div>
-                  <div className="cmrCellValue">{cmrData.expeditor_nume}</div>
-                  <div className="cmrCellValue">{cmrData.expeditor_adresa}</div>
-                  <div className="cmrCellValue">{cmrData.expeditor_tara}</div>
-                </div>
+        </div>
+        
+        <div style="
+          font-size: 6pt;
+          text-align: center;
+          padding: 4px;
+          border-top: 1px solid #DC143C;
+          line-height: 1.1;
+        ">
+          This transport is subject, notwithstanding any clause to the contrary: • La Convention relative au contrat de transport international de marchandises par route (CMR).
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div style="display: flex;">
+        <!-- Left Column -->
+        <div style="width: 60%; border-right: 2px solid #DC143C;">
+          <!-- Section 1 - Sender -->
+          <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 45px;">
+            <div style="
+              width: 25px;
+              border-right: 2px solid #DC143C;
+              text-align: center;
+              padding-top: 4px;
+              background: #FFFFFF;
+              font-weight: bold;
+              font-size: 12pt;
+            ">1</div>
+            <div style="flex: 1; padding: 6px;">
+              <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Sender (name, address, country)</div>
+              <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Expéditeur (nom, adresse, pays)</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.expeditor_nume || ''}</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.expeditor_adresa || ''}</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.expeditor_tara || ''}</div>
+              <div style="display: flex; align-items: center; margin-top: 3px;">
+                <span style="font-size: 6pt; margin-right: 4px;">1 a) Country</span>
+                <div style="width: 25px; height: 12px; border: 1px solid #000;"></div>
               </div>
-              <div className="cmrHalfRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">2</div>
+            </div>
+          </div>
+
+          <!-- Section 2 - Consignee -->
+          <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 45px;">
+            <div style="
+              width: 25px;
+              border-right: 2px solid #DC143C;
+              text-align: center;
+              padding-top: 4px;
+              background: #FFFFFF;
+              font-weight: bold;
+              font-size: 12pt;
+            ">2</div>
+            <div style="flex: 1; padding: 6px;">
+              <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Consignee (name, address, country)</div>
+              <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Destinataire (nom, adresse, pays)</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.destinatar_nume || ''}</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.destinatar_adresa || ''}</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.destinatar_tara || ''}</div>
+              <div style="display: flex; align-items: center; margin-top: 3px;">
+                <span style="font-size: 6pt; margin-right: 4px;">2 a) Country</span>
+                <div style="width: 25px; height: 12px; border: 1px solid #000;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3 - Place of delivery -->
+          <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 45px;">
+            <div style="
+              width: 25px;
+              border-right: 2px solid #DC143C;
+              text-align: center;
+              padding-top: 4px;
+              background: #FFFFFF;
+              font-weight: bold;
+              font-size: 12pt;
+            ">3</div>
+            <div style="flex: 1; padding: 6px;">
+              <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Place of delivery of the goods (city, country)</div>
+              <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Lieu prévu pour la livraison de la marchandise (lieu, pays)</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.loc_livrare || ''}</div>
+              <div style="display: flex; align-items: center; margin-top: 3px;">
+                <span style="font-size: 6pt; margin-right: 4px;">3 a) km to border</span>
+                <div style="width: 25px; height: 12px; border: 1px solid #000;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4 - Place and date of taking over -->
+          <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 45px;">
+            <div style="
+              width: 25px;
+              border-right: 2px solid #DC143C;
+              text-align: center;
+              padding-top: 4px;
+              background: #FFFFFF;
+              font-weight: bold;
+              font-size: 12pt;
+            ">4</div>
+            <div style="flex: 1; padding: 6px;">
+              <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Place and date of taking over of the goods (city, country, date)</div>
+              <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Lieu et date de la prise en charge de la marchandise (lieu, pays, date)</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.loc_incarcare || ''}, ${data?.data_incarcare || ''}</div>
+              <div style="display: flex; align-items: center; margin-top: 3px;">
+                <span style="font-size: 6pt; margin-right: 4px;">4 a) km to border</span>
+                <div style="width: 25px; height: 12px; border: 1px solid #000;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 5 - Documents attached -->
+          <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 45px;">
+            <div style="
+              width: 25px;
+              border-right: 2px solid #DC143C;
+              text-align: center;
+              padding-top: 4px;
+              background: #FFFFFF;
+              font-weight: bold;
+              font-size: 12pt;
+            ">5</div>
+            <div style="flex: 1; padding: 6px;">
+              <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Documents attached</div>
+              <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Documents annexés</div>
+            </div>
+          </div>
+
+          <!-- Section 13 - Instructions -->
+          <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 45px;">
+            <div style="
+              width: 25px;
+              border-right: 2px solid #DC143C;
+              text-align: center;
+              padding-top: 4px;
+              background: #FFFFFF;
+              font-weight: bold;
+              font-size: 12pt;
+            ">13</div>
+            <div style="flex: 1; padding: 6px;">
+              <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Sender's instructions (for customs and other procedures)</div>
+              <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Instructions de l'expéditeur</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.instructiuni_expeditor || ''}</div>
+            </div>
+          </div>
+
+          <!-- Section 14 & 15 - Fare -->
+          <div style="display: flex;">
+            <div style="flex: 2; display: flex;">
+              <div style="
+                width: 25px;
+                border-right: 2px solid #DC143C;
+                text-align: center;
+                padding-top: 4px;
+                background: #FFFFFF;
+                font-weight: bold;
+                font-size: 12pt;
+              ">14</div>
+              <div style="flex: 1; padding: 6px;">
+                <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Fare is payed by</div>
+                <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Prescriptions d'affranchissement</div>
+                <div style="display: flex; align-items: center; margin-top: 2px;">
+                  <div style="width: 8px; height: 8px; border: 1px solid #000; margin-right: 3px;"></div>
+                  <span style="font-size: 6pt;">sender / franco</span>
                 </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Destinatar (nume, adresa, tara)</div>
-                  <div className="cmrCellValue">{cmrData.destinatar_nume}</div>
-                  <div className="cmrCellValue">{cmrData.destinatar_adresa}</div>
-                  <div className="cmrCellValue">{cmrData.destinatar_tara}</div>
+                <div style="display: flex; align-items: center; margin-top: 2px;">
+                  <div style="width: 8px; height: 8px; border: 1px solid #000; margin-right: 3px; text-align: center; font-size: 6pt; font-weight: bold;">X</div>
+                  <span style="font-size: 6pt;">consignee / non franco</span>
                 </div>
               </div>
             </div>
-            
-            {/* Row 3 & 4 - Loc de livrare & Loc de incarcare side by side */}
-            <div className="cmrFlexRow">
-              <div className="cmrHalfRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">3</div>
-                </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Locul prevazut pentru livrarea marfii</div>
-                  <div className="cmrCellValue">{cmrData.loc_livrare}</div>
-                </div>
+            <div style="flex: 1; display: flex;">
+              <div style="
+                width: 25px;
+                border-right: 2px solid #DC143C;
+                text-align: center;
+                padding-top: 4px;
+                background: #FFFFFF;
+                font-weight: bold;
+                font-size: 12pt;
+              ">15</div>
+              <div style="flex: 1; padding: 6px;">
+                <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Reimbursement</div>
+                <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Remboursement</div>
+                <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.rambursare || ''}</div>
               </div>
-              <div className="cmrHalfRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">4</div>
-                </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Locul si data de incarcare a marfii</div>
-                  <div className="cmrCellValue">{`${cmrData.loc_incarcare}, ${cmrData.data_incarcare}`}</div>
-                </div>
+            </div>
+          </div>
+
+          <!-- Section 21 - Established in -->
+          <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 45px;">
+            <div style="
+              width: 25px;
+              border-right: 2px solid #DC143C;
+              text-align: center;
+              padding-top: 4px;
+              background: #FFFFFF;
+              font-weight: bold;
+              font-size: 12pt;
+            ">21</div>
+            <div style="flex: 1; padding: 6px;">
+              <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Established in (city)</div>
+              <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Etabli à (lieu)</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.incheiat_la && typeof data.incheiat_la === 'object' ? 
+                  `${data.incheiat_la?.locatie || ''}` : ''}</div>
+              <div style="display: flex; align-items: center; margin-top: 3px;">
+                <span style="font-size: 6pt; margin-right: 4px;">Day</span>
+                <span style="font-size: 8pt;">${data?.incheiat_la && typeof data.incheiat_la === 'object' ? 
+                    `${data.incheiat_la?.data || ''}` : ''}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="width: 40%;">
+          <!-- Section 16 - Carrier -->
+          <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 45px;">
+            <div style="
+              width: 25px;
+              border-right: 2px solid #DC143C;
+              text-align: center;
+              padding-top: 4px;
+              background: #FFFFFF;
+              font-weight: bold;
+              font-size: 12pt;
+            ">16</div>
+            <div style="flex: 1; padding: 6px;">
+              <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Carrier (name, address, country)</div>
+              <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Transporteur (nom, adresse, pays)</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.transportator || 'C&C Logistic SRL'}</div>
+              <div style="display: flex; align-items: center; margin-top: 3px;">
+                <span style="font-size: 6pt; margin-right: 4px;">16 a) Vat Id</span>
+                <div style="width: 25px; height: 12px; border: 1px solid #000;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 17 - Successive carrier -->
+          <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 45px;">
+            <div style="
+              width: 25px;
+              border-right: 2px solid #DC143C;
+              text-align: center;
+              padding-top: 4px;
+              background: #FFFFFF;
+              font-weight: bold;
+              font-size: 12pt;
+            ">17</div>
+            <div style="flex: 1; padding: 6px;">
+              <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Successive carrier (name, address, country)</div>
+              <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Transporteur successifs (nom, adresse, pays)</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.transportatori_succesivi || ''}</div>
+            </div>
+          </div>
+
+          <!-- Section 18 - Carrier's reservation -->
+          <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 45px;">
+            <div style="
+              width: 25px;
+              border-right: 2px solid #DC143C;
+              text-align: center;
+              padding-top: 4px;
+              background: #FFFFFF;
+              font-weight: bold;
+              font-size: 12pt;
+            ">18</div>
+            <div style="flex: 1; padding: 6px;">
+              <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Carrier's reservation and observations</div>
+              <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Réserves et observations du transporteur</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.rezerve_observatii || ''}</div>
+            </div>
+          </div>
+
+          <!-- Section 19 - Special agreements -->
+          <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 45px;">
+            <div style="
+              width: 25px;
+              border-right: 2px solid #DC143C;
+              text-align: center;
+              padding-top: 4px;
+              background: #FFFFFF;
+              font-weight: bold;
+              font-size: 12pt;
+            ">19</div>
+            <div style="flex: 1; padding: 6px;">
+              <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">Special agreements</div>
+              <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">Conventions particulières</div>
+              <div style="font-size: 8pt; margin-bottom: 1px; line-height: 1.2;">${data?.conventii_speciale || ''}</div>
+            </div>
+          </div>
+
+          <!-- Section 20 - Payment -->
+          <div style="border-top: 1px solid #DC143C; margin-top: 5px;">
+            <div style="display: flex; align-items: center; padding: 4px; background: #FFFFFF;">
+              <div style="
+                width: 25px;
+                border-right: 2px solid #DC143C;
+                text-align: center;
+                padding-top: 4px;
+                background: #FFFFFF;
+                font-weight: bold;
+                font-size: 12pt;
+              ">20</div>
+              <div style="flex: 1; padding: 6px;">
+                <div style="font-size: 7pt; font-weight: bold; margin-bottom: 2px;">To be paid by</div>
+                <div style="font-size: 6pt; font-style: italic; margin-bottom: 1px;">A payer par</div>
               </div>
             </div>
             
-            {/* Row 5 - Documente anexate */}
-            <div className="cmrRow">
-              <div className="cmrNumberCell">
-                <div className="cmrCellNumber">5</div>
-              </div>
-              <div className="cmrCell">
-                <div className="cmrCellLabel">Documente anexate</div>
-                <div className="cmrCellValue">---------</div>
-              </div>
-            </div>
-            
-            {/* Table for Items - Headers */}
-            <div className="cmrTableHeader">
-              <div className="cmrTableHeaderCell">
-                <p className="cmrTableHeaderText">6</p>
-                <p className="cmrTableHeaderText">Marci si numere</p>
-              </div>
-              <div className="cmrTableHeaderCell">
-                <p className="cmrTableHeaderText">7</p>
-                <p className="cmrTableHeaderText">Nr. de colete</p>
-              </div>
-              <div className="cmrTableHeaderCell">
-                <p className="cmrTableHeaderText">8</p>
-                <p className="cmrTableHeaderText">Mod de ambalare</p>
-              </div>
-              <div className="cmrTableHeaderCell">
-                <p className="cmrTableHeaderText">9</p>
-                <p className="cmrTableHeaderText">Natura marfii</p>
-              </div>
-              <div className="cmrTableHeaderCell">
-                <p className="cmrTableHeaderText">10</p>
-                <p className="cmrTableHeaderText">Nr. statistic</p>
-              </div>
-              <div className="cmrTableHeaderCell">
-                <p className="cmrTableHeaderText">11</p>
-                <p className="cmrTableHeaderText">Greutate bruta</p>
-              </div>
-              <div className="cmrTableHeaderCell">
-                <p className="cmrTableHeaderText">12</p>
-                <p className="cmrTableHeaderText">Cubaj</p>
-              </div>
-            </div>
-            
-            {/* Table Row */}
-            <div className="cmrTableRow">
-              <div className="cmrTableCell">
-                <div className="cmrTableCellText">{cmrData.marci_numere}</div>
-              </div>
-              <div className="cmrTableCell">
-                <div className="cmrTableCellText">{cmrData.numar_colete}</div>
-              </div>
-              <div className="cmrTableCell">
-                <div className="cmrTableCellText">{cmrData.mod_ambalare}</div>
-              </div>
-              <div className="cmrTableCell">
-                <div className="cmrTableCellText">{cmrData.natura_marfii}</div>
-              </div>
-              <div className="cmrTableCell">
-                <div className="cmrTableCellText">{cmrData.nr_statistic}</div>
-              </div>
-              <div className="cmrTableCell">
-                <div className="cmrTableCellText">{cmrData.greutate_bruta}</div>
-              </div>
-              <div className="cmrTableCell">
-                <div className="cmrTableCellText">{cmrData.cubaj}</div>
-              </div>
-            </div>
-            
-            {/* Row 13-15 in a flex row */}
-            <div className="cmrFlexRow">
-              <div className="cmrThirdRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">13</div>
+            <div style="border: 1px solid #DC143C;">
+              <div style="display: flex; background: #F8F8F8; border-bottom: 1px solid #DC143C;">
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C; text-align: center;">
+                  <div style="font-size: 6pt; font-style: italic;">Sender</div>
                 </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Instructiunile expeditorului</div>
-                  <div className="cmrCellValue">{cmrData.instructiuni_expeditor}</div>
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C; text-align: center;">
+                  <div style="font-size: 6pt; font-style: italic;">Currency</div>
                 </div>
-              </div>
-              <div className="cmrThirdRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">14</div>
-                </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Prescriptii de francare</div>
-                  <div className="cmrCellValue">{cmrData.prescriptii_francare}</div>
-                </div>
-              </div>
-              <div className="cmrThirdRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">15</div>
-                </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Rambursare</div>
-                  <div className="cmrCellValue">{cmrData.rambursare}</div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Row 16-17 in a flex row */}
-            <div className="cmrFlexRow">
-              <div className="cmrHalfRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">16</div>
-                </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Transportator</div>
-                  <div className="cmrCellValue">{cmrData.transportator}</div>
-                </div>
-              </div>
-              <div className="cmrHalfRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">17</div>
-                </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Transportatori succesivi</div>
-                  <div className="cmrCellValue">{cmrData.transportatori_succesivi}</div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Row 18-19 in a flex row */}
-            <div className="cmrFlexRow">
-              <div className="cmrHalfRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">18</div>
-                </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Rezerve si observatii ale transportatorilor</div>
-                  <div className="cmrCellValue">{cmrData.rezerve_observatii}</div>
-                </div>
-              </div>
-              <div className="cmrHalfRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">19</div>
-                </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Conventii speciale</div>
-                  <div className="cmrCellValue">{cmrData.conventii_speciale}</div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Row 20-21 in a flex row */}
-            <div className="cmrFlexRow">
-              <div className="cmrHalfRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">20</div>
-                </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">De plata</div>
-                  <div className="paymentTable">
-                    <div className="paymentRow">
-                      <div className="paymentLabel">Pret transport</div>
-                      <div className="paymentValue">{`${cmrData.de_plata.pret_transport} EUR`}</div>
-                    </div>
-                    <div className="paymentRow">
-                      <div className="paymentLabel">Reduceri</div>
-                      <div className="paymentValue">{`${cmrData.de_plata.reduceri} EUR`}</div>
-                    </div>
-                    <div className="paymentRow">
-                      <div className="paymentLabel">Sold</div>
-                      <div className="paymentValue">{`${cmrData.de_plata.sold} EUR`}</div>
-                    </div>
-                    <div className="paymentRow">
-                      <div className="paymentLabel">Suplimente</div>
-                      <div className="paymentValue">{`${cmrData.de_plata.suplimente} EUR`}</div>
-                    </div>
-                    <div className="paymentRow">
-                      <div className="paymentLabel">Alte cheltuieli</div>
-                      <div className="paymentValue">{`${cmrData.de_plata.alte_cheltuieli} EUR`}</div>
-                    </div>
-                    <div className="paymentRow paymentRowTotal">
-                      <div className="paymentLabelTotal">Total</div>
-                      <div className="paymentValueTotal">{`${cmrData.de_plata.total} EUR`}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="cmrHalfRow">
-                <div className="cmrNumberCell">
-                  <div className="cmrCellNumber">21</div>
-                </div>
-                <div className="cmrCell">
-                  <div className="cmrCellLabel">Incheiat la</div>
-                  <div className="cmrCellValue">{`${cmrData.incheiat_la.locatie}, ${cmrData.incheiat_la.data}`}</div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Signatures */}
-            <div className="cmrSignatures">
-              <div className="cmrSignatureBox">
-                <div className="cmrSignatureHeader">
-                  <p className="cmrSignatureNumber">22</p>
-                </div>
-                <div className="cmrSignatureContent">
-                  <div className="cmrSignatureText">Semnatura si stampila expeditorului</div>
-                  <div className="electronicSignature">{cmrData.semnatura_expeditor}</div>
+                <div style="flex: 1; padding: 3px; text-align: center;">
+                  <div style="font-size: 6pt; font-style: italic;">Consignee</div>
                 </div>
               </div>
               
-              <div className="cmrSignatureBox">
-                <div className="cmrSignatureHeader">
-                  <p className="cmrSignatureNumber">23</p>
+              <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 18px;">
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C;">
+                  <div style="font-size: 6pt; font-weight: bold;">Transport price</div>
                 </div>
-                <div className="cmrSignatureContent">
-                  <div className="cmrStamp">
-                    <div className="cmrStampText">C&C Logistic</div>
-                  </div>
-                  <div className="cmrSignatureText">Semnatura si stampila transportatorului</div>
-                  <div className="electronicSignature">{cmrData.semnatura_transportator}</div>
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C; text-align: center;">
+                  <div style="font-size: 7pt;">EUR</div>
+                </div>
+                <div style="flex: 1; padding: 3px; text-align: center;">
+                  <div style="font-size: 7pt;">${data?.de_plata?.pret_transport || ''}</div>
                 </div>
               </div>
               
-              <div className="cmrSignatureBox">
-                <div className="cmrSignatureHeader">
-                  <p className="cmrSignatureNumber">24</p>
+              <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 18px;">
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C;">
+                  <div style="font-size: 6pt; font-weight: bold;">Discount</div>
                 </div>
-                <div className="cmrSignatureContent">
-                  <div className="cmrSignatureText">Semnatura si stampila destinatarului</div>
-                  <div className="electronicSignature">{cmrData.semnatura_destinatar}</div>
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C; text-align: center;">
+                  <div style="font-size: 7pt;"></div>
+                </div>
+                <div style="flex: 1; padding: 3px; text-align: center;">
+                  <div style="font-size: 7pt;">${data?.de_plata?.reduceri || ''}</div>
+                </div>
+              </div>
+              
+              <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 18px;">
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C;">
+                  <div style="font-size: 6pt; font-weight: bold;">Supplements</div>
+                </div>
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C; text-align: center;">
+                  <div style="font-size: 7pt;"></div>
+                </div>
+                <div style="flex: 1; padding: 3px; text-align: center;">
+                  <div style="font-size: 7pt;">${data?.de_plata?.suplimente || ''}</div>
+                </div>
+              </div>
+              
+              <div style="display: flex; border-bottom: 1px solid #DC143C; min-height: 18px;">
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C;">
+                  <div style="font-size: 6pt; font-weight: bold;">Additional costs</div>
+                </div>
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C; text-align: center;">
+                  <div style="font-size: 7pt;"></div>
+                </div>
+                <div style="flex: 1; padding: 3px; text-align: center;">
+                  <div style="font-size: 7pt;">${data?.de_plata?.alte_cheltuieli || ''}</div>
+                </div>
+              </div>
+              
+              <div style="display: flex; min-height: 18px;">
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C;">
+                  <div style="font-size: 6pt; font-weight: bold;">TOTAL</div>
+                </div>
+                <div style="flex: 1; padding: 3px; border-right: 1px solid #DC143C; text-align: center;">
+                  <div style="font-size: 7pt;"></div>
+                </div>
+                <div style="flex: 1; padding: 3px; text-align: center;">
+                  <div style="font-size: 7pt;">${data?.de_plata?.total || ''}</div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Section -->
+      <div style="border-top: 2px solid #DC143C; margin-top: 5px;">
+        <div style="
+          display: flex;
+          border-bottom: 2px solid #DC143C;
+          background: #FFFFFF;
+          min-height: 50px;
+        ">
+          <div style="flex: 1; padding: 3px; text-align: center; border-right: 1px solid #DC143C;">
+            <div style="font-size: 8pt; font-weight: bold; margin-bottom: 2px;">6</div>
+            <div style="font-size: 6pt; line-height: 1.1;">Marks and No's</div>
+          </div>
+          <div style="flex: 1; padding: 3px; text-align: center; border-right: 1px solid #DC143C;">
+            <div style="font-size: 8pt; font-weight: bold; margin-bottom: 2px;">7</div>
+            <div style="font-size: 6pt; line-height: 1.1;">Number of packages</div>
+          </div>
+          <div style="flex: 1; padding: 3px; text-align: center; border-right: 1px solid #DC143C;">
+            <div style="font-size: 8pt; font-weight: bold; margin-bottom: 2px;">8</div>
+            <div style="font-size: 6pt; line-height: 1.1;">Method of packing</div>
+          </div>
+          <div style="flex: 1; padding: 3px; text-align: center; border-right: 1px solid #DC143C;">
+            <div style="font-size: 8pt; font-weight: bold; margin-bottom: 2px;">9</div>
+            <div style="font-size: 6pt; line-height: 1.1;">Nature of the goods</div>
+          </div>
+          <div style="flex: 1; padding: 3px; text-align: center; border-right: 1px solid #DC143C;">
+            <div style="font-size: 8pt; font-weight: bold; margin-bottom: 2px;">10</div>
+            <div style="font-size: 6pt; line-height: 1.1;">Numero de tarif</div>
+          </div>
+          <div style="flex: 1; padding: 3px; text-align: center; border-right: 1px solid #DC143C;">
+            <div style="font-size: 8pt; font-weight: bold; margin-bottom: 2px;">11</div>
+            <div style="font-size: 6pt; line-height: 1.1;">Gross weight (kg)</div>
+          </div>
+          <div style="flex: 1; padding: 3px; text-align: center;">
+            <div style="font-size: 8pt; font-weight: bold; margin-bottom: 2px;">12</div>
+            <div style="font-size: 6pt; line-height: 1.1;">Volume m³</div>
+          </div>
+        </div>
+        
+        <div style="
+          display: flex;
+          min-height: 80px;
+          border-bottom: 1px solid #DC143C;
+        ">
+          <div style="flex: 1; padding: 4px; border-right: 1px solid #DC143C; text-align: center;">
+            <div style="font-size: 7pt;">${data?.marci_numere || ''}</div>
+          </div>
+          <div style="flex: 1; padding: 4px; border-right: 1px solid #DC143C; text-align: center;">
+            <div style="font-size: 7pt;">${data?.numar_colete || ''}</div>
+          </div>
+          <div style="flex: 1; padding: 4px; border-right: 1px solid #DC143C; text-align: center;">
+            <div style="font-size: 7pt;">${data?.mod_ambalare || ''}</div>
+          </div>
+          <div style="flex: 1; padding: 4px; border-right: 1px solid #DC143C; text-align: center;">
+            <div style="font-size: 7pt;">${data?.natura_marfii || ''}</div>
+          </div>
+          <div style="flex: 1; padding: 4px; border-right: 1px solid #DC143C; text-align: center;">
+            <div style="font-size: 7pt;">${data?.nr_static || ''}</div>
+          </div>
+          <div style="flex: 1; padding: 4px; border-right: 1px solid #DC143C; text-align: center;">
+            <div style="font-size: 7pt;">${data?.greutate_bruta || ''}</div>
+          </div>
+          <div style="flex: 1; padding: 4px; text-align: center;">
+            <div style="font-size: 7pt;">${data?.cubaj || ''}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signature Section -->
+      <div style="display: flex; margin-top: 5px; border-top: 1px solid #DC143C;">
+        <div style="flex: 1; border-right: 1px solid #DC143C; min-height: 60px;">
+          <div style="
+            background: #F8F8F8;
+            padding: 3px;
+            text-align: center;
+            border-bottom: 1px solid #DC143C;
+            font-weight: bold;
+            font-size: 12pt;
+          ">22</div>
+          <div style="padding: 4px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end;">
+            <div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">Signature and stamp of the sender</div>
+            <div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">Signature et timbre de l'expéditeur</div>
+            ${data?.semnatura_expeditor === "signed-electronically" ? 
+                '<div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">Semnat electronic</div>' : ''}
+          </div>
+        </div>
+        
+        <div style="flex: 1; border-right: 1px solid #DC143C; min-height: 60px;">
+          <div style="
+            background: #F8F8F8;
+            padding: 3px;
+            text-align: center;
+            border-bottom: 1px solid #DC143C;
+            font-weight: bold;
+            font-size: 12pt;
+          ">23</div>
+          <div style="padding: 4px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end;">
+            <div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">Signature and stamp of the carrier</div>
+            <div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">Signature et timbre du transporteur</div>
+            ${data?.semnatura_transportator === "signed-electronically" ? 
+                '<div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">Semnat electronic</div>' : ''}
+          </div>
+        </div>
+        
+        <div style="flex: 1; min-height: 60px;">
+          <div style="
+            background: #F8F8F8;
+            padding: 3px;
+            text-align: center;
+            border-bottom: 1px solid #DC143C;
+            font-weight: bold;
+            font-size: 12pt;
+          ">24</div>
+          <div style="padding: 4px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end;">
+            <div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">Goods received (location)</div>
+            <div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">Marchandises reçues à (location)</div>
+            <div style="border-bottom: 1px solid #000; margin-top: 8px; margin-bottom: 2px;"></div>
+            <div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">date</div>
+            <div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">Signature and stamp of the consignee</div>
+            <div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">Signature et timbre du destinataire</div>
+            ${data?.semnatura_destinatar === "signed-electronically" ? 
+                '<div style="font-size: 6pt; text-align: center; margin-bottom: 1px;">Semnat electronic</div>' : ''}
           </div>
         </div>
       </div>
     </div>
-  );
-}
+  `;
+};
 
-// CSS styles
-const styles = `
-/* General Page Styles */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f7fa;
-    margin: 0;
-    padding: 20px;
-}
+// Function to generate and download PDF for Expo Web
+export const generateCMRPDF = async (cmrData) => {
+  try {
+    if (Platform.OS !== 'web') {
+      throw new Error('This function is only available on web platform');
+    }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.controls {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.buttons-container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 15px;
-}
-
-.download-btn {
-    background-color: #303F9F;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-}
-
-.download-btn:hover {
-    background-color: #1A237E;
-}
-
-.back-btn {
-    background-color: #757575;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-}
-
-.back-btn:hover {
-    background-color: #616161;
-}
-
-/* CMR Document Styles - Optimized for A4 */
-.cmrContainer {
-    margin: 20px auto;
-    background-color: #FFFFFF;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid #CFD8DC;
-    max-width: 800px;
-    width: 210mm; /* A4 width */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.cmrHeader {
-    display: flex;
-    border-bottom: 1px solid #CFD8DC;
-    padding: 5px;
-}
-
-.cmrLogo {
-    flex: 1;
-    display: flex;
-    align-items: center;
-}
-
-.cmrLogoText {
-    font-weight: bold;
-    font-size: 16px;
-    color: #303F9F;
-}
-
-.cmrTitle {
-    flex: 1;
-    text-align: center;
-}
-
-.cmrTitleText {
-    font-weight: bold;
-    font-size: 20px;
-    color: #303F9F;
-    margin: 0;
-}
-
-.cmrSubtitleText {
-    font-size: 10px;
-    color: #455A64;
-    margin: 0;
-}
-
-.cmrContent {
-    padding: 4px;
-}
-
-/* Flex rows for side-by-side display */
-.cmrFlexRow {
-    display: flex;
-    border-bottom: 1px solid #CFD8DC;
-}
-
-.cmrHalfRow {
-    display: flex;
-    width: 50%;
-    border-right: 1px solid #CFD8DC;
-    min-height: 45px;
-}
-
-.cmrHalfRow:last-child {
-    border-right: none;
-}
-
-.cmrThirdRow {
-    display: flex;
-    width: 33.33%;
-    border-right: 1px solid #CFD8DC;
-    min-height: 45px;
-}
-
-.cmrThirdRow:last-child {
-    border-right: none;
-}
-
-.cmrRow {
-    display: flex;
-    border-bottom: 1px solid #CFD8DC;
-    min-height: 45px;
-}
-
-.cmrNumberCell {
-    width: 25px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-right: 1px solid #CFD8DC;
-    background-color: #F5F5F5;
-}
-
-.cmrCellNumber {
-    font-weight: bold;
-    font-size: 12px;
-    color: #455A64;
-}
-
-.cmrCell {
-    flex: 1;
-    padding: 4px;
-}
-
-.cmrCellLabel {
-    font-size: 10px;
-    color: #78909C;
-    margin-bottom: 2px;
-}
-
-.cmrCellValue {
-    font-size: 11px;
-    color: #37474F;
-}
-
-.cmrTableHeader {
-    display: flex;
-    border-bottom: 1px solid #CFD8DC;
-    background-color: #F5F5F5;
-}
-
-.cmrTableHeaderCell {
-    flex: 1;
-    padding: 4px;
-    text-align: center;
-    border-right: 1px solid #CFD8DC;
-}
-
-.cmrTableHeaderCell:last-child {
-    border-right: none;
-}
-
-.cmrTableHeaderText {
-    font-size: 9px;
-    text-align: center;
-    color: #455A64;
-    margin: 0;
-}
-
-.cmrTableRow {
-    display: flex;
-    border-bottom: 1px solid #CFD8DC;
-    min-height: 30px;
-}
-
-.cmrTableCell {
-    flex: 1;
-    padding: 4px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-right: 1px solid #CFD8DC;
-}
-
-.cmrTableCell:last-child {
-    border-right: none;
-}
-
-.cmrTableCellText {
-    font-size: 10px;
-    color: #37474F;
-}
-
-.paymentTable {
-    margin-top: 2px;
-}
-
-.paymentRow {
-    display: flex;
-    justify-content: space-between;
-    padding: 2px 0;
-    border-bottom: 1px solid #E0E0E0;
-}
-
-.paymentRowTotal {
-    border-top: 1px solid #BDBDBD;
-    padding-top: 3px;
-    margin-top: 2px;
-}
-
-.paymentLabel {
-    font-size: 9px;
-    color: #616161;
-}
-
-.paymentValue {
-    font-size: 9px;
-    color: #212121;
-    font-weight: 500;
-}
-
-.paymentLabelTotal {
-    font-size: 10px;
-    color: #303F9F;
-    font-weight: bold;
-}
-
-.paymentValueTotal {
-    font-size: 10px;
-    color: #303F9F;
-    font-weight: bold;
-}
-
-.cmrSignatures {
-    display: flex;
-    border-top: 1px solid #CFD8DC;
-}
-
-.cmrSignatureBox {
-    flex: 1;
-    border-right: 1px solid #CFD8DC;
-}
-
-.cmrSignatureBox:last-child {
-    border-right: none;
-}
-
-.cmrSignatureHeader {
-    background-color: #F5F5F5;
-    padding: 2px;
-    text-align: center;
-    border-bottom: 1px solid #CFD8DC;
-}
-
-.cmrSignatureNumber {
-    font-weight: bold;
-    font-size: 12px;
-    color: #455A64;
-    margin: 0;
-}
-
-.cmrSignatureContent {
-    min-height: 60px;
-    padding: 5px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.cmrSignatureText {
-    font-size: 9px;
-    text-align: center;
-    color: #78909C;
-}
-
-.cmrStamp {
-    width: 50px;
-    height: 50px;
-    border-radius: 25px;
-    border: 1px solid #303F9F;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 5px;
-}
-
-.cmrStampText {
-    font-size: 9px;
-    font-weight: bold;
-    color: #303F9F;
-}
-
-.electronicSignature {
-    margin-top: 5px;
-    font-style: italic;
-    font-size: 10px;
-    color: #303F9F;
-}
-
-@media print {
-    .controls {
-        display: none;
+    // Ensure libraries are loaded
+    if (!jsPDF) {
+      const { jsPDF: PDFLib } = await import('jspdf');
+      jsPDF = PDFLib;
     }
     
-    body {
-        background-color: white;
-        padding: 0;
-        margin: 0;
+    if (!html2canvas) {
+      const html2canvasLib = await import('html2canvas');
+      html2canvas = html2canvasLib.default;
     }
-    
-    .container {
-        padding: 0;
-        margin: 0;
-    }
-    
-    .cmrContainer {
-        box-shadow: none;
-        margin: 0;
-        border: 1px solid #000;
-        width: 100%;
-        max-width: 100%;
-        height: 297mm; /* A4 height */
-    }
-}
-`;
 
-// Add the styles to the document
-const styleSheet = document.createElement("style");
-styleSheet.type = "text/css";
-styleSheet.innerText = styles;
-document.head.appendChild(styleSheet);
+    // Create a temporary container for the HTML
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = '-9999px';
+    tempContainer.style.width = '210mm';
+    tempContainer.style.height = 'auto';
+    tempContainer.innerHTML = generateCMRHTML(cmrData);
+    
+    document.body.appendChild(tempContainer);
 
-export default PdfGenerator;
+    // Wait a bit for rendering
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Convert HTML to canvas
+    const canvas = await html2canvas(tempContainer, {
+      width: 794, // A4 width in pixels at 96 DPI (210mm)
+      height: 1123, // A4 height in pixels at 96 DPI (297mm)
+      scale: 2, // Higher quality
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    });
+
+    // Remove temporary container
+    document.body.removeChild(tempContainer);
+
+    // Create PDF
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // Convert canvas to image and add to PDF
+    const imgData = canvas.toDataURL('image/png');
+    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+
+    // Create filename
+    const cmrNumber = cmrData?.numar_cmr || 'CMR-Document';
+    const currentDate = new Date().toISOString().split('T')[0];
+    const filename = `${cmrNumber}_${currentDate}.pdf`;
+
+    // Download the PDF
+    pdf.save(filename);
+
+    return true;
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw error;
+  }
+};
+
+export default generateCMRHTML;

@@ -15,9 +15,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // You'll 
 import DEFAULT_CMR_DATA from './DefaultData'; // Keep as fallback
 import { styles, COLORS } from './styles';
 import { jsPDF } from "jspdf";
+import { Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import { generateCMRPDF } from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/PDFGenerator/index.js'; // Import your PDF generation function
 // Replace this with your actual API base URL
 const API_BASE_URL = 'https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/'; // Update this with your actual URL
 
@@ -29,14 +30,36 @@ const TransportsScreen = ({ route, navigation }) => {
   const contentRef = useRef();
   window.downloadPdfRef = contentRef;
 
-  // Get transport ID from route params
   const transportId = route?.params?.transportId;
+  const handleDownloadPDF = async () => {
+  try {
+    if (!cmrData) {
+      Alert.alert('Error', 'No CMR data available to download');
+      return;
+    }
 
-  const handlePress = () => {
-    navigation.navigate('PDFC')
-  };
+    if (Platform.OS === 'web') {
+      // Use web PDF generation
+      Alert.alert('Generating PDF', 'Please wait while we generate your CMR document...');
+      await generateCMRPDF(cmrData);
+      Alert.alert('Success', 'CMR document has been downloaded to your Downloads folder!');
+    } else {
+      // For mobile platforms, you might want to show a different message
+      Alert.alert('Feature Not Available', 'PDF download is currently only available on web version');
+    }
+    
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    Alert.alert('Error', 'Failed to generate PDF. Please try again.');
+  }
+};
+// 3. REPLACE YOUR EXISTING handlePress FUNCTION WITH THIS:
+const handlePress = () => {
+  handleDownloadPDF(); // This will now download the PDF instead of navigating
+};
 
-  // Function to get auth token from localStorage
+  
+
   useEffect(() => {
     const getAuthToken = () => {
       try {
@@ -57,7 +80,7 @@ const TransportsScreen = ({ route, navigation }) => {
         setError('Failed to load authentication token.');
         setLoading(false); // FIXED: Set loading to false on error
       }
-      // REMOVED: finally block that was setting loading to false prematurely
+     
     };
 
     getAuthToken();
