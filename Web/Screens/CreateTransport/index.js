@@ -320,34 +320,55 @@ const FormPage = () => {
   };
 
   const handleSubmit = async () => {
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length === 0) {
-      setSubmitted(true);
-      try {
-        const response = await fetch(`${BASE_URL}transports`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Token ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
-        if (response.ok) {
-          Alert.alert("Success", "Form submitted successfully!");
-          handleReset();
-        } else {
-          throw new Error('Failed to submit form');
-        }
-      } catch (err) {
-        console.error('Error submitting form:', err);
-        setError({ submit: 'Failed to submit form. Please try again.' });
-      } finally {
-        setSubmitted(false);
+  const validationErrors = validateForm();
+  if (Object.keys(validationErrors).length === 0) {
+    setSubmitted(true);
+    try {
+      // Map form data to API format
+      const apiData = {
+        truck_combination: `${formData.truck_make} ${formData.truck_model}`.trim() || formData.truck_license_plate || "Unknown",
+        trailer_type: formData.trailer_type || "Unknown",
+        trailer_number: formData.trailer_license_plate || "Unknown", 
+        detraction: "da", // This seems to be a fixed value based on your example
+        origin_city: formData.departure,
+        destination_city: formData.arrival,
+        goods_type: formData.type_goods
+      };
+
+      console.log('Sending API data:', apiData);
+
+      const response = await fetch(`${BASE_URL}transports`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Token ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiData),
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('Success response:', responseData);
+        Alert.alert("Success", "Transport created successfully!");
+        handleReset();
+      } else {
+        const errorData = await response.text();
+        console.error('API Error Response:', errorData);
+        throw new Error(`Failed to submit form: ${response.status}`);
       }
-    } else {
-      setError(validationErrors);
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      Alert.alert('Error', 'Failed to submit form. Please try again.');
+      setError({ submit: 'Failed to submit form. Please try again.' });
+    } finally {
+      setSubmitted(false);
     }
-  };
+  } else {
+    setError(validationErrors);
+  }
+};
+
+
 
   const handleReset = () => {
     setFormData({

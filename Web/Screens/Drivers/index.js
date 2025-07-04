@@ -132,7 +132,7 @@ const DriversScreen = () => {
     try {
       setLoadingDocuments(prev => ({ ...prev, [driverId]: true }));
 
-      const response = await fetch(`${BASE_URL}personal-documents/${driverId}`, {
+      const response = await fetch(`${BASE_URL}personal-documents/driver/${driverId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Token ${authToken}`,
@@ -165,8 +165,8 @@ const DriversScreen = () => {
           selectedFile: null,
           documentTitle: '',
           documentCategory: '',
-          expirationDate: null,
-          showDatePicker: false,  // Add this field for date picker visibility
+          expirationDate: null, // Keep as null, not a Date object
+          showDatePicker: false,
           isUploading: false
         }),
         [field]: value
@@ -188,12 +188,10 @@ const DriversScreen = () => {
         type: '*/*',
         copyToCacheDirectory: true
       });
-      // Handle both new and old API formats from Expo Document Picker
       if (result.type === 'success' || result.canceled === false) {
-        // For the newer Expo Document Picker API
         const fileData = result.assets ? result.assets[0] : result;
-        // Create a clean, normalized file object with only what we need
-        // This avoids any non-serializable properties
+
+
         const cleanFileObject = {
           uri: fileData.uri,
           name: fileData.name || fileData.fileName || 'document',
@@ -208,42 +206,133 @@ const DriversScreen = () => {
       console.error('Error picking document:', err);
     }
   };
+  const getDriverRoadStatus = (driverId) => {
+    try {
+      // Find the driver with the matching ID
+      const driver = drivers.find(driver => driver.id === driverId);
 
+      if (!driver) {
+        console.warn(`Driver with ID ${driverId} not found`);
+        return null;
+      }
+
+      // Check if driver object and on_road property exist
+      if (driver.driver && typeof driver.driver.on_road !== 'undefined') {
+        return driver.driver.on_road;
+      }
+
+      console.warn(`Driver state not available for driver ID ${driverId}`);
+      return null;
+    } catch (error) {
+      console.error('Error getting driver state:', error);
+      return null;
+    }
+  };
   // When using the file in the upload function, make sure to construct the form data properly:
   // In handleUploadDocument function:
-  const handleUploadDocument = (driverId) => {
-    // Get the current state for this specific driver
-    const driverState = getDriverState(driverId); // You need to implement this function
+  const handleUploadDocument = async (driverId) => {
+  // Get the current state for this specific driver
+  const driverState = uploadStates[driverId] || {
+    isUploadExpanded: false,
+    selectedFile: null,
+    documentTitle: '',
+    documentCategory: '',
+    expirationDate: null,
+    showDatePicker: false,
+    isUploading: false
+  };
+
+  // Validate required fields
+  if (!driverState.selectedFile) {
+    console.log("No file selected for driver:", driverId);
+    Alert.alert('Error', 'Please select a document to upload');
+    return;
+  }
+
+  if (!driverState.documentTitle.trim()) {
+    Alert.alert('Error', 'Please enter a document title');
+    return;
+  }
+
+  if (!driverState.documentCategory.trim()) {
+    Alert.alert('Error', 'Please select a document category');
+    return;
+  }
+
+  try {
+    // Set uploading state
+    updateDriverUploadState(driverId, 'isUploading', true);
 
     const formData = new FormData();
-
-    // Make sure the file object is properly structured for FormData
-    if (driverState.selectedFile) {
-      const fileToUpload = {
-        uri: driverState.selectedFile.uri,
-        type: driverState.selectedFile.mimeType || 'application/octet-stream',
-        name: driverState.selectedFile.name
-      };
-      formData.append('document', fileToUpload);
-
-      // Continue with your upload logic
-      // uploadDocument(formData);
+    
+    // Handle file upload differently based on platform
+    if (driverState.selectedFile.uri.startsWith('data:')) {
+      // Web platform with base64 data URL
+      const response = await fetch(driverState.selectedFile.uri);
+      const blob = await response.blob();
+      formData.append('document', blob, driverState.selectedFile.name);
     } else {
-      console.log("No file selected for driver:", driverId);
+      // Native platforms (iOS/Android)
+      formData.append('document', {
+        uri: driverState.selectedFile.uri,
+        type: driverState.selectedFile.mimeType,
+        name: driverState.selectedFile.name,
+      });
     }
-  };
-  const handleDateChange = (driverId, event) => {
-    if (event && event.target && event.target.value) {
-      // Get the date value from the input element
-      const selectedDate = new Date(event.target.value);
 
-      // Update the date if it's valid
-      if (!isNaN(selectedDate.getTime())) {
-        updateDriverUploadState(driverId, 'expirationDate', selectedDate);
-      }
+    formData.append('title', driverState.documentTitle);
+    formData.append('category', driverState.documentCategory);
+    
+    if (driverState.expirationDate) {
+      formData.append('expiration_date', driverState.expirationDate);
     }
-  };
 
+    // Log FormData contents for debugging
+    console.log("=== FormData Debug Info ===");
+    console.log("Selected file object:", driverState.selectedFile);
+    console.log("Document title:", driverState.documentTitle);
+    console.log("Document category:", driverState.documentCategory);
+    console.log("Expiration date:", driverState.expirationDate);
+    
+    // Upload the document
+    const response = await fetch(`${BASE_URL}personal-documents/driver/${driverId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${authToken}`,
+        // Don't set Content-Type for FormData - let the browser/RN handle it
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Upload error response:', errorText);
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Document uploaded successfully:', result);
+
+    // Success - reset the form
+    updateDriverUploadState(driverId, 'selectedFile', null);
+    updateDriverUploadState(driverId, 'documentTitle', '');
+    updateDriverUploadState(driverId, 'documentCategory', '');
+    updateDriverUploadState(driverId, 'expirationDate', null);
+    updateDriverUploadState(driverId, 'isUploadExpanded', false);
+
+    Alert.alert('Success', 'Document uploaded successfully');
+
+    // Refresh documents list
+    fetchDriverDocuments(driverId);
+
+  } catch (error) {
+    console.error('Error uploading document:', error);
+    Alert.alert('Error', 'Failed to upload document. Please try again.');
+  } finally {
+    // Reset uploading state
+    updateDriverUploadState(driverId, 'isUploading', false);
+  }
+};
 
 
 
@@ -298,7 +387,10 @@ const DriversScreen = () => {
       isExpiringSoon
     };
   };
-  const renderDocumentItem = ({ item }) => (
+  const renderDocumentItem = ({ item }) => {
+  const dateInfo = formatDate(item.expiration_date);
+  
+  return (
     <TouchableOpacity
       style={styles.documentItem}
       onPress={() => openDocument(item.document)}
@@ -309,21 +401,27 @@ const DriversScreen = () => {
       <View style={styles.documentInfo}>
         <Text style={styles.documentTitle}>{item.title}</Text>
         <Text style={styles.documentCategory}>Category: {item.category || 'N/A'}</Text>
-        <Text style={styles.documentExpiration}>
-          Expires: {formatDate(item.expiration_date)}
+        <Text style={[
+          styles.documentExpiration,
+          dateInfo?.isExpired && { color: '#EF5350' }, // Red for expired
+          dateInfo?.isExpiringSoon && { color: '#FF9800' } // Orange for expiring soon
+        ]}>
+          Expires: {dateInfo?.formattedDate || 'Fără dată de expirare'}
         </Text>
       </View>
       <Ionicons name="open-outline" size={20} color="#5C6BC0" />
     </TouchableOpacity>
   );
+};
 
   // Document categories
   const documentCategories = [
-    { label: 'Permis de conducere', value: 'driving_license' },
-    { label: 'Carte de identitate', value: 'id_card' },
-    { label: 'Certificat profesional', value: 'professional_certificate' },
+    { label: 'Permis de conducere', value: 'permis_de_conducere' },
+    { label: 'Carte de identitate', value: 'buletin' },
+    { label: 'Contract de munca', value: 'contract_de_munca' },
     { label: 'Certificat medical', value: 'medical_certificate' },
-    { label: 'Altele', value: 'other' }
+    { label: 'Cereri de concediu', value: 'cereri_de_concediu' },
+    { label: 'Atestat', value: 'atestate' }
   ];
 
   const renderDriverItem = ({ item }) => {
@@ -419,7 +517,7 @@ const DriversScreen = () => {
                 <View style={styles.detailItem}>
                   <Text style={styles.detailLabel}>Status</Text>
                   <Text style={[styles.detailValue, { color: isOnRoad ? '#66BB6A' : '#EF5350' }]}>
-                    {isOnRoad ? 'On Road' : 'Available'}
+                    {isOnRoad ? 'Pe drum' : 'In pauza'}
                   </Text>
                 </View>
                 <View style={styles.detailItem}>
@@ -479,7 +577,10 @@ const DriversScreen = () => {
                 onPress={() => updateDriverUploadState(item.id, 'showDatePicker', true)}
               >
                 <Text style={driverUploadState.expirationDate ? styles.dropdownText : styles.dropdownPlaceholder}>
-                  {driverUploadState.expirationDate ? driverUploadState.expirationDate.toLocaleDateString() : 'Selectează data'}
+                  {driverUploadState.expirationDate ?
+                    new Date(driverUploadState.expirationDate).toLocaleDateString() :
+                    'Selectează data'
+                  }
                 </Text>
                 <Ionicons name="calendar" size={20} color="#5C6BC0" />
               </TouchableOpacity>
@@ -488,26 +589,27 @@ const DriversScreen = () => {
                 <View style={styles.calendarContainer}>
                   {Platform.OS === 'ios' || Platform.OS === 'android' ? (
                     <DateTimePicker
-                      value={driverUploadState.expirationDate || new Date()}
+                      value={driverUploadState.expirationDate ? new Date(driverUploadState.expirationDate) : new Date()}
                       mode="date"
                       display="default"
                       onChange={(event, selectedDate) => {
                         updateDriverUploadState(item.id, 'showDatePicker', false);
                         if (selectedDate) {
-                          updateDriverUploadState(item.id, 'expirationDate', selectedDate);
+                          // Format date as YYYY-MM-DD
+                          const formattedDate = selectedDate.toISOString().split('T')[0];
+                          updateDriverUploadState(item.id, 'expirationDate', formattedDate);
                         }
                       }}
                     />
                   ) : (
                     <Calendar
                       onDayPress={(day) => {
-                        const selectedDate = new Date(day.timestamp);
-                        updateDriverUploadState(item.id, 'expirationDate', selectedDate);
+                        // day.dateString is already in YYYY-MM-DD format
+                        updateDriverUploadState(item.id, 'expirationDate', day.dateString);
                         updateDriverUploadState(item.id, 'showDatePicker', false);
                       }}
                       markedDates={{
-                        [driverUploadState.expirationDate ?
-                          driverUploadState.expirationDate.toISOString().split('T')[0] : '']: {
+                        [driverUploadState.expirationDate || '']: {
                           selected: true,
                           selectedColor: "#5C6BC0"
                         }
