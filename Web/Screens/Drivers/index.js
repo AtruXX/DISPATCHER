@@ -157,22 +157,24 @@ const [editingDocumentId, setEditingDocumentId] = useState(null);
 
   // Helper functions for upload state - moved from renderDriverItem
   const updateDriverUploadState = (driverId, field, value) => {
-    setUploadStates(prev => ({
-      ...prev,
-      [driverId]: {
-        ...(prev[driverId] || {
-          isUploadExpanded: false,
-          selectedFile: null,
-          documentTitle: '',
-          documentCategory: '',
-          expirationDate: null, // Keep as null, not a Date object
-          showDatePicker: false,
-          isUploading: false
-        }),
-        [field]: value
-      }
-    }));
-  };
+  setUploadStates(prev => ({
+    ...prev,
+    [driverId]: {
+      ...(prev[driverId] || {
+        isUploadExpanded: false,
+        selectedFile: null,
+        documentTitle: '',
+        documentCategory: '',
+        expirationDate: null,
+        showDatePicker: false,
+        isUploading: false,
+        selectedYear: new Date().getFullYear(), // Add this
+        selectedMonth: new Date().getMonth() + 1  // Add this
+      }),
+      [field]: value
+    }
+  }));
+};
   const toggleUploadForm = (driverId) => {
     updateDriverUploadState(
       driverId,
@@ -547,9 +549,9 @@ const [editingDocumentId, setEditingDocumentId] = useState(null);
                 <View style={styles.detailItem}>
                   <Text style={styles.detailLabel}>Rol</Text>
                   <Text style={styles.detailValue}>
-                    {item.is_driver && item.is_dispatcher ? 'Driver & Dispatcher' :
-                      item.is_driver ? 'Driver' :
-                        item.is_dispatcher ? 'Dispatcher' : 'Unknown'}
+                    {item.is_driver && item.is_dispatcher ? 'Sofer & Dispecer' :
+                      item.is_driver ? 'Sofer' :
+                        item.is_dispatcher ? 'Dispecer' : 'Nespecificat'}
                   </Text>
                 </View>
               </View>
@@ -625,35 +627,84 @@ const [editingDocumentId, setEditingDocumentId] = useState(null);
                         }
                       }}
                     />
-                  ) : (
-                    <Calendar
-                      onDayPress={(day) => {
-                        // day.dateString is already in YYYY-MM-DD format
-                        updateDriverUploadState(item.id, 'expirationDate', day.dateString);
-                        updateDriverUploadState(item.id, 'showDatePicker', false);
-                      }}
-                      markedDates={{
-                        [driverUploadState.expirationDate || '']: {
-                          selected: true,
-                          selectedColor: "#5C6BC0"
-                        }
-                      }}
-                      theme={{
-                        calendarBackground: '#FFFFFF',
-                        textSectionTitleColor: '#303F9F',
-                        selectedDayBackgroundColor: '#5C6BC0',
-                        selectedDayTextColor: '#FFFFFF',
-                        todayTextColor: '#5C6BC0',
-                        dayTextColor: '#424242',
-                        textDisabledColor: '#BDBDBD',
-                        arrowColor: '#5C6BC0',
-                        monthTextColor: '#303F9F',
-                        textDayFontWeight: '400',
-                        textMonthFontWeight: 'bold',
-                        textDayHeaderFontWeight: '500'
-                      }}
-                    />
-                  )}
+                 ) : (
+<View>
+  {/* Year and Month Selectors */}
+  <View style={styles.selectorContainer}>
+    <View style={styles.selectorItemWithMargin}>
+      <Text style={styles.selectorLabel}>Year</Text>
+      <Picker
+        selectedValue={driverUploadState.selectedYear || new Date().getFullYear()}
+        onValueChange={(year) => {
+          updateDriverUploadState(item.id, 'selectedYear', year);
+        }}
+        style={styles.selectorPicker}
+      >
+        {Array.from({ length: 20 }, (_, i) => {
+          const year = new Date().getFullYear() + i;
+          return <Picker.Item key={year} label={year.toString()} value={year} />;
+        })}
+      </Picker>
+    </View>
+    
+    <View style={styles.selectorItemWithMarginLeft}>
+      <Text style={styles.selectorLabel}>Month</Text>
+      <Picker
+        selectedValue={driverUploadState.selectedMonth || new Date().getMonth() + 1}
+        onValueChange={(month) => {
+          updateDriverUploadState(item.id, 'selectedMonth', month);
+        }}
+        style={styles.selectorPicker}
+      >
+        <Picker.Item label="January" value={1} />
+        <Picker.Item label="February" value={2} />
+        <Picker.Item label="March" value={3} />
+        <Picker.Item label="April" value={4} />
+        <Picker.Item label="May" value={5} />
+        <Picker.Item label="June" value={6} />
+        <Picker.Item label="July" value={7} />
+        <Picker.Item label="August" value={8} />
+        <Picker.Item label="September" value={9} />
+        <Picker.Item label="October" value={10} />
+        <Picker.Item label="November" value={11} />
+        <Picker.Item label="December" value={12} />
+      </Picker>
+    </View>
+  </View>
+
+  {/* Calendar */}
+  <Calendar
+    key={`upload-calendar-${driverUploadState.selectedYear || new Date().getFullYear()}-${driverUploadState.selectedMonth || new Date().getMonth() + 1}`}
+    current={`${driverUploadState.selectedYear || new Date().getFullYear()}-${String(driverUploadState.selectedMonth || new Date().getMonth() + 1).padStart(2, '0')}-01`}
+    onDayPress={(day) => {
+      updateDriverUploadState(item.id, 'expirationDate', day.dateString);
+      updateDriverUploadState(item.id, 'showDatePicker', false);
+    }}
+    markedDates={{
+      [driverUploadState.expirationDate || '']: {
+        selected: true,
+        selectedColor: "#5C6BC0"
+      }
+    }}
+    hideArrows={true}
+    disableMonthChange={true}
+    theme={{
+      calendarBackground: '#FFFFFF',
+      textSectionTitleColor: '#303F9F',
+      selectedDayBackgroundColor: '#5C6BC0',
+      selectedDayTextColor: '#FFFFFF',
+      todayTextColor: '#5C6BC0',
+      dayTextColor: '#424242',
+      textDisabledColor: '#BDBDBD',
+      arrowColor: '#5C6BC0',
+      monthTextColor: '#303F9F',
+      textDayFontWeight: '400',
+      textMonthFontWeight: 'bold',
+      textDayHeaderFontWeight: '500'
+    }}
+  />
+</View>
+)}
                 </View>
               )}
             </View>

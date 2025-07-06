@@ -888,4 +888,44 @@ updateButtonPressed: {
   shadowRadius: 8,
   elevation: 1,
 },
+// Year and Month selector styles
+  selectorContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F5F5F5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+
+  selectorItem: {
+    flex: 1,
+  },
+
+  selectorItemWithMargin: {
+    flex: 1,
+    marginRight: 8,
+  },
+
+  selectorItemWithMarginLeft: {
+    flex: 1,
+    marginLeft: 8,
+  },
+
+  selectorLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+
+  selectorPicker: {
+    height: 40,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+
 });
