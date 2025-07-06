@@ -424,8 +424,7 @@ buttonIcon: {
   marginLeft: 6,
 },
 
-// Document upload styles - more spacious and airy
-// Document upload styles - neomorphic, airy and well-designed
+
 uploadContainer: {
   backgroundColor: '#ECF0F7',
   borderRadius: 24,

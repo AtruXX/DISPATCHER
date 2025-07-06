@@ -4,33 +4,24 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Modal,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   Alert,
   ActivityIndicator,
-  Animated
+  Animated,
+  Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Calendar } from 'react-native-calendars';
+import { Picker } from '@react-native-picker/picker';
+import { styles, COLORS } from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/Trucks/EditComponentStyle.js'; // Import your styles
 
-const COLORS = {
-  background: "#F4F5FB", // Light lavender background
-  card: "#FFFFFF",       // White
-  primary: "#5A5BDE",    // Purple-blue (primary)
-  secondary: "#6F89FF",  // Light blue
-  accent: "#FF8C66",     // Soft orange
-  accent2: "#81C3F8",    // Sky blue
-  dark: "#373A56",       // Dark navy
-  medium: "#6B6F8D",     // Medium navy-gray
-  light: "#A0A4C1",      // Light gray-purple
-  border: "#E2E5F1",     // Light border
-  success: "#63C6AE",    // Turquoise
-  warning: "#FFBD59",    // Amber
-  danger: "#FF7285",     // Soft red
-};
+const { width: screenWidth } = Dimensions.get('window');
+const isMobile = screenWidth < 768;
 
 const EditTruckForm = ({ isVisible, onClose, truck, authToken, onTruckUpdated }) => {
   const [loading, setLoading] = useState(false);
@@ -45,6 +36,28 @@ const EditTruckForm = ({ isVisible, onClose, truck, authToken, onTruckUpdated })
   });
   const [successToast, setSuccessToast] = useState(false);
   const toastOpacity = useState(new Animated.Value(0))[0];
+  const COLORS = {
+  background: "#F4F5FB", // Light lavender background
+  card: "#FFFFFF",       // White
+  primary: "#5A5BDE",    // Purple-blue (primary)
+  secondary: "#6F89FF",  // Light blue
+  accent: "#FF8C66",     // Soft orange
+  accent2: "#81C3F8",    // Sky blue
+  dark: "#373A56",       // Dark navy
+  medium: "#6B6F8D",     // Medium navy-gray
+  light: "#A0A4C1",      // Light gray-purple
+  border: "#E2E5F1",     // Light border
+  success: "#63C6AE",    // Turquoise
+  warning: "#FFBD59",    // Amber
+  danger: "#FF7285",     // Soft red
+};
+  // Date picker states
+  const [showLastServiceDatePicker, setShowLastServiceDatePicker] = useState(false);
+  const [showNextServiceDatePicker, setShowNextServiceDatePicker] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [currentDateType, setCurrentDateType] = useState(''); // 'last_service_date' or 'next_service_date'
+  
   const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 
   useEffect(() => {
@@ -139,61 +152,211 @@ const EditTruckForm = ({ isVisible, onClose, truck, authToken, onTruckUpdated })
     return true;
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-    try {
-      setLoading(true);
-      const response = await fetch(`${BASE_URL}trucks/${truck.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Token ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
-      }
-      console.log('Response:', response);
-      const updatedTruck = await response.json();
-      // Show success toast
-      setSuccessToast(true);
-      // Also keep the alert for additional confirmation
-      Alert.alert(
-        'Success',
-        'Camionul a fost actualizat cu succes!',
-        [{ text: 'OK', onPress: () => {
-          if (onTruckUpdated) {
-            onTruckUpdated(updatedTruck);
-          }
-          onClose();
-        }}]
-      );
-    } catch (error) {
-      Alert.alert('Error', `Failed to update truck: ${error.message}`);
-      console.error('Error updating truck:', error);
-    } finally {
-      setLoading(false);
+  // In your EditTruckForm component, update the handleSubmit function:
+
+const handleSubmit = async () => {
+  if (!validateForm()) return;
+  try {
+    setLoading(true);
+    const response = await fetch(`${BASE_URL}trucks/${truck.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Token ${authToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
     }
-  };
+    console.log('Response:', response);
+    const updatedTruck = await response.json();
+    
+    // Show success toast
+    setSuccessToast(true);
+    
+    // Call the callback to trigger refresh and auto-close
+    if (onTruckUpdated) {
+      onTruckUpdated(updatedTruck);
+    }
+    
+    // Optional: Keep a brief success message
+    setTimeout(() => {
+      Alert.alert('Success', 'Camionul a fost actualizat cu succes!');
+    }, 100);
+    
+  } catch (error) {
+    Alert.alert('Error', `Failed to update truck: ${error.message}`);
+    console.error('Error updating truck:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCancel = () => {
     onClose();
   };
 
-  const renderDateInput = (dateType) => {
-    const placeholder = dateType === 'last_service_date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD';
+  // Date picker functions
+  const openDatePicker = (dateType) => {
+    setCurrentDateType(dateType);
+    const currentDate = formData[dateType] ? new Date(formData[dateType]) : new Date();
+    setSelectedYear(currentDate.getFullYear());
+    setSelectedMonth(currentDate.getMonth() + 1);
+    
+    if (dateType === 'last_service_date') {
+      setShowLastServiceDatePicker(true);
+    } else {
+      setShowNextServiceDatePicker(true);
+    }
+  };
+
+  const closeDatePicker = () => {
+    setShowLastServiceDatePicker(false);
+    setShowNextServiceDatePicker(false);
+    setCurrentDateType('');
+  };
+
+  const onDateChange = (event, selectedDate) => {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      closeDatePicker();
+      if (selectedDate) {
+        const formattedDate = selectedDate.toISOString().split('T')[0];
+        handleChange(currentDateType, formattedDate);
+      }
+    }
+  };
+
+  const onCalendarDayPress = (day) => {
+    handleChange(currentDateType, day.dateString);
+    closeDatePicker();
+  };
+
+  const renderDateInput = (dateType, label) => {
+    const dateValue = formData[dateType];
+    const showPicker = dateType === 'last_service_date' ? showLastServiceDatePicker : showNextServiceDatePicker;
     
     return (
-      <TextInput
-        style={styles.input}
-        value={formData[dateType]}
-        onChangeText={(text) => handleChange(dateType, text)}
-        placeholder={placeholder}
-        placeholderTextColor={COLORS.light}
-        keyboardType="numeric"
-      />
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>{label}</Text>
+        <TouchableOpacity 
+          style={styles.datePickerButton}
+          onPress={() => openDatePicker(dateType)}
+        >
+          <Text style={[
+            styles.datePickerText,
+            !dateValue && styles.placeholder
+          ]}>
+            {dateValue || 'YYYY-MM-DD'}
+          </Text>
+          <Text style={styles.calendarIcon}>📅</Text>
+        </TouchableOpacity>
+        <Text style={styles.dateHint}>Format: YYYY-MM-DD</Text>
+        
+        {showPicker && (
+          <Modal
+            visible={showPicker}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={closeDatePicker}
+          >
+            <TouchableOpacity 
+              style={styles.datePickerOverlay} 
+              activeOpacity={1}
+              onPress={closeDatePicker}
+            >
+              <View style={styles.datePickerContainer}>
+                <View style={styles.datePickerHeader}>
+                  <Text style={styles.datePickerTitle}>{label}</Text>
+                  <TouchableOpacity onPress={closeDatePicker} style={styles.datePickerCloseButton}>
+                    <Text style={styles.datePickerCloseText}>×</Text>
+                  </TouchableOpacity>
+                </View>
+                
+                {Platform.OS === 'ios' || Platform.OS === 'android' ? (
+                  <DateTimePicker
+                    value={dateValue ? new Date(dateValue) : new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={onDateChange}
+                  />
+                ) : (
+                  <View style={styles.webDatePickerContent}>
+                    {/* Year and Month Selectors */}
+                    <View style={styles.selectorContainer}>
+                      <View style={styles.selectorItem}>
+                        <Text style={styles.selectorLabel}>Year</Text>
+                        <Picker
+                          selectedValue={selectedYear}
+                          onValueChange={(year) => setSelectedYear(year)}
+                          style={styles.selectorPicker}
+                        >
+                          {Array.from({ length: 20 }, (_, i) => {
+                            const year = new Date().getFullYear() + i;
+                            return <Picker.Item key={year} label={year.toString()} value={year} />;
+                          })}
+                        </Picker>
+                      </View>
+
+                      <View style={styles.selectorItem}>
+                        <Text style={styles.selectorLabel}>Month</Text>
+                        <Picker
+                          selectedValue={selectedMonth}
+                          onValueChange={(month) => setSelectedMonth(month)}
+                          style={styles.selectorPicker}
+                        >
+                          <Picker.Item label="January" value={1} />
+                          <Picker.Item label="February" value={2} />
+                          <Picker.Item label="March" value={3} />
+                          <Picker.Item label="April" value={4} />
+                          <Picker.Item label="May" value={5} />
+                          <Picker.Item label="June" value={6} />
+                          <Picker.Item label="July" value={7} />
+                          <Picker.Item label="August" value={8} />
+                          <Picker.Item label="September" value={9} />
+                          <Picker.Item label="October" value={10} />
+                          <Picker.Item label="November" value={11} />
+                          <Picker.Item label="December" value={12} />
+                        </Picker>
+                      </View>
+                    </View>
+
+                    {/* Calendar */}
+                    <Calendar
+                      key={`calendar-${selectedYear}-${selectedMonth}`}
+                      current={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`}
+                      onDayPress={onCalendarDayPress}
+                      markedDates={{
+                        [dateValue || '']: {
+                          selected: true,
+                          selectedColor: COLORS.primary
+                        }
+                      }}
+                      hideArrows={true}
+                      disableMonthChange={true}
+                      theme={{
+                        calendarBackground: '#FFFFFF',
+                        textSectionTitleColor: COLORS.primary,
+                        selectedDayBackgroundColor: COLORS.primary,
+                        selectedDayTextColor: '#FFFFFF',
+                        todayTextColor: COLORS.primary,
+                        dayTextColor: COLORS.dark,
+                        textDisabledColor: COLORS.light,
+                        arrowColor: COLORS.primary,
+                        monthTextColor: COLORS.primary,
+                        textDayFontWeight: '400',
+                        textMonthFontWeight: 'bold',
+                        textDayHeaderFontWeight: '500'
+                      }}
+                    />
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        )}
+      </View>
     );
   };
 
@@ -208,7 +371,7 @@ const EditTruckForm = ({ isVisible, onClose, truck, authToken, onTruckUpdated })
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.modalOverlay}
       >
-        <View style={styles.modalContent}>
+        <View style={[styles.modalContent, isMobile && styles.mobileModalContent]}>
           {/* Success Toast Notification */}
           {successToast && (
             <Animated.View style={[styles.successToast, { opacity: toastOpacity }]}>
@@ -225,7 +388,7 @@ const EditTruckForm = ({ isVisible, onClose, truck, authToken, onTruckUpdated })
               <Ionicons name="close" size={24} color={COLORS.card} />
             </TouchableOpacity>
           </LinearGradient>
-          <ScrollView style={styles.formContainer}>
+          <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
             <View style={styles.formGroup}>
               <Text style={styles.label}>Numar de inmatriculare</Text>
               <TextInput
@@ -278,16 +441,11 @@ const EditTruckForm = ({ isVisible, onClose, truck, authToken, onTruckUpdated })
                 placeholderTextColor={COLORS.light}
               />
             </View>
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Data ultimei revizii</Text>
-              {renderDateInput('last_service_date')}
-              <Text style={styles.dateHint}>Format: YYYY-MM-DD</Text>
-            </View>
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Data urmatoarei revizii</Text>
-              {renderDateInput('next_service_date')}
-              <Text style={styles.dateHint}>Format: YYYY-MM-DD</Text>
-            </View>
+            
+            {/* Date inputs with pickers */}
+            {renderDateInput('last_service_date', 'Data ultimei revizii')}
+            {renderDateInput('next_service_date', 'Data urmatoarei revizii')}
+            
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.button, styles.cancelButton]}
@@ -314,140 +472,5 @@ const EditTruckForm = ({ isVisible, onClose, truck, authToken, onTruckUpdated })
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(55, 58, 86, 0.5)', // Dark navy with opacity
-  },
-  modalContent: {
-    width: '90%',
-    maxHeight: '80%',
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#A7A9AF',
-    shadowOffset: {
-      width: 5,
-      height: 5,
-    },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.card,
-  },
-  closeButton: {
-    padding: 6,
-  },
-  formContainer: {
-    padding: 20,
-  },
-  formGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-    color: COLORS.medium,
-  },
-  input: {
-    height: 45,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: COLORS.background,
-    color: COLORS.dark,
-  },
-  dateInput: {
-    height: 45,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: COLORS.background,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dateText: {
-    color: COLORS.dark,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  button: {
-    flex: 1,
-    height: 45,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 5,
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  cancelButton: {
-    backgroundColor: COLORS.light,
-  },
-  submitButton: {
-    backgroundColor: COLORS.primary,
-  },
-  buttonText: {
-    color: COLORS.card,
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  // Success toast styles
-  successToast: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: COLORS.success,
-    padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    shadowColor: '#A7A9AF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  successToastText: {
-    color: COLORS.card,
-    fontWeight: 'bold',
-    marginLeft: 10,
-  },
-  // Date input hint text
-  dateHint: {
-    fontSize: 12,
-    color: COLORS.medium,
-    marginTop: 2,
-    fontStyle: 'italic'
-  }
-});
 
 export default EditTruckForm;

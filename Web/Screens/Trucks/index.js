@@ -19,6 +19,69 @@ import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles';
 import EditTruckForm from './EditComponent';
 import AddDocumentForm from './AddDocuments';
+
+// Simple Search Bar Component
+const SearchBar = ({ 
+  placeholder = "Search...", 
+  onSearch, 
+  onClear,
+  style 
+}) => {
+  const [inputText, setInputText] = useState('');
+
+  const handleSearch = () => {
+    onSearch(inputText);
+    Keyboard.dismiss();
+  };
+
+  const handleClear = () => {
+    setInputText('');
+    onClear();
+  };
+
+  return (
+    <View style={[searchStyles.searchContainer, style]}>
+      <View style={searchStyles.searchBar}>
+        <TextInput
+          style={searchStyles.searchInput}
+          placeholder={placeholder}
+          value={inputText}
+          onChangeText={setInputText}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          returnKeyType="search"
+          placeholderTextColor="#888"
+          onSubmitEditing={handleSearch}
+        />
+        
+        <TouchableOpacity
+          onPress={handleSearch}
+          style={searchStyles.searchButton}
+        >
+          <Ionicons 
+            name="search" 
+            size={20} 
+            color="#fff" 
+          />
+        </TouchableOpacity>
+
+        {inputText && inputText.length > 0 && (
+          <TouchableOpacity
+            onPress={handleClear}
+            style={searchStyles.clearButton}
+          >
+            <Ionicons 
+              name="close-circle" 
+              size={20} 
+              color="#888" 
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+};
+
 const TrucksScreen = ({ onSearch }) => {
   const [trucksData, setTrucksData] = useState({ number_of_trucks: 0, trucks: [] });
   const [loading, setLoading] = useState(true);
@@ -27,17 +90,18 @@ const TrucksScreen = ({ onSearch }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigation = useNavigation();
   const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
-  const textInputRef = useRef(null);
   const [filteredTrucks, setFilteredTrucks] = useState(trucksData.trucks || []);
   const [selectedTruck, setSelectedTruck] = useState(null);
   const [isEditFormVisible, setIsEditFormVisible] = useState(false);
   const [isAddDocumentsFormVisible, setIsAddDocumentsFormVisible] = useState(false);
+
   const handleViewDocuments = (truck) => {
     navigation.navigate('Documentstruck', {
       truckId: truck.id,
       truckData: truck
     });
   };
+
   // Load auth token on component mount
   useEffect(() => {
     const getAuthToken = () => {
@@ -89,7 +153,7 @@ const TrucksScreen = ({ onSearch }) => {
 
       const data = await response.json();
       console.log('Fetched trucks:', data);
-      setTrucksData(data); // Store the complete response
+      setTrucksData(data);
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -103,19 +167,53 @@ const TrucksScreen = ({ onSearch }) => {
     setSelectedTruck(truck);
     setIsEditFormVisible(true);
   };
+
   const handleAddDocuments = (truck) => {
     setSelectedTruck(truck);
     setIsAddDocumentsFormVisible(true);
   };
-  const handleTruckUpdated = (updatedTruck) => {
-    // Update the trucks list with the updated truck
-    const updatedTrucks = trucksData.trucks.map(truck => 
-      truck.id === updatedTruck.id ? updatedTruck : truck
-    );
-    setTrucksData({
-      ...trucksData,
-      trucks: updatedTrucks
-    });
+
+  const handleTruckUpdated = async (updatedTruck) => {
+    console.log('Truck updated successfully, refreshing data...');
+    setIsEditFormVisible(false);
+    setSelectedTruck(null);
+    
+    try {
+      await fetchTrucks();
+      console.log('Trucks data refreshed after update');
+    } catch (error) {
+      console.error('Error refreshing trucks data after update:', error);
+      const updatedTrucks = trucksData.trucks.map(truck => 
+        truck.id === updatedTruck.id ? updatedTruck : truck
+      );
+      setTrucksData({
+        ...trucksData,
+        trucks: updatedTrucks
+      });
+    }
+  };
+
+  const handleDocumentAdded = async (documentData) => {
+    console.log('Document added successfully, refreshing data...');
+    setIsAddDocumentsFormVisible(false);
+    setSelectedTruck(null);
+    
+    try {
+      await fetchTrucks();
+      console.log('Trucks data refreshed after document addition');
+    } catch (error) {
+      console.error('Error refreshing trucks data after document addition:', error);
+    }
+  };
+
+  const handleCloseEditForm = () => {
+    setIsEditFormVisible(false);
+    setSelectedTruck(null);
+  };
+
+  const handleCloseAddDocumentsForm = () => {
+    setIsAddDocumentsFormVisible(false);
+    setSelectedTruck(null);
   };
 
   const getServiceStatus = (nextServiceDate) => {
@@ -169,18 +267,27 @@ const TrucksScreen = ({ onSearch }) => {
     return date.toLocaleDateString(undefined, options);
   };
 
-  // Filter trucks based on search query - this happens on every render now
+  // Filter trucks based on search query
   useEffect(() => {
     const filtered = trucksData.trucks?.filter(truck =>
       truck.license_plate.toLowerCase().includes(searchQuery.toLowerCase())
     ) || [];
 
     setFilteredTrucks(filtered);
-    // Only call onSearch if it's provided as a prop
     if (onSearch) {
       onSearch(filtered);
     }
   }, [searchQuery, trucksData.trucks, onSearch]);
+
+  // Handle search when user presses search button
+  const handleSearch = (searchText) => {
+    setSearchQuery(searchText);
+  };
+
+  // Handle clearing search
+  const handleClearSearch = () => {
+    setSearchQuery('');
+  };
 
   const renderTruckItem = ({ item }) => {
     const gradientColors = getRandomColor(item.id);
@@ -244,9 +351,9 @@ const TrucksScreen = ({ onSearch }) => {
                 </Text>
               </View>
               
-              {/* Edit Button */}
+              {/* Action Buttons */}
               <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity 
+                <TouchableOpacity 
                   style={styles.editButton}
                   onPress={() => handleAddDocuments(item)}
                 >
@@ -284,44 +391,13 @@ const TrucksScreen = ({ onSearch }) => {
           {filteredTrucks.length} {filteredTrucks.length === 1 ? 'vehicul' : 'vehicule'} {searchQuery ? 'găsite' : 'in flota'}
         </Text>
       </View>
-      <View style={styles.searchContainer}>
-      <View style={styles.searchBar}>
-        <Ionicons name="search" size={20} color="#5C6BC0" style={styles.searchIcon} />
-        <TextInput
-          ref={textInputRef}
-          style={styles.searchInput}
-          placeholder="Caută după număr de înmatriculare..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          returnKeyType="search"
-          clearButtonMode="while-editing"
-          autoCapitalize="characters"
-          onSubmitEditing={() => {
-            
-            setTimeout(() => {
-              if (textInputRef.current) {
-                textInputRef.current.focus();
-              }
-            }, 50);
-          }}
-        />
-        {searchQuery !== '' && (
-          <TouchableOpacity
-            onPress={() => {
-              setSearchQuery('');
-              setTimeout(() => {
-                if (textInputRef.current) {
-                  textInputRef.current.focus();
-                }
-              }, 50);
-            }}
-            style={styles.clearButton}
-          >
-            <Ionicons name="close-circle" size={18} color="#A7A9AF" />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
+      
+      {/* Search Bar with Manual Search */}
+      <SearchBar
+        placeholder="Caută după numărul de înmatriculare..."
+        onSearch={handleSearch}
+        onClear={handleClearSearch}
+      />
     </View>
   );
 
@@ -358,7 +434,7 @@ const TrucksScreen = ({ onSearch }) => {
             if (navigation.canGoBack()) {
               navigation.goBack();
             } else {
-              navigation.navigate("Main"); // or your fallback screen
+              navigation.navigate("Main");
             }
           }}
         >
@@ -405,6 +481,7 @@ const TrucksScreen = ({ onSearch }) => {
           contentContainerStyle={styles.listContainer}
           ListHeaderComponent={renderHeader}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         />
       )}
 
@@ -412,25 +489,21 @@ const TrucksScreen = ({ onSearch }) => {
       {selectedTruck && (
         <EditTruckForm
           isVisible={isEditFormVisible}
-          onClose={() => {
-            setIsEditFormVisible(false);
-            setSelectedTruck(null);
-          }}
+          onClose={handleCloseEditForm}
           truck={selectedTruck}
           authToken={authToken}
           onTruckUpdated={handleTruckUpdated}
         />
       )}
-      { selectedTruck&& (
+
+      {/* Add Document Modal Form */}
+      {selectedTruck && (
         <AddDocumentForm
           isVisible={isAddDocumentsFormVisible}
-          onClose={() => {
-            setIsAddDocumentsFormVisible(false);
-            setSelectedTruck(null);
-          }}
+          onClose={handleCloseAddDocumentsForm}
           truck={selectedTruck}
           authToken={authToken}
-          onTruckUpdated={handleTruckUpdated}
+          onDocumentAdded={handleDocumentAdded}
           truckId={selectedTruck.id}
           authTokenForm={authToken}
         />
@@ -438,6 +511,47 @@ const TrucksScreen = ({ onSearch }) => {
     </SafeAreaView>
   );
 };
+
+// Search Bar Styles
+const searchStyles = StyleSheet.create({
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  searchButton: {
+    backgroundColor: '#3F51B5',
+    borderRadius: 20,
+    padding: 8,
+    marginLeft: 8,
+  },
+  clearButton: {
+    marginLeft: 8,
+    padding: 2,
+  },
+});
 
 // Add edit button styles to existing styles
 const additionalStyles = StyleSheet.create({
