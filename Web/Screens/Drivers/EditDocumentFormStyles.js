@@ -19,11 +19,12 @@ const COLORS = {
 };
 
 export const styles = StyleSheet.create({
+  // Edit container
   editContainer: {
     backgroundColor: '#ECF0F7',
     borderRadius: 24,
-    padding: 40,
-    marginHorizontal: 28,
+    padding: 32,
+    marginHorizontal: 20,
     marginTop: 20,
     marginBottom: 40,
     shadowColor: '#FFFFFF',
@@ -31,128 +32,114 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.7,
     shadowRadius: 10,
     elevation: 5,
-    position: 'relative',
-    overflow: 'hidden',
   },
 
+  // Edit header
   editHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 36,
+    marginBottom: 28,
   },
 
-  editTitle: {
-    fontSize: 24,
+  uploadTitle: {
+    fontSize: 20,
     fontWeight: '700',
     color: '#445580',
-    letterSpacing: 0.6,
+    letterSpacing: 0.3,
   },
 
   closeButton: {
     backgroundColor: '#ECF0F7',
-    borderRadius: 16,
-    padding: 12,
+    borderRadius: 12,
+    padding: 10,
     shadowColor: '#FFFFFF',
-    shadowOffset: { width: -6, height: -6 },
+    shadowOffset: { width: -4, height: -4 },
     shadowOpacity: 0.8,
     shadowRadius: 6,
     elevation: 2,
   },
 
+  // File select button
   fileSelectButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 20,
-    padding: 40,
-    marginBottom: 36,
-    backgroundColor: '#ECF0F7',
-    minHeight: 160,
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: -6, height: -6 },
-    shadowOpacity: 0.8,
-    shadowRadius: 6,
-    elevation: 1,
-    borderWidth: 0,
-    position: 'relative',
+    borderWidth: 2,
+    borderColor: '#D1D9FF',
+    borderStyle: 'dashed',
+    borderRadius: 16,
+    padding: 36,
+    marginBottom: 28,
+    backgroundColor: '#FFFFFF',
+    minHeight: 150,
   },
 
   fileSelectText: {
     marginLeft: 18,
     color: '#5A678C',
-    flex: 1,
     fontSize: 18,
     textAlign: 'center',
     lineHeight: 26,
     fontWeight: '500',
   },
 
+  // Text input
   textInput: {
-    backgroundColor: '#ECF0F7',
-    borderRadius: 16,
-    borderWidth: 0,
-    padding: 20,
-    marginBottom: 32,
-    fontSize: 17,
-    minHeight: 64,
-    color: '#3D4561',
-    shadowColor: '#B8C5D9',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
-    elevation: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E8EAF6',
+    padding: 16,
+    marginBottom: 24,
+    fontSize: 16,
+    minHeight: 50,
+    color: '#424242',
   },
 
+  // Picker container
   pickerContainer: {
-    backgroundColor: '#ECF0F7',
-    borderRadius: 16,
-    borderWidth: 0,
-    marginBottom: 32,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E8EAF6',
+    marginBottom: 24,
     overflow: 'hidden',
-    shadowColor: '#B8C5D9',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
-    elevation: 1,
   },
 
   picker: {
-    height: 64,
-    color: '#3D4561',
-    fontSize: 17,
+    height: 50,
+    color: '#424242',
+    fontSize: 16,
   },
 
+  // Date picker
   datePickerContainer: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
 
   inputLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#445580',
-    marginBottom: 12,
-    marginLeft: 6,
-    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginLeft: 4,
   },
 
   inputContainer: {
-    backgroundColor: '#ECF0F7',
-    borderRadius: 16,
-    borderWidth: 0,
-    minHeight: 64,
-    padding: 18,
-    shadowColor: '#B8C5D9',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
-    elevation: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E8EAF6',
+    minHeight: 50,
   },
 
   dropdownContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 15,
   },
 
   dropdownText: {
@@ -167,71 +154,66 @@ export const styles = StyleSheet.create({
 
   calendarContainer: {
     marginTop: 10,
-    backgroundColor: '#ECF0F7',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E8EAF6',
     overflow: 'hidden',
-    borderWidth: 0,
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: -6, height: -6 },
-    shadowOpacity: 0.7,
-    shadowRadius: 8,
-    elevation: 3,
   },
 
-  buttonContainer: {
+  // Button container
+  uploadButton: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
-    gap: 20,
+    marginTop: 24,
+    gap: 16,
   },
 
+  // Cancel button - simple neomorphic inset
   cancelButton: {
     backgroundColor: '#ECF0F7',
-    borderRadius: 16,
-    flexDirection: 'row',
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: 16,
     flex: 1,
-    minHeight: 64,
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: -6, height: -6 },
-    shadowOpacity: 0.7,
-    shadowRadius: 8,
-    elevation: 3,
+    minHeight: 50,
+    // Inset shadow for pressed look
+    shadowColor: '#B8C5D9',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 1,
   },
 
   cancelButtonText: {
     color: '#8A94B8',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    letterSpacing: 0.5,
   },
 
+  // Update button - simple neomorphic raised
   updateButton: {
     backgroundColor: '#ECF0F7',
-    borderRadius: 16,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: 16,
     flex: 1,
-    minHeight: 64,
+    minHeight: 50,
+    // Raised shadow
     shadowColor: '#FFFFFF',
-    shadowOffset: { width: -8, height: -8 },
+    shadowOffset: { width: -3, height: -3 },
     shadowOpacity: 0.7,
-    shadowRadius: 10,
-    elevation: 5,
-    // Adding the dark shadow for the pressed effect
-    borderWidth: 0,
-    position: 'relative',
+    shadowRadius: 6,
+    elevation: 3,
   },
 
   updateButtonText: {
     color: '#445580',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    marginLeft: 12,
-    letterSpacing: 0.5,
+    marginLeft: 8,
   },
 });

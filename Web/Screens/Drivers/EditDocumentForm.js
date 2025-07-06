@@ -13,7 +13,7 @@ import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Calendar } from 'react-native-calendars';
 import * as DocumentPicker from 'expo-document-picker';
-import { styles } from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/Drivers/styles.js';
+import { styles } from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/Drivers/EditDocumentFormStyles';
 
 const EditDocumentForm = ({
   document,
