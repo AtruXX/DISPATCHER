@@ -749,5 +749,143 @@ dropdownPlaceholder: {
   fontSize: 16,
   color: COLORS.text.light,
 },
+editDocumentButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#EEF0FF',
+  paddingHorizontal: 12,
+  paddingVertical: 8,
+  borderRadius: 8,
+  marginLeft: 8,
+},
+editDocumentText: {
+  color: '#5C6BC0',
+  fontSize: 12,
+  fontWeight: '500',
+  marginLeft: 4,
+  editHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 36,
+},
 
+editTitle: {
+  fontSize: 24,
+  fontWeight: '700',
+  color: '#445580',
+  letterSpacing: 0.6,
+},
+
+closeButton: {
+  backgroundColor: '#ECF0F7',
+  borderRadius: 16,
+  padding: 12,
+  shadowColor: '#FFFFFF',
+  shadowOffset: { width: -6, height: -6 },
+  shadowOpacity: 0.8,
+  shadowRadius: 6,
+  elevation: 2,
+},
+
+buttonContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginTop: 16,
+  gap: 20,
+},
+
+
+
+
+
+
+},
+editContainer: {
+  borderRadius: 24,
+  padding: 40,
+  marginHorizontal: 28,
+  marginTop: 20,
+  marginBottom: 40,
+  shadowColor: '#FFFFFF',
+  shadowOffset: { width: -8, height: -8 },
+  shadowOpacity: 0.7,
+  shadowRadius: 10,
+  elevation: 5,
+  position: 'relative',
+  overflow: 'hidden',
+},
+
+
+// Replace/update these styles in your styles.js file
+
+// Button container (this replaces uploadButton for the edit form)
+editButtonContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginTop: 32,
+  gap: 16,
+},
+
+cancelButton: {
+  backgroundColor: '#ECF0F7',
+  borderRadius: 16,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 20,
+  flex: 1,
+  minHeight: 64,
+  // Neomorphic inset shadow for cancel button
+  shadowColor: '#B8C5D9',
+  shadowOffset: { width: 4, height: 4 },
+  shadowOpacity: 0.5,
+  shadowRadius: 8,
+  elevation: 2,
+},
+
+cancelButtonText: {
+  color: '#8A94B8',
+  fontSize: 18,
+  fontWeight: '600',
+  letterSpacing: 0.5,
+},
+
+updateButton: {
+  backgroundColor: '#ECF0F7',
+  borderRadius: 16,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 20,
+  flex: 1,
+  minHeight: 64,
+  // Neomorphic raised shadow for update button (primary action)
+  shadowColor: '#FFFFFF',
+  shadowOffset: { width: -8, height: -8 },
+  shadowOpacity: 0.7,
+  shadowRadius: 10,
+  elevation: 5,
+  // Adding secondary shadow for depth
+  borderWidth: 0,
+},
+
+updateButtonText: {
+  color: '#445580',
+  fontSize: 18,
+  fontWeight: '600',
+  marginLeft: 12,
+  letterSpacing: 0.5,
+},
+
+// If you want to add a subtle border effect (optional)
+updateButtonPressed: {
+  backgroundColor: '#E2E8F0',
+  // Inset shadow when pressed
+  shadowColor: '#B8C5D9',
+  shadowOffset: { width: 4, height: 4 },
+  shadowOpacity: 0.6,
+  shadowRadius: 8,
+  elevation: 1,
+},
 });

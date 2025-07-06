@@ -15,7 +15,7 @@ import {
   Platform
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
+import EditDocumentForm from './EditDocumentForm';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styles } from './styles';
@@ -53,7 +53,7 @@ const DriversScreen = () => {
   const [uploadStates, setUploadStates] = useState({});
   const navigation = useNavigation();
   const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
-
+const [editingDocumentId, setEditingDocumentId] = useState(null);
   // Load auth token on component mount
   useEffect(() => {
     const getAuthToken = () => {
@@ -122,12 +122,12 @@ const DriversScreen = () => {
     }
   };
 
-  const fetchDriverDocuments = async (driverId) => {
-    if (documents[driverId]) {
-      // Documents already fetched, just toggle expanded state
-      setExpandedDriverId(expandedDriverId === driverId ? null : driverId);
-      return;
-    }
+  const fetchDriverDocuments = async (driverId, forceRefresh = false) => {
+  if (documents[driverId] && !forceRefresh) {
+    // Documents already fetched, just toggle expanded state
+    setExpandedDriverId(expandedDriverId === driverId ? null : driverId);
+    return;
+  }
 
     try {
       setLoadingDocuments(prev => ({ ...prev, [driverId]: true }));
@@ -231,108 +231,108 @@ const DriversScreen = () => {
   // When using the file in the upload function, make sure to construct the form data properly:
   // In handleUploadDocument function:
   const handleUploadDocument = async (driverId) => {
-  // Get the current state for this specific driver
-  const driverState = uploadStates[driverId] || {
-    isUploadExpanded: false,
-    selectedFile: null,
-    documentTitle: '',
-    documentCategory: '',
-    expirationDate: null,
-    showDatePicker: false,
-    isUploading: false
-  };
+    // Get the current state for this specific driver
+    const driverState = uploadStates[driverId] || {
+      isUploadExpanded: false,
+      selectedFile: null,
+      documentTitle: '',
+      documentCategory: '',
+      expirationDate: null,
+      showDatePicker: false,
+      isUploading: false
+    };
 
-  // Validate required fields
-  if (!driverState.selectedFile) {
-    console.log("No file selected for driver:", driverId);
-    Alert.alert('Error', 'Please select a document to upload');
-    return;
-  }
+    // Validate required fields
+    if (!driverState.selectedFile) {
+      console.log("No file selected for driver:", driverId);
+      Alert.alert('Error', 'Please select a document to upload');
+      return;
+    }
 
-  if (!driverState.documentTitle.trim()) {
-    Alert.alert('Error', 'Please enter a document title');
-    return;
-  }
+    if (!driverState.documentTitle.trim()) {
+      Alert.alert('Error', 'Please enter a document title');
+      return;
+    }
 
-  if (!driverState.documentCategory.trim()) {
-    Alert.alert('Error', 'Please select a document category');
-    return;
-  }
+    if (!driverState.documentCategory.trim()) {
+      Alert.alert('Error', 'Please select a document category');
+      return;
+    }
 
-  try {
-    // Set uploading state
-    updateDriverUploadState(driverId, 'isUploading', true);
+    try {
+      // Set uploading state
+      updateDriverUploadState(driverId, 'isUploading', true);
 
-    const formData = new FormData();
-    
-    // Handle file upload differently based on platform
-    if (driverState.selectedFile.uri.startsWith('data:')) {
-      // Web platform with base64 data URL
-      const response = await fetch(driverState.selectedFile.uri);
-      const blob = await response.blob();
-      formData.append('document', blob, driverState.selectedFile.name);
-    } else {
-      // Native platforms (iOS/Android)
-      formData.append('document', {
-        uri: driverState.selectedFile.uri,
-        type: driverState.selectedFile.mimeType,
-        name: driverState.selectedFile.name,
+      const formData = new FormData();
+
+      // Handle file upload differently based on platform
+      if (driverState.selectedFile.uri.startsWith('data:')) {
+        // Web platform with base64 data URL
+        const response = await fetch(driverState.selectedFile.uri);
+        const blob = await response.blob();
+        formData.append('document', blob, driverState.selectedFile.name);
+      } else {
+        // Native platforms (iOS/Android)
+        formData.append('document', {
+          uri: driverState.selectedFile.uri,
+          type: driverState.selectedFile.mimeType,
+          name: driverState.selectedFile.name,
+        });
+      }
+
+      formData.append('title', driverState.documentTitle);
+      formData.append('category', driverState.documentCategory);
+
+      if (driverState.expirationDate) {
+        formData.append('expiration_date', driverState.expirationDate);
+      }
+
+      // Log FormData contents for debugging
+      console.log("=== FormData Debug Info ===");
+      console.log("Selected file object:", driverState.selectedFile);
+      console.log("Document title:", driverState.documentTitle);
+      console.log("Document category:", driverState.documentCategory);
+      console.log("Expiration date:", driverState.expirationDate);
+
+      // Upload the document
+      const response = await fetch(`${BASE_URL}personal-documents/driver/${driverId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${authToken}`,
+          // Don't set Content-Type for FormData - let the browser/RN handle it
+        },
+        body: formData,
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Upload error response:', errorText);
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Document uploaded successfully:', result);
+
+      // Success - reset the form
+      updateDriverUploadState(driverId, 'selectedFile', null);
+      updateDriverUploadState(driverId, 'documentTitle', '');
+      updateDriverUploadState(driverId, 'documentCategory', '');
+      updateDriverUploadState(driverId, 'expirationDate', null);
+      updateDriverUploadState(driverId, 'isUploadExpanded', false);
+
+      Alert.alert('Success', 'Document uploaded successfully');
+
+      // Refresh documents list
+      fetchDriverDocuments(driverId, true);
+
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      Alert.alert('Error', 'Failed to upload document. Please try again.');
+    } finally {
+      // Reset uploading state
+      updateDriverUploadState(driverId, 'isUploading', false);
     }
-
-    formData.append('title', driverState.documentTitle);
-    formData.append('category', driverState.documentCategory);
-    
-    if (driverState.expirationDate) {
-      formData.append('expiration_date', driverState.expirationDate);
-    }
-
-    // Log FormData contents for debugging
-    console.log("=== FormData Debug Info ===");
-    console.log("Selected file object:", driverState.selectedFile);
-    console.log("Document title:", driverState.documentTitle);
-    console.log("Document category:", driverState.documentCategory);
-    console.log("Expiration date:", driverState.expirationDate);
-    
-    // Upload the document
-    const response = await fetch(`${BASE_URL}personal-documents/driver/${driverId}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Token ${authToken}`,
-        // Don't set Content-Type for FormData - let the browser/RN handle it
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Upload error response:', errorText);
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('Document uploaded successfully:', result);
-
-    // Success - reset the form
-    updateDriverUploadState(driverId, 'selectedFile', null);
-    updateDriverUploadState(driverId, 'documentTitle', '');
-    updateDriverUploadState(driverId, 'documentCategory', '');
-    updateDriverUploadState(driverId, 'expirationDate', null);
-    updateDriverUploadState(driverId, 'isUploadExpanded', false);
-
-    Alert.alert('Success', 'Document uploaded successfully');
-
-    // Refresh documents list
-    fetchDriverDocuments(driverId);
-
-  } catch (error) {
-    console.error('Error uploading document:', error);
-    Alert.alert('Error', 'Failed to upload document. Please try again.');
-  } finally {
-    // Reset uploading state
-    updateDriverUploadState(driverId, 'isUploading', false);
-  }
-};
+  };
 
 
 
@@ -391,26 +391,50 @@ const DriversScreen = () => {
   const dateInfo = formatDate(item.expiration_date);
   
   return (
-    <TouchableOpacity
-      style={styles.documentItem}
-      onPress={() => openDocument(item.document)}
-    >
-      <View style={styles.documentIcon}>
-        <Ionicons name="document-text" size={24} color="#303F9F" />
-      </View>
-      <View style={styles.documentInfo}>
-        <Text style={styles.documentTitle}>{item.title}</Text>
-        <Text style={styles.documentCategory}>Category: {item.category || 'N/A'}</Text>
-        <Text style={[
-          styles.documentExpiration,
-          dateInfo?.isExpired && { color: '#EF5350' }, // Red for expired
-          dateInfo?.isExpiringSoon && { color: '#FF9800' } // Orange for expiring soon
-        ]}>
-          Expires: {dateInfo?.formattedDate || 'Fără dată de expirare'}
-        </Text>
-      </View>
-      <Ionicons name="open-outline" size={20} color="#5C6BC0" />
-    </TouchableOpacity>
+    <View>
+      <TouchableOpacity
+        style={styles.documentItem}
+        onPress={() => openDocument(item.document)}
+      >
+        <View style={styles.documentIcon}>
+          <Ionicons name="document-text" size={24} color="#303F9F" />
+        </View>
+        <View style={styles.documentInfo}>
+          <Text style={styles.documentTitle}>{item.title}</Text>
+          <Text style={styles.documentCategory}>Category: {item.category || 'N/A'}</Text>
+          <Text style={[
+            styles.documentExpiration,
+            dateInfo?.isExpired && { color: '#EF5350' },
+            dateInfo?.isExpiringSoon && { color: '#FF9800' }
+          ]}>
+            Expires: {dateInfo?.formattedDate || 'Fără dată de expirare'}
+          </Text>
+        </View>
+        <TouchableOpacity 
+          style={styles.editDocumentButton}
+          onPress={() => setEditingDocumentId(item.id)}
+        >
+          <Ionicons name="create-outline" size={20} color="#5C6BC0" />
+          <Text style={styles.editDocumentText}>Editează</Text>
+        </TouchableOpacity>
+      </TouchableOpacity>
+
+      {/* Edit Form */}
+      {editingDocumentId === item.id && (
+  <EditDocumentForm
+    document={item}
+    driverId={item.user} // or however you get the driver ID
+    onClose={() => setEditingDocumentId(null)}
+    onSuccess={(driverId) => {
+      fetchDriverDocuments(driverId, true); // Use the passed driverId
+      setEditingDocumentId(null);
+    }}
+    authToken={authToken}
+    BASE_URL={BASE_URL}
+    documentCategories={documentCategories}
+  />
+)}
+    </View>
   );
 };
 
@@ -643,7 +667,7 @@ const DriversScreen = () => {
               ) : (
                 <>
                   <Ionicons name="cloud-upload" size={20} color="white" />
-                  <Text style={styles.uploadButtonText}>Încarcă documentul</Text>
+                  <Text style={styles.updateButtonText}>Încarcă documentul</Text>
                 </>
               )}
             </TouchableOpacity>
