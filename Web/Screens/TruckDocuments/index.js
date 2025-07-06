@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { styles } from './styles'; // Import styles from styles.js
-
+import DocumentCategoryModal from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/TruckDocuments/DocumentCategory.js';
 const TruckDocumentsScreen = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +24,12 @@ const TruckDocumentsScreen = () => {
   const route = useRoute();
   const { truckId, truckData } = route.params || {};
   const BASE_URL = "";
-
+  const [selectedCategory, setSelectedCategory] = useState(null);
+const [modalVisible, setModalVisible] = useState(false);
+const handleDocumentCategoryPress = (category) => {
+  setSelectedCategory(category);
+  setModalVisible(true);
+};
   const COLORS = {
     background: "#F4F5FB", // Light lavender background
     card: "#FFFFFF", // White
@@ -159,14 +164,7 @@ const TruckDocumentsScreen = () => {
     return date.toLocaleDateString('ro-RO', options);
   };
 
-  const handleDocumentCategoryPress = (category) => {
-    // Navigate to specific document category screen
-    navigation.navigate('DocumentCategory', {
-      truckId: truckId,
-      category: category,
-      truckInfo: truckInfo
-    });
-  };
+ 
 
   const renderDocumentCategory = ({ item }) => {
     return (
@@ -299,6 +297,13 @@ const TruckDocumentsScreen = () => {
         numColumns={2}
         columnWrapperStyle={styles.row}
       />
+      <DocumentCategoryModal
+  visible={modalVisible}
+  onClose={() => setModalVisible(false)}
+  category={selectedCategory}
+  truckId={truckId}
+  authToken={authToken}
+/>
     </SafeAreaView>
   );
 };
