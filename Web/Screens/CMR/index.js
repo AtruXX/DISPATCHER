@@ -18,7 +18,7 @@ import { jsPDF } from "jspdf";
 import { Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { generateCMRPDF } from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/PDFGenerator/index.js'; // Import your PDF generation function
+import { generateCMRPDF } from '../PDFGenerator/index'; // Import your PDF generation function
 // Replace this with your actual API base URL
 const API_BASE_URL = 'https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/'; // Update this with your actual URL
 

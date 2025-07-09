@@ -21,7 +21,7 @@ import FinalTransports from './Screens/TransporturiFinalizate/index.js';
 import Profile from "./Screens/Profile/index.js";
 import Route from "./Screens/Route/index.js";
 import UpdateCMR from "./Screens/UpdateCMR/index.js";
-import Documentstruck from "/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/TruckDocuments";
+import Documentstruck from "./Screens/TruckDocuments";
 import ExpiredDocuments from './Screens/OutDatedDocumentsTruck/index.js';
 
 

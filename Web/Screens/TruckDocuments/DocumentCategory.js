@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { styles } from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/TruckDocuments/DocumentCatgorystyle.js';
+import { styles } from './DocumentCatgorystyle';
 
 const { width, height } = Dimensions.get('window');
 

@@ -14,7 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Calendar } from 'react-native-calendars';
 import { Picker } from '@react-native-picker/picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { styles, COLORS } from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/Trucks/AddDocumentStyle.js'; // Import your styles
+import { styles, COLORS } from './AddDocumentStyle'; // Import your styles
 
 const BASE_URL = "https://atrux-717ecf8763ea.herokuapp.com/api/v0.1/";
 

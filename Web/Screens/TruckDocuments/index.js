@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { styles } from './styles'; // Import styles from styles.js
-import DocumentCategoryModal from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/TruckDocuments/DocumentCategory.js';
+import DocumentCategoryModal from '../TruckDocuments/DocumentCategory.js';
 const TruckDocumentsScreen = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);

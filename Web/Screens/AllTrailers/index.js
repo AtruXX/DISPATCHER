@@ -17,8 +17,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles';
-import EditTrailerForm from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/AllTrailers/EditComponents.js';
-import AddDocumentForm from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/AllTrailers/AddDocuments.js';
+import EditTrailerForm from './EditComponentStyle.js';
+import AddDocumentForm from './AddDocumentStyles.js';
 
 // Simple Search Bar Component
 const SearchBar = ({

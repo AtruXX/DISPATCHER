@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Calendar } from 'react-native-calendars';
 import { Picker } from '@react-native-picker/picker';
-import { styles, COLORS } from '/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/AllTrailers/EditComponentStyle.js'; // Import your styles
+import { styles, COLORS } from './EditComponentStyle'; // Import your styles
 
 const { width: screenWidth } = Dimensions.get('window');
 const isMobile = screenWidth < 768;
