@@ -21,11 +21,11 @@ import EditTruckForm from './EditComponent';
 import AddDocumentForm from './AddDocuments';
 
 // Simple Search Bar Component
-const SearchBar = ({ 
-  placeholder = "Search...", 
-  onSearch, 
+const SearchBar = ({
+  placeholder = "Search...",
+  onSearch,
   onClear,
-  style 
+  style
 }) => {
   const [inputText, setInputText] = useState('');
 
@@ -53,15 +53,15 @@ const SearchBar = ({
           placeholderTextColor="#888"
           onSubmitEditing={handleSearch}
         />
-        
+
         <TouchableOpacity
           onPress={handleSearch}
           style={searchStyles.searchButton}
         >
-          <Ionicons 
-            name="search" 
-            size={20} 
-            color="#fff" 
+          <Ionicons
+            name="search"
+            size={20}
+            color="#fff"
           />
         </TouchableOpacity>
 
@@ -70,10 +70,10 @@ const SearchBar = ({
             onPress={handleClear}
             style={searchStyles.clearButton}
           >
-            <Ionicons 
-              name="close-circle" 
-              size={20} 
-              color="#888" 
+            <Ionicons
+              name="close-circle"
+              size={20}
+              color="#888"
             />
           </TouchableOpacity>
         )}
@@ -177,13 +177,13 @@ const TrucksScreen = ({ onSearch }) => {
     console.log('Truck updated successfully, refreshing data...');
     setIsEditFormVisible(false);
     setSelectedTruck(null);
-    
+
     try {
       await fetchTrucks();
       console.log('Trucks data refreshed after update');
     } catch (error) {
       console.error('Error refreshing trucks data after update:', error);
-      const updatedTrucks = trucksData.trucks.map(truck => 
+      const updatedTrucks = trucksData.trucks.map(truck =>
         truck.id === updatedTruck.id ? updatedTruck : truck
       );
       setTrucksData({
@@ -197,7 +197,7 @@ const TrucksScreen = ({ onSearch }) => {
     console.log('Document added successfully, refreshing data...');
     setIsAddDocumentsFormVisible(false);
     setSelectedTruck(null);
-    
+
     try {
       await fetchTrucks();
       console.log('Trucks data refreshed after document addition');
@@ -246,11 +246,11 @@ const TrucksScreen = ({ onSearch }) => {
       return 'truck-check';
     }
   };
-const handleDeleteTruck = (truckId) => {
+  const handleDeleteTruck = (truckId) => {
     console.log('Attempting to delete truck with ID:', truckId);
     console.log('Alert function available:', typeof Alert);
     deleteTruck(truckId);
-    
+
   };
 
   const deleteTruck = async (truckId) => {
@@ -386,39 +386,48 @@ const handleDeleteTruck = (truckId) => {
                   {serviceStatus.status === 'unknown' && 'Stare revizie necunoscută'}
                 </Text>
               </View>
-              
+
               {/* Action Buttons */}
               <View style={styles.actionButtonsContainer}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => handleAddDocuments(item)}
                 >
                   <Ionicons name="folder-outline" size={18} color="#FFFFFF" />
                   <Text style={styles.editButtonText}>Adauga Documente</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => handleViewDocuments(item)}
                 >
                   <Ionicons name="folder-outline" size={18} color="#FFFFFF" />
                   <Text style={styles.editButtonText}>Vezi Documente</Text>
                 </TouchableOpacity>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => handleEditTruck(item)}
                 >
                   <Ionicons name="create-outline" size={18} color="#FFFFFF" />
                   <Text style={styles.editButtonText}>Editeaza</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
-    style={[styles.editButton, styles.deleteButton]}
-    
-    onPress={() => handleDeleteTruck(item.id)}
-  >
-    <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
-    <Text style={styles.editButtonText}>Sterge Camionul</Text>
-  </TouchableOpacity>
+               <TouchableOpacity
+  style={styles.editButton}
+  onPress={() => navigation.navigate('ExpiredDocuments', {
+    truckId: item.id,
+  })}
+>
+  <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+  <Text style={styles.editButtonText}>Vezi documentele expirate</Text>
+</TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.editButton, styles.deleteButton]}
+
+                  onPress={() => handleDeleteTruck(item.id)}
+                >
+                  <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+                  <Text style={styles.editButtonText}>Sterge Camionul</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -435,7 +444,7 @@ const handleDeleteTruck = (truckId) => {
           {filteredTrucks.length} {filteredTrucks.length === 1 ? 'vehicul' : 'vehicule'} {searchQuery ? 'găsite' : 'in flota'}
         </Text>
       </View>
-      
+
       {/* Search Bar with Manual Search */}
       <SearchBar
         placeholder="Caută după numărul de înmatriculare..."

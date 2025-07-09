@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Text, View } from 'react-native';
-import LoginScreen from './Screens/Login/index.js'; 
+import LoginScreen from './Screens/Login/index.js';
 import AddTruck from './Screens/AddTruck/index.js';
 import MainScreen from './Screens/Main/index.js';
 import TransportsScreen from './Screens/Transports/index.js';
@@ -14,14 +14,17 @@ import cmr from './Screens/CMR/index.js';
 import { enableScreens } from 'react-native-screens';
 import AddTrailer from './Screens/AddTrailer/index.js';
 import AllTrailers from './Screens/AllTrailers/index.js';
-import PDFC from './Screens/PDFGenerator/index.js'; 
+import PDFC from './Screens/PDFGenerator/index.js';
 import AddDriver from './Screens/AddDriver/index.js'
 import CompleteCMR from './Screens/CompleteCMR';
 import FinalTransports from './Screens/TransporturiFinalizate/index.js';
-import Profile from "./Screens/Profile/index.js"; 
+import Profile from "./Screens/Profile/index.js";
 import Route from "./Screens/Route/index.js";
 import UpdateCMR from "./Screens/UpdateCMR/index.js";
 import Documentstruck from "/Users/ioanagavrila/Desktop/DISPATCHER/Web/Screens/TruckDocuments";
+import ExpiredDocuments from './Screens/OutDatedDocumentsTruck/index.js';
+
+
 enableScreens();
 
 class ErrorBoundary extends React.Component {
@@ -51,16 +54,16 @@ function App() {
 
   // Check if user is logged in on app start
   useEffect(() => {
-    
+
     const bootstrapAsync = () => {
       try {
         // Get the token from localStorage
-         
+
         const token = localStorage.getItem('authToken'); // FIXED: Changed from setting to getting
-        
+
         // Get the last visited route if available
         const lastRoute = localStorage.getItem('lastRoute');
-        
+
         if (token) {
           setUserToken(token);
           setInitialRoute('Main');
@@ -80,7 +83,7 @@ function App() {
     if (state && state.routes.length > 0) {
       // Get the current route
       const currentRouteName = state.routes[state.index].name;
-      
+
       // Save the current route to localStorage
       if (currentRouteName !== 'Login') {
         localStorage.setItem('lastRoute', currentRouteName);
@@ -126,7 +129,7 @@ function App() {
               component={Trucks}
               options={{ headerShown: false }}
             />
-            
+
             <Stack.Screen
               name="CreateTransport"
               component={CreateTransport}
@@ -136,7 +139,7 @@ function App() {
               name="CMR"
               component={cmr}
               options={{ headerShown: false }}
-              />
+            />
             <Stack.Screen
               name="AddTruck"
               component={AddTruck}
@@ -161,33 +164,38 @@ function App() {
               name="AddDriver"
               component={AddDriver}
               options={{ headerShown: false }}
-              />
-              <Stack.Screen
-              name = {"CompleteCMR"}
-              component = {CompleteCMR}
-              options = {{ headerShown: false }}
             />
             <Stack.Screen
-              name = {"Profile"}
-              component = {Profile}
-              options = {{ headerShown: false }}
+              name={"CompleteCMR"}
+              component={CompleteCMR}
+              options={{ headerShown: false }}
             />
             <Stack.Screen
-            name={"Route"}
-            component = {Route}
-            options = {{ headerShown: false }}
+              name={"Profile"}
+              component={Profile}
+              options={{ headerShown: false }}
             />
             <Stack.Screen
-            name={"UpdateCMR"}
-            component = {UpdateCMR}
-            options = {{ headerShown: false }}
+              name={"Route"}
+              component={Route}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name={"UpdateCMR"}
+              component={UpdateCMR}
+              options={{ headerShown: false }}
             />
             <Stack.Screen
               name="Documentstruck"
               component={Documentstruck}
               options={{ headerShown: false }}
             />
-            
+            <Stack.Screen
+              name="ExpiredDocuments"
+              component={ExpiredDocuments}
+              options={{ headerShown: false }}
+            />
+
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
