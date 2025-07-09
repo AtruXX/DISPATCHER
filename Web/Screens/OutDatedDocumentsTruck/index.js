@@ -234,26 +234,26 @@ const ExpiredDocuments = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.navigationHeader}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-            } else {
-              navigation.navigate("Main");
-            }
-          }}
-        >
-          <Ionicons name="arrow-back" size={24} color="#303F9F" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.refreshButton}
-          onPress={fetchExpiredDocuments}
-        >
-          <Ionicons name="refresh" size={24} color="#303F9F" />
-        </TouchableOpacity>
-      </View>
+     <View style={styles.navigationHeader}>
+             <TouchableOpacity
+               style={styles.backButton}
+               onPress={() => {
+                 if (navigation.canGoBack()) {
+                   navigation.goBack();
+                 } else {
+                   navigation.navigate("Main");
+                 }
+               }}
+             >
+               <Ionicons name="arrow-back" size={24} color="#303F9F" />
+             </TouchableOpacity>
+             <TouchableOpacity
+               style={styles.refreshButton}
+               onPress={fetchExpiredDocuments}
+             >
+               <Ionicons name="refresh" size={24} color="#303F9F" />
+             </TouchableOpacity>
+           </View>
 
       {documentsData.expiring_truck_documents === 0 ? (
         <View style={styles.emptyContainer}>

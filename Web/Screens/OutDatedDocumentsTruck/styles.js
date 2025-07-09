@@ -15,6 +15,17 @@ export const styles = StyleSheet.create({
     padding: 8,
   },
   refreshButton: {
+      backgroundColor: '#3F51B5',
+      borderRadius: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+    },
+    refreshButtonText: {
+      color: '#FFFFFF',
+      fontWeight: '600',
+      fontSize: 16,
+    },
+  refreshButton: {
     padding: 8,
   },
   headerCard: {
@@ -193,15 +204,5 @@ export const styles = StyleSheet.create({
     marginBottom: 24,
     lineHeight: 24,
   },
-  refreshButton: {
-    backgroundColor: '#3F51B5',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  refreshButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 16,
-  },
+ 
 });
