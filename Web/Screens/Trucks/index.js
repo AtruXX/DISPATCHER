@@ -246,6 +246,42 @@ const TrucksScreen = ({ onSearch }) => {
       return 'truck-check';
     }
   };
+const handleDeleteTruck = (truckId) => {
+    console.log('Attempting to delete truck with ID:', truckId);
+    console.log('Alert function available:', typeof Alert);
+    deleteTruck(truckId);
+    
+  };
+
+  const deleteTruck = async (truckId) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${BASE_URL}trucks/${truckId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Token ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      console.log('Truck deleted successfully');
+      Alert.alert('Succes', 'Camionul a fost șters cu succes.');
+
+      // Refresh the trailers list
+      await fetchTrucks();
+    } catch (err) {
+      setLoading(false);
+      console.error('Error deleting trailer:', err);
+      Alert.alert(
+        'Eroare',
+        'Nu s-a putut șterge. Încearcă din nou mai târziu.'
+      );
+    }
+  };
 
   const getRandomColor = (id) => {
     const colors = [
@@ -375,6 +411,14 @@ const TrucksScreen = ({ onSearch }) => {
                   <Ionicons name="create-outline" size={18} color="#FFFFFF" />
                   <Text style={styles.editButtonText}>Editeaza</Text>
                 </TouchableOpacity>
+                <TouchableOpacity 
+    style={[styles.editButton, styles.deleteButton]}
+    
+    onPress={() => handleDeleteTruck(item.id)}
+  >
+    <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+    <Text style={styles.editButtonText}>Sterge Camionul</Text>
+  </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -569,6 +613,10 @@ const additionalStyles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '500',
     marginLeft: 5,
+  },
+  // New delete button style
+  deleteButton: {
+    backgroundColor: '#F44336', // Red color for delete
   },
 });
 
