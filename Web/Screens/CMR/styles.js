@@ -417,45 +417,7 @@ export const styles = StyleSheet.create({
       fontWeight: '500',
     },
     
-    // Fare section (14) (BIGGER)
-    cmrFareSection: {
-      flexDirection: 'row',
-      borderBottomWidth: 1,
-      borderBottomColor: '#DC143C',
-      minHeight: 50,
-    },
-    cmrFareLeft: {
-      flex: 2,
-      flexDirection: 'row',
-    },
-    cmrFareRight: {
-      flex: 1,
-      flexDirection: 'row',
-    },
-    cmrCheckboxSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 4,
-    },
-    cmrCheckbox: {
-      borderWidth: 2,
-      borderColor: '#000000',
-      width: 18,
-      height: 18,
-      marginRight: 8,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    cmrCheckboxText: {
-      fontSize: 11,
-      color: '#000000',
-      fontWeight: '500',
-    },
-    cmrCheckMark: {
-      fontSize: 14,
-      color: '#000000',
-      fontWeight: 'bold',
-    },
+    
     
     // Signature section (BIGGER)
     cmrSignatureSection: {
@@ -640,4 +602,538 @@ export const styles = StyleSheet.create({
       fontSize: 16,
       fontWeight: 'bold',
     },
+    // Add these new styles to your existing styles object in styles.js
+
+// Company header styles
+cmrCompanyHeader: {
+  padding: 8,
+  borderBottomWidth: 1,
+  borderBottomColor: '#DC143C',
+  alignItems: 'center',
+},
+cmrCompanyName: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: '#000000',
+  marginBottom: 2,
+},
+cmrCompanyDetails: {
+  fontSize: 10,
+  color: '#000000',
+  textAlign: 'center',
+},
+
+// Enhanced disclaimer
+cmrDisclaimer: {
+  padding: 6,
+  borderTopWidth: 1,
+  borderTopColor: '#DC143C',
+},
+cmrDisclaimerText: {
+  fontSize: 9,
+  color: '#000000',
+  textAlign: 'center',
+  lineHeight: 12,
+},
+
+// Carrier section specific styling
+cmrCarrierSection: {
+  flexDirection: 'row',
+  borderBottomWidth: 1,
+  borderBottomColor: '#DC143C',
+  minHeight: 80,
+},
+cmrCompanyValue: {
+  fontSize: 14,
+  color: '#000000',
+  fontWeight: 'bold',
+  marginBottom: 2,
+},
+cmrVatSection: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 4,
+},
+cmrVehicleSection: {
+  marginTop: 6,
+},
+
+
+
+// Enhanced table header text
+cmrTableHeaderTextSmall: {
+  fontSize: 9,
+  textAlign: 'center',
+  color: '#000000',
+  lineHeight: 11,
+  fontStyle: 'italic',
+},
+
+// Danger section styling
+cmrDangerSection: {
+  flex: 1,
+  padding: 6,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+// Enhanced signature styling
+cmrElectronicSignature: {
+  fontSize: 10,
+  textAlign: 'center',
+  color: '#0066CC',
+  fontWeight: 'bold',
+  marginTop: 4,
+},
+cmrStampArea: {
+  borderWidth: 2,
+  borderColor: '#000000',
+  borderRadius: 20,
+  padding: 8,
+  alignItems: 'center',
+  marginBottom: 8,
+  alignSelf: 'center',
+},
+cmrStampText: {
+  fontSize: 8,
+  color: '#000000',
+  fontWeight: 'bold',
+  textAlign: 'center',
+},
+
+// Update existing payment section for Romanian/German labels
+cmrPaymentLabel: {
+  fontSize: 9,
+  color: '#000000',
+  fontWeight: '600',
+  textAlign: 'left',
+},
+
+// Enhanced content wrapper
+cmrContent: {
+  backgroundColor: '#FFFFFF',
+},
+
+// Make sure these existing styles are properly sized for mobile and web
+cmrContainer: {
+  marginHorizontal: 12,
+  backgroundColor: '#FFFFFF',
+  borderRadius: 0,
+  overflow: 'hidden',
+  borderWidth: 3,
+  borderColor: '#DC143C',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+},
+
+// Ensure proper responsive sizing
+cmrRow: {
+  flexDirection: 'row',
+  borderBottomWidth: 1,
+  borderBottomColor: '#DC143C',
+  minHeight: 50, // Reduced for mobile
+},
+
+cmrCell: {
+  flex: 1,
+  padding: 6, // Reduced padding for mobile
+  justifyContent: 'flex-start',
+},
+
+cmrCellLabel: {
+  fontSize: 11, // Slightly smaller for mobile
+  color: '#000000',
+  marginBottom: 3,
+  fontWeight: '700',
+},
+
+cmrCellLabelSmall: {
+  fontSize: 9, // Adjusted for readability
+  color: '#000000',
+  fontStyle: 'italic',
+  marginBottom: 2,
+  lineHeight: 11,
+},
+
+////////
+// Add these styles to your existing styles object to match the exact photo layout
+
+// Updated header styles to match photo
+cmrHeaderCenter: {
+  flex: 2,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingHorizontal: 10,
+},
+cmrHeaderTitle: {
+  fontSize: 12,
+  fontWeight: 'bold',
+  color: '#000000',
+  textAlign: 'center',
+  lineHeight: 14,
+},
+cmrSmallText: {
+  fontSize: 8,
+  color: '#000000',
+  textAlign: 'center',
+  lineHeight: 10,
+},
+
+// Large row for section 13
+cmrLargeRow: {
+  flexDirection: 'row',
+  borderBottomWidth: 1,
+  borderBottomColor: '#DC143C',
+  minHeight: 80,
+},
+
+// Vehicle details styling
+cmrVehicleDetails: {
+  marginTop: 8,
+  paddingTop: 4,
+  borderTopWidth: 1,
+  borderTopColor: '#CCCCCC',
+},
+
+// Enhanced carrier section
+cmrCarrierSection: {
+  flexDirection: 'row',
+  borderBottomWidth: 1,
+  borderBottomColor: '#DC143C',
+  minHeight: 120,
+},
+
+// Reimbursement row (the black bar in section 15)
+cmrReimbursementRow: {
+  flexDirection: 'row',
+  backgroundColor: '#000000',
+  minHeight: 25,
+},
+cmrReimbursementNumber: {
+  width: 30,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: '#000000',
+},
+cmrReimbursementContent: {
+  flex: 1,
+  justifyContent: 'center',
+  paddingLeft: 10,
+  backgroundColor: '#000000',
+},
+cmrWhiteText: {
+  color: '#FFFFFF',
+  fontSize: 10,
+  fontWeight: 'bold',
+},
+
+// Enhanced signature styling
+cmrSignatureRight: {
+  position: 'absolute',
+  right: 10,
+  top: 10,
+},
+
+// Updated stamp area to match the circular stamp in photo
+cmrStampArea: {
+  borderWidth: 2,
+  borderColor: '#000000',
+  borderRadius: 25,
+  width: 50,
+  height: 50,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginBottom: 8,
+  alignSelf: 'center',
+},
+cmrStampText: {
+  fontSize: 6,
+  color: '#000000',
+  fontWeight: 'bold',
+  textAlign: 'center',
+  lineHeight: 8,
+},
+
+// Enhanced table styles to match photo exactly
+cmrTableData: {
+  flexDirection: 'row',
+  minHeight: 200, // Increased height like in photo
+  borderBottomWidth: 2,
+  borderBottomColor: '#DC143C',
+},
+
+// Class section exact styling
+cmrClassSection: {
+  flex: 1,
+  borderRightWidth: 1,
+  borderRightColor: '#DC143C',
+  padding: 4,
+},
+cmrClassRow: {
+  flexDirection: 'row',
+  marginBottom: 2,
+  alignItems: 'center',
+  flexWrap: 'wrap',
+},
+cmrClassLabel: {
+  fontSize: 8,
+  color: '#000000',
+  width: 30,
+  fontWeight: '600',
+},
+cmrClassBox: {
+  borderWidth: 1,
+  borderColor: '#000000',
+  width: 15,
+  height: 12,
+  marginRight: 4,
+},
+
+// Payment section exact styling to match photo
+cmrPaymentGrid: {
+  borderWidth: 2,
+  borderColor: '#DC143C',
+  marginTop: 4,
+},
+cmrPaymentHeaderRow: {
+  flexDirection: 'row',
+  borderBottomWidth: 1,
+  borderBottomColor: '#DC143C',
+  backgroundColor: '#F8F8F8',
+  minHeight: 25,
+},
+cmrPaymentHeaderCell: {
+  flex: 1,
+  padding: 4,
+  borderRightWidth: 1,
+  borderRightColor: '#DC143C',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+cmrPaymentRow: {
+  flexDirection: 'row',
+  borderBottomWidth: 1,
+  borderBottomColor: '#DC143C',
+  minHeight: 20,
+},
+cmrPaymentCell: {
+  flex: 1,
+  padding: 3,
+  borderRightWidth: 1,
+  borderRightColor: '#DC143C',
+  justifyContent: 'center',
+},
+cmrPaymentLabel: {
+  fontSize: 8,
+  color: '#000000',
+  fontWeight: '600',
+  textAlign: 'left',
+},
+cmrPaymentValue: {
+  fontSize: 9,
+  color: '#000000',
+  textAlign: 'center',
+  fontWeight: '500',
+},
+
+// Enhanced table header to match photo
+cmrTableHeaderCell: {
+  flex: 1,
+  padding: 4,
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRightWidth: 1,
+  borderRightColor: '#DC143C',
+  borderBottomWidth: 2,
+  borderBottomColor: '#DC143C',
+  minHeight: 60,
+},
+cmrTableHeaderNumber: {
+  fontSize: 12,
+  fontWeight: 'bold',
+  color: '#000000',
+  marginBottom: 2,
+},
+cmrTableHeaderText: {
+  fontSize: 9,
+  textAlign: 'center',
+  color: '#000000',
+  lineHeight: 11,
+  fontWeight: '600',
+},
+cmrTableHeaderTextSmall: {
+  fontSize: 8,
+  textAlign: 'center',
+  color: '#000000',
+  lineHeight: 9,
+  fontStyle: 'italic',
+},
+
+// Table data cells
+cmrTableDataCell: {
+  flex: 1,
+  padding: 4,
+  borderRightWidth: 1,
+  borderRightColor: '#DC143C',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+},
+cmrTableCellText: {
+  fontSize: 10,
+  color: '#000000',
+  textAlign: 'center',
+  fontWeight: '500',
+},
+
+// Signature section exact styling
+cmrSignatureSection: {
+  flexDirection: 'row',
+  minHeight: 100,
+},
+cmrSignatureBox: {
+  flex: 1,
+  borderRightWidth: 2,
+  borderRightColor: '#DC143C',
+},
+cmrSignatureHeader: {
+  backgroundColor: '#F8F8F8',
+  padding: 4,
+  alignItems: 'center',
+  borderBottomWidth: 1,
+  borderBottomColor: '#DC143C',
+  minHeight: 25,
+},
+cmrSignatureNumber: {
+  fontWeight: 'bold',
+  fontSize: 14,
+  color: '#000000',
+},
+cmrSignatureContent: {
+  flex: 1,
+  padding: 6,
+  justifyContent: 'space-between',
+},
+cmrSignatureText: {
+  fontSize: 8,
+  textAlign: 'center',
+  color: '#000000',
+  lineHeight: 10,
+  fontWeight: '500',
+  marginBottom: 2,
+},
+cmrElectronicSignature: {
+  fontSize: 8,
+  textAlign: 'center',
+  color: '#0066CC',
+  fontWeight: 'bold',
+  marginTop: 4,
+},
+cmrDateLine: {
+  borderBottomWidth: 1,
+  borderBottomColor: '#000000',
+  marginTop: 10,
+  marginBottom: 2,
+  height: 1,
+},
+
+// Enhanced main container
+cmrContainer: {
+  marginHorizontal: 8,
+  backgroundColor: '#FFFFFF',
+  borderRadius: 0,
+  overflow: 'hidden',
+  borderWidth: 3,
+  borderColor: '#DC143C',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+},
+
+// Responsive adjustments for mobile
+cmrCellLabel: {
+  fontSize: 10,
+  color: '#000000',
+  marginBottom: 2,
+  fontWeight: '700',
+  lineHeight: 12,
+},
+cmrCellLabelSmall: {
+  fontSize: 8,
+  color: '#000000',
+  fontStyle: 'italic',
+  marginBottom: 1,
+  lineHeight: 10,
+},
+cmrCellValue: {
+  fontSize: 11,
+  color: '#000000',
+  lineHeight: 13,
+  fontWeight: '500',
+  marginBottom: 1,
+},
+
+// Company value styling
+cmrCompanyValue: {
+  fontSize: 12,
+  color: '#000000',
+  fontWeight: 'bold',
+  marginBottom: 2,
+},
+
+// Enhanced fare section
+cmrFareSection: {
+  flexDirection: 'row',
+  borderBottomWidth: 1,
+  borderBottomColor: '#DC143C',
+  minHeight: 60,
+},
+cmrFareLeft: {
+  flex: 2,
+  flexDirection: 'row',
+},
+cmrFareRight: {
+  flex: 1,
+  flexDirection: 'row',
+  borderLeftWidth: 1,
+  borderLeftColor: '#DC143C',
+},
+
+// Checkbox styling
+cmrCheckboxSection: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 2,
+},
+cmrCheckbox: {
+  borderWidth: 1,
+  borderColor: '#000000',
+  width: 12,
+  height: 12,
+  marginRight: 4,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+cmrCheckboxText: {
+  fontSize: 9,
+  color: '#000000',
+  fontWeight: '500',
+},
+cmrCheckMark: {
+  fontSize: 10,
+  color: '#000000',
+  fontWeight: 'bold',
+},
+
+// Date section styling
+cmrDateSection: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginTop: 4,
+  alignItems: 'center',
+},
 });

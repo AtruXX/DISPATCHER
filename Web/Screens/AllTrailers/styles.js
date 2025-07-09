@@ -252,4 +252,81 @@ export const styles = StyleSheet.create({
     refreshButton: {
       padding: 8,
     },
+    searchContainer: {
+      paddingHorizontal: 20,
+      paddingBottom: 12,
+      backgroundColor: 'transparent',
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginBottom: 8,
+      shadowColor: '#A7A9AF',
+      shadowOffset: { width: 3, height: 3 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 4,
+    },
+    searchIcon: {
+      marginRight: 12,
+      color: '#5C6BC0',
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 16,
+      color: '#A7A9AF',
+      fontWeight: '400',
+    },
+    clearButton: {
+      padding: 6,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: '#E0E0E0',
+      borderRadius: 4,
+      padding: 4,
+      fontSize: 14,
+      backgroundColor: '#F9F9F9',
+    },
+    editHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%',
+      gap: 8,
+    },
+    actionButtonsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      gap: 10,
+    },
+    actionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 4,
+      gap: 5,
+    },
+    editButton: {
+      backgroundColor: '#4285F4',
+    },
+    saveButton: {
+      backgroundColor: '#34A853',
+    },
+    cancelButton: {
+      backgroundColor: '#EA4335',
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontWeight: '500',
+      fontSize: 14,
+    },
+  
   });

@@ -251,11 +251,10 @@ const fetchCMRData = async (transportId) => {
     </View>
   );
 
- const renderCMRDocument = () => {
-  // Use cmrData from your component state
+ // Updated renderCMRDocument function to match the exact photo layout
+const renderCMRDocument = () => {
   const data = cmrData;
   
-  // FIXED: Add null check to prevent errors
   if (!data) {
     return (
       <View style={styles.cmrContainer}>
@@ -265,191 +264,161 @@ const fetchCMRData = async (transportId) => {
   }
   
   return (
- <View style={styles.cmrContainer}>
-      {/* Header Section */}
+    <View style={styles.cmrContainer}>
+      {/* Header Section - Exactly like photo */}
       <View style={styles.cmrHeaderSection}>
         <View style={styles.cmrHeaderTop}>
           <View style={styles.cmrCopyInfo}>
             <Text style={styles.cmrCopyNumber}>1</Text>
-            <Text style={styles.cmrCopyText}>Copy for sender</Text>
             <Text style={styles.cmrCopyText}>Exemplaire de l'expéditeur</Text>
+            <Text style={styles.cmrCopyText}>Absender (Name, Anschrift, Land)</Text>
+          </View>
+          <View style={styles.cmrHeaderCenter}>
+            <Text style={styles.cmrHeaderTitle}>SCRISOARE DE TRANSPORT INTERNATIONAL</Text>
+            <Text style={styles.cmrHeaderTitle}>INTERNATIONALER FRACHTBRIEF</Text>
+            <Text style={styles.cmrBigText}>CMR</Text>
+            <Text style={styles.cmrSmallText}>ACEST TRANSPORT E SUPUS INDEPENDENT DE</Text>
+            <Text style={styles.cmrSmallText}>ORICE CLAUZA CONTRARA, CONVENTIEI</Text>
+            <Text style={styles.cmrSmallText}>RELATIVE LA CONTRACTUL DE TRANSPORT</Text>
+            <Text style={styles.cmrSmallText}>INTERNATIONAL DE MARFURI PE SOSELE</Text>
+            <Text style={styles.cmrSmallText}>(C.M.R.)</Text>
           </View>
           <View style={styles.cmrHeaderRight}>
-            <View style={styles.cmrHeaderRightLeft}>
-              <Text style={styles.cmrInternationalText}>INTERNATIONAL</Text>
-              <Text style={styles.cmrInternationalText}>CONSIGNMENT NOTE</Text>
-            </View>
-            <View style={styles.cmrHeaderRightCenter}>
-              <Text style={styles.cmrBigText}>CMR</Text>
-            </View>
-            <View style={styles.cmrHeaderRightRight}>
-              <Text style={styles.cmrTransportText}>LETTRE DE VOITURE</Text>
-              <Text style={styles.cmrTransportText}>INTERNATIONALE</Text>
-            </View>
+            <Text style={styles.cmrSmallText}>DIESE BEFÖRDERUNG UNTERLIEGT TROTZ</Text>
+            <Text style={styles.cmrSmallText}>ENTGEGENSTEHENDER ABMACHUNG DEM</Text>
+            <Text style={styles.cmrSmallText}>ÜBEREINKOMMEN ÜBER DEN BEFÖRDERUNGS-</Text>
+            <Text style={styles.cmrSmallText}>VERTRAG IM INTERNATIONALEN STRASSEN-</Text>
+            <Text style={styles.cmrSmallText}>GÜTERVERKEHR (CMR)</Text>
           </View>
         </View>
         
-        {/* Disclaimer text */}
-        <View style={{padding: 6, borderTopWidth: 1, borderTopColor: '#DC143C'}}>
-          <Text style={{fontSize: 9, color: '#000000', textAlign: 'center', lineHeight: 12}}>
-            This transport is subject, notwithstanding any clause to the contrary: • La Convention relative au contrat de{'\n'}
-            transport international de marchandises par route (CMR).
-          </Text>
+        {/* Company Logo/Header Area */}
+        <View style={styles.cmrCompanyHeader}>
+          <Text style={styles.cmrCompanyName}>C&C Logistic</Text>
+          <Text style={styles.cmrCompanyDetails}>e-mail: office@cnclogistic.ro, site: www.cnclogistic.ro</Text>
         </View>
       </View>
 
-      <View style={styles.cmrContent}>
-        {/* Main content area with two columns */}
-        <View style={styles.cmrMainRow}>
-          {/* Left Column */}
-          <View style={styles.cmrLeftColumn}>
-            {/* Section 1 - Sender */}
-            <View style={styles.cmrRow}>
+      {/* Main content area with two columns - Exact layout */}
+      <View style={styles.cmrMainRow}>
+        {/* Left Column */}
+        <View style={styles.cmrLeftColumn}>
+          {/* Section 1 - Expeditor */}
+          <View style={styles.cmrRow}>
+            <View style={styles.cmrNumberCell}>
+              <Text style={styles.cmrCellNumber}>1</Text>
+            </View>
+            <View style={styles.cmrCell}>
+              <Text style={styles.cmrCellLabel}>Expeditor (nume, adresa, țara)</Text>
+              <Text style={styles.cmrCellLabelSmall}>Absender (Name, Anschrift, Land)</Text>
+              <Text style={styles.cmrCellValue}>{data?.expeditor_nume || ''}</Text>
+              <Text style={styles.cmrCellValue}>{data?.expeditor_adresa || ''}</Text>
+              <Text style={styles.cmrCellValue}>{data?.expeditor_tara || ''}</Text>
+            </View>
+          </View>
+
+          {/* Section 2 - Destinatar */}
+          <View style={styles.cmrRow}>
+            <View style={styles.cmrNumberCell}>
+              <Text style={styles.cmrCellNumber}>2</Text>
+            </View>
+            <View style={styles.cmrCell}>
+              <Text style={styles.cmrCellLabel}>Destinatar (nume, adresa, țara)</Text>
+              <Text style={styles.cmrCellLabelSmall}>Empfänger (Name, Anschrift, Land)</Text>
+              <Text style={styles.cmrCellValue}>{data?.destinatar_nume || ''}</Text>
+              <Text style={styles.cmrCellValue}>{data?.destinatar_adresa || ''}</Text>
+              <Text style={styles.cmrCellValue}>{data?.destinatar_tara || ''}</Text>
+            </View>
+          </View>
+
+          {/* Section 3 - Locul prevăzut pentru livrarea mărfii */}
+          <View style={styles.cmrRow}>
+            <View style={styles.cmrNumberCell}>
+              <Text style={styles.cmrCellNumber}>3</Text>
+            </View>
+            <View style={styles.cmrCell}>
+              <Text style={styles.cmrCellLabel}>Locul prevăzut pentru livrarea mărfii</Text>
+              <Text style={styles.cmrCellLabelSmall}>Bestimmungsort des Gutes</Text>
+              <Text style={styles.cmrCellLabelSmall}>Localitatea/Ort</Text>
+              <Text style={styles.cmrCellValue}>{data?.loc_livrare || ''}</Text>
+              <Text style={styles.cmrCellLabelSmall}>Țara/Land</Text>
+              <Text style={styles.cmrCellLabelSmall}>Data/Datum</Text>
+            </View>
+          </View>
+
+          {/* Section 4 - Locul și data încărcării mărfii */}
+          <View style={styles.cmrRow}>
+            <View style={styles.cmrNumberCell}>
+              <Text style={styles.cmrCellNumber}>4</Text>
+            </View>
+            <View style={styles.cmrCell}>
+              <Text style={styles.cmrCellLabel}>Locul și data încărcării mărfii</Text>
+              <Text style={styles.cmrCellLabelSmall}>Ort und Tag der Übernahme des Gutes</Text>
+              <Text style={styles.cmrCellLabelSmall}>Țara/Land</Text>
+              <Text style={styles.cmrCellValue}>{data?.loc_incarcare || ''}</Text>
+              <Text style={styles.cmrCellLabelSmall}>Data/Datum</Text>
+              <Text style={styles.cmrCellValue}>{data?.data_incarcare || ''}</Text>
+            </View>
+          </View>
+
+          {/* Section 5 - Documente anexate */}
+          <View style={styles.cmrRow}>
+            <View style={styles.cmrNumberCell}>
+              <Text style={styles.cmrCellNumber}>5</Text>
+            </View>
+            <View style={styles.cmrCell}>
+              <Text style={styles.cmrCellLabel}>Documente anexate</Text>
+              <Text style={styles.cmrCellLabelSmall}>Beigefügte Dokumente</Text>
+            </View>
+          </View>
+
+          {/* Section 13 - Instrucțiunile expeditorului */}
+          <View style={styles.cmrLargeRow}>
+            <View style={styles.cmrNumberCell}>
+              <Text style={styles.cmrCellNumber}>13</Text>
+            </View>
+            <View style={styles.cmrCell}>
+              <Text style={styles.cmrCellLabel}>Instrucțiunile expeditorului (formalități vamă și oficiale)</Text>
+              <Text style={styles.cmrCellLabelSmall}>Anweisungen des Absenders (Zoll-und sonstige Behandlung)</Text>
+              <Text style={styles.cmrCellValue}>{data?.instructiuni_expeditor || ''}</Text>
+            </View>
+          </View>
+
+          {/* Section 14 & 21 - Combined row */}
+          <View style={styles.cmrFareSection}>
+            <View style={styles.cmrFareLeft}>
               <View style={styles.cmrNumberCell}>
-                <Text style={styles.cmrCellNumber}>1</Text>
+                <Text style={styles.cmrCellNumber}>14</Text>
               </View>
               <View style={styles.cmrCell}>
-                <Text style={styles.cmrCellLabel}>Sender (name, address, country)</Text>
-                <Text style={styles.cmrCellLabelSmall}>Expéditeur (nom, adresse, pays)</Text>
-                <Text style={styles.cmrCellValue}>{data?.expeditor_nume || ''}</Text>
-                <Text style={styles.cmrCellValue}>{data?.expeditor_adresa || ''}</Text>
-                <Text style={styles.cmrCellValue}>{data?.expeditor_tara || ''}</Text>
-                <View style={styles.cmrCountrySection}>
-                  <Text style={styles.cmrCountryLabel}>1 a) Country</Text>
-                  <View style={styles.cmrCountryBox}>
-                    <Text style={styles.cmrCountryText}></Text>
+                <Text style={styles.cmrCellLabel}>Prescripții de francare</Text>
+                <Text style={styles.cmrCellLabelSmall}>Frachtahlungsanweisungen</Text>
+                <View style={styles.cmrCheckboxSection}>
+                  <View style={styles.cmrCheckbox}></View>
+                  <Text style={styles.cmrCheckboxText}>Franco/Frei</Text>
+                </View>
+                <View style={styles.cmrCheckboxSection}>
+                  <View style={styles.cmrCheckbox}>
+                    <Text style={styles.cmrCheckMark}>X</Text>
                   </View>
+                  <Text style={styles.cmrCheckboxText}>Non franco/Unfrei</Text>
                 </View>
               </View>
             </View>
-
-            {/* Section 2 - Consignee */}
-            <View style={styles.cmrRow}>
-              <View style={styles.cmrNumberCell}>
-                <Text style={styles.cmrCellNumber}>2</Text>
-              </View>
-              <View style={styles.cmrCell}>
-                <Text style={styles.cmrCellLabel}>Consignee (name, address, country)</Text>
-                <Text style={styles.cmrCellLabelSmall}>Destinataire (nom, adresse, pays)</Text>
-                <Text style={styles.cmrCellValue}>{data?.destinatar_nume || ''}</Text>
-                <Text style={styles.cmrCellValue}>{data?.destinatar_adresa || ''}</Text>
-                <Text style={styles.cmrCellValue}>{data?.destinatar_tara || ''}</Text>
-                <View style={styles.cmrCountrySection}>
-                  <Text style={styles.cmrCountryLabel}>2 a) Country</Text>
-                  <View style={styles.cmrCountryBox}>
-                    <Text style={styles.cmrCountryText}></Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            {/* Section 3 - Place of delivery */}
-            <View style={styles.cmrRow}>
-              <View style={styles.cmrNumberCell}>
-                <Text style={styles.cmrCellNumber}>3</Text>
-              </View>
-              <View style={styles.cmrCell}>
-                <Text style={styles.cmrCellLabel}>Place of delivery of the goods (city, country)</Text>
-                <Text style={styles.cmrCellLabelSmall}>Lieu prévu pour la livraison de la marchandise (lieu, pays)</Text>
-                <Text style={styles.cmrCellValue}>{data?.loc_livrare || ''}</Text>
-                <View style={styles.cmrCountrySection}>
-                  <Text style={styles.cmrCountryLabel}>3 a) km to border</Text>
-                  <View style={styles.cmrCountryBox}>
-                    <Text style={styles.cmrCountryText}></Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            {/* Section 4 - Place and date of taking over */}
-            <View style={styles.cmrRow}>
-              <View style={styles.cmrNumberCell}>
-                <Text style={styles.cmrCellNumber}>4</Text>
-              </View>
-              <View style={styles.cmrCell}>
-                <Text style={styles.cmrCellLabel}>Place and date of taking over of the goods (city, country, date)</Text>
-                <Text style={styles.cmrCellLabelSmall}>Lieu et date de la prise en charge de la marchandise (lieu, pays, date)</Text>
-                <Text style={styles.cmrCellValue}>{data?.loc_incarcare || ''}, {data?.data_incarcare || ''}</Text>
-                <View style={styles.cmrCountrySection}>
-                  <Text style={styles.cmrCountryLabel}>4 a) km to border</Text>
-                  <View style={styles.cmrCountryBox}>
-                    <Text style={styles.cmrCountryText}></Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            {/* Section 5 - Documents attached */}
-            <View style={styles.cmrRow}>
-              <View style={styles.cmrNumberCell}>
-                <Text style={styles.cmrCellNumber}>5</Text>
-              </View>
-              <View style={styles.cmrCell}>
-                <Text style={styles.cmrCellLabel}>Documents attached</Text>
-                <Text style={styles.cmrCellLabelSmall}>Documents annexés</Text>
-                <Text style={styles.cmrCellValue}></Text>
-              </View>
-            </View>
-
-            {/* Sections 13, 14, 21, 22 at bottom */}
-            <View style={styles.cmrRow}>
-              <View style={styles.cmrNumberCell}>
-                <Text style={styles.cmrCellNumber}>13</Text>
-              </View>
-              <View style={styles.cmrCell}>
-                <Text style={styles.cmrCellLabel}>Sender's instructions (for customs and other procedures)</Text>
-                <Text style={styles.cmrCellLabelSmall}>Instructions de l'expéditeur</Text>
-                <Text style={styles.cmrCellValue}>{data?.instructiuni_expeditor || ''}</Text>
-              </View>
-            </View>
-
-            <View style={styles.cmrFareSection}>
-              <View style={styles.cmrFareLeft}>
-                <View style={styles.cmrNumberCell}>
-                  <Text style={styles.cmrCellNumber}>14</Text>
-                </View>
-                <View style={styles.cmrCell}>
-                  <Text style={styles.cmrCellLabel}>Fare is payed by</Text>
-                  <Text style={styles.cmrCellLabelSmall}>Prescriptions d'affranchissement</Text>
-                  <View style={styles.cmrCheckboxSection}>
-                    <View style={styles.cmrCheckbox}>
-                      <Text style={styles.cmrCheckMark}></Text>
-                    </View>
-                    <Text style={styles.cmrCheckboxText}>sender / franco</Text>
-                  </View>
-                  <View style={styles.cmrCheckboxSection}>
-                    <View style={styles.cmrCheckbox}>
-                      <Text style={styles.cmrCheckMark}>X</Text>
-                    </View>
-                    <Text style={styles.cmrCheckboxText}>consignee / non franco</Text>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.cmrFareRight}>
-                <View style={styles.cmrNumberCell}>
-                  <Text style={styles.cmrCellNumber}>15</Text>
-                </View>
-                <View style={styles.cmrCell}>
-                  <Text style={styles.cmrCellLabel}>Reimbursement</Text>
-                  <Text style={styles.cmrCellLabelSmall}>Remboursement</Text>
-                  <Text style={styles.cmrCellValue}>{data?.rambursare || ''}</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.cmrRow}>
+            <View style={styles.cmrFareRight}>
               <View style={styles.cmrNumberCell}>
                 <Text style={styles.cmrCellNumber}>21</Text>
               </View>
               <View style={styles.cmrCell}>
-                <Text style={styles.cmrCellLabel}>Established in (city)</Text>
-                <Text style={styles.cmrCellLabelSmall}>Etabli à (lieu)</Text>
+                <Text style={styles.cmrCellLabel}>Încheiat la</Text>
+                <Text style={styles.cmrCellLabelSmall}>Ausgefertigt in</Text>
                 <Text style={styles.cmrCellValue}>
                   {data?.incheiat_la && typeof data.incheiat_la === 'object' ? 
                     `${data.incheiat_la?.locatie || ''}` : ''}
                 </Text>
-                <View style={{flexDirection: 'row', justifyContent: 'space-between', marginTop: 5}}>
-                  <Text style={styles.cmrCellLabelSmall}>Day</Text>
+                <View style={styles.cmrDateSection}>
+                  <Text style={styles.cmrCellLabelSmall}>Data</Text>
+                  <Text style={styles.cmrCellLabelSmall}>Datum</Text>
                   <Text style={styles.cmrCellValue}>
                     {data?.incheiat_la && typeof data.incheiat_la === 'object' ? 
                       `${data.incheiat_la?.data || ''}` : ''}
@@ -458,341 +427,327 @@ const fetchCMRData = async (transportId) => {
               </View>
             </View>
           </View>
+        </View>
 
-          {/* Right Column */}
-          <View style={styles.cmrRightColumn}>
-            {/* Section 16 - Carrier */}
-            <View style={styles.cmrRow}>
-              <View style={styles.cmrNumberCell}>
-                <Text style={styles.cmrCellNumber}>16</Text>
-              </View>
-              <View style={styles.cmrCell}>
-                <Text style={styles.cmrCellLabel}>Carrier (name, address, country)</Text>
-                <Text style={styles.cmrCellLabelSmall}>Transporteur (nom, adresse, pays)</Text>
-                <Text style={styles.cmrCellValue}>{data?.transportator || 'C&C Logistic SRL'}</Text>
-                <View style={styles.cmrCountrySection}>
-                  <Text style={styles.cmrCountryLabel}>16 a) Vat Id</Text>
-                  <View style={[styles.cmrCountryBox, {width: 60}]}>
-                    <Text style={styles.cmrCountryText}></Text>
-                  </View>
-                </View>
-                <View style={{marginTop: 5}}>
-                  <Text style={styles.cmrCellLabelSmall}>Vehicle reg. num.</Text>
-                  <Text style={styles.cmrCellLabelSmall}>Num. du véh.</Text>
-                  <Text style={styles.cmrCellLabelSmall}>and trail. reg.</Text>
-                  <Text style={styles.cmrCellLabelSmall}>et les remorq.</Text>
-                </View>
+        {/* Right Column */}
+        <View style={styles.cmrRightColumn}>
+          {/* Section 16 - Transportator */}
+          <View style={styles.cmrCarrierSection}>
+            <View style={styles.cmrNumberCell}>
+              <Text style={styles.cmrCellNumber}>16</Text>
+            </View>
+            <View style={styles.cmrCell}>
+              <Text style={styles.cmrCellLabel}>Transportator</Text>
+              <Text style={styles.cmrCellLabelSmall}>Frachtführer</Text>
+              <Text style={styles.cmrCompanyValue}>SC C&C LOGISTIC SRL</Text>
+              <Text style={styles.cmrCellValue}>Str. Mareșal Ion Antonescu nr. 6, ap. 131, Cluj-Napoca</Text>
+              <Text style={styles.cmrCellValue}>România</Text>
+              <View style={styles.cmrVehicleDetails}>
+                <Text style={styles.cmrCellLabelSmall}>Autovehicul: marca _________ Tone _______</Text>
+                <Text style={styles.cmrCellLabelSmall}>Număr circulație _________________</Text>
+                <Text style={styles.cmrCellLabelSmall}>Remorci: 1 ____________________</Text>
+                <Text style={styles.cmrCellLabelSmall}>2 ____________________________</Text>
               </View>
             </View>
+          </View>
 
-            {/* Section 17 - Successive carrier */}
-            <View style={styles.cmrRow}>
-              <View style={styles.cmrNumberCell}>
-                <Text style={styles.cmrCellNumber}>17</Text>
+          {/* Section 17 - Transportatori succesivi */}
+          <View style={styles.cmrRow}>
+            <View style={styles.cmrNumberCell}>
+              <Text style={styles.cmrCellNumber}>17</Text>
+            </View>
+            <View style={styles.cmrCell}>
+              <Text style={styles.cmrCellLabel}>Transportatori succesivi (nume, adresă, țară)</Text>
+              <Text style={styles.cmrCellLabelSmall}>Nachfolgende Frachtführer (Name, Anschrift, Land)</Text>
+            </View>
+          </View>
+
+          {/* Section 18 - Rezerve și observații ale transportatorilor */}
+          <View style={styles.cmrRow}>
+            <View style={styles.cmrNumberCell}>
+              <Text style={styles.cmrCellNumber}>18</Text>
+            </View>
+            <View style={styles.cmrCell}>
+              <Text style={styles.cmrCellLabel}>Rezerve și observații ale transportatorilor</Text>
+              <Text style={styles.cmrCellLabelSmall}>Vorbehalte und Bemerkungen der Frachtführer</Text>
+              <Text style={styles.cmrCellValue}>{data?.rezerve_observatii || ''}</Text>
+            </View>
+          </View>
+
+          {/* Section 19 - Convenții speciale */}
+          <View style={styles.cmrRow}>
+            <View style={styles.cmrNumberCell}>
+              <Text style={styles.cmrCellNumber}>19</Text>
+            </View>
+            <View style={styles.cmrCell}>
+              <Text style={styles.cmrCellLabel}>Convenții speciale</Text>
+              <Text style={styles.cmrCellLabelSmall}>Besondere Vereinbarungen</Text>
+              <Text style={styles.cmrCellValue}>{data?.conventii_speciale || ''}</Text>
+            </View>
+          </View>
+
+          {/* Section 20 - De plată - EXACT like photo */}
+          <View style={styles.cmrPaymentSection}>
+            <View style={styles.cmrPaymentHeader}>
+              <View style={styles.cmrPaymentNumber}>
+                <Text style={styles.cmrCellNumber}>20</Text>
               </View>
-              <View style={styles.cmrCell}>
-                <Text style={styles.cmrCellLabel}>Successive carrier (name, address, country)</Text>
-                <Text style={styles.cmrCellLabelSmall}>Transporteur successifs (nom, adresse, pays)</Text>
-                <Text style={styles.cmrCellValue}>{data?.transportatori_succesivi || ''}</Text>
-                <View style={{marginTop: 5}}>
-                  <Text style={styles.cmrCellLabelSmall}>Vehicle reg. num.</Text>
-                  <Text style={styles.cmrCellLabelSmall}>Num. du véh.</Text>
-                  <Text style={styles.cmrCellLabelSmall}>and trail. reg.</Text>
-                  <Text style={styles.cmrCellLabelSmall}>et les remorq.</Text>
+              <View style={styles.cmrPaymentTitle}>
+                <Text style={styles.cmrCellLabel}>De plată</Text>
+                <Text style={styles.cmrCellLabelSmall}>Zu zahlen von</Text>
+              </View>
+            </View>
+            
+            <View style={styles.cmrPaymentGrid}>
+              {/* Header row */}
+              <View style={styles.cmrPaymentHeaderRow}>
+                <View style={styles.cmrPaymentHeaderCell}>
+                  <Text style={styles.cmrCellLabelSmall}>Expeditor</Text>
+                  <Text style={styles.cmrCellLabelSmall}>Absender</Text>
                 </View>
-              </View>
-            </View>
-
-            {/* Section 18 - Carrier's reservation */}
-            <View style={styles.cmrRow}>
-              <View style={styles.cmrNumberCell}>
-                <Text style={styles.cmrCellNumber}>18</Text>
-              </View>
-              <View style={styles.cmrCell}>
-                <Text style={styles.cmrCellLabel}>Carrier's reservation and observations</Text>
-                <Text style={styles.cmrCellLabelSmall}>Réserves et observations du transporteur</Text>
-                <Text style={styles.cmrCellValue}>{data?.rezerve_observatii || ''}</Text>
-              </View>
-            </View>
-
-            {/* Section 19 - Special agreements */}
-            <View style={styles.cmrRow}>
-              <View style={styles.cmrNumberCell}>
-                <Text style={styles.cmrCellNumber}>19</Text>
-              </View>
-              <View style={styles.cmrCell}>
-                <Text style={styles.cmrCellLabel}>Special agreements</Text>
-                <Text style={styles.cmrCellLabelSmall}>Conventions particulières</Text>
-                <Text style={styles.cmrCellValue}>{data?.conventii_speciale || ''}</Text>
-              </View>
-            </View>
-
-            {/* Section 20 - Payment */}
-            <View style={styles.cmrPaymentSection}>
-              <View style={styles.cmrPaymentHeader}>
-                <View style={styles.cmrPaymentNumber}>
-                  <Text style={styles.cmrCellNumber}>20</Text>
+                <View style={styles.cmrPaymentHeaderCell}>
+                  <Text style={styles.cmrCellLabelSmall}>Valuta</Text>
                 </View>
-                <View style={styles.cmrPaymentTitle}>
-                  <Text style={styles.cmrCellLabel}>To be paid by</Text>
-                  <Text style={styles.cmrCellLabelSmall}>A payer par</Text>
+                <View style={styles.cmrPaymentHeaderCell}>
+                  <Text style={styles.cmrCellLabelSmall}>Destinatar</Text>
                 </View>
               </View>
               
-              <View style={styles.cmrPaymentGrid}>
-                <View style={styles.cmrPaymentHeaderRow}>
-                  <View style={styles.cmrPaymentHeaderCell}>
-                    <Text style={styles.cmrCellLabelSmall}>Sender</Text>
-                    <Text style={styles.cmrCellLabelSmall}>Expéditeur</Text>
-                  </View>
-                  <View style={styles.cmrPaymentHeaderCell}>
-                    <Text style={styles.cmrCellLabelSmall}>Currency</Text>
-                    <Text style={styles.cmrCellLabelSmall}>Monnaie</Text>
-                  </View>
-                  <View style={styles.cmrPaymentHeaderCell}>
-                    <Text style={styles.cmrCellLabelSmall}>Consignee</Text>
-                    <Text style={styles.cmrCellLabelSmall}>Le destinataire</Text>
-                  </View>
+              {/* Payment rows - EXACT German/Romanian labels */}
+              <View style={styles.cmrPaymentRow}>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentLabel}>Preț transport/Fracht</Text>
                 </View>
-                
-                <View style={styles.cmrPaymentRow}>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentLabel}>Transport price</Text>
-                    <Text style={styles.cmrCellLabelSmall}>Prix de transport</Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}>EUR</Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}>{data?.de_plata?.pret_transport || ''}</Text>
-                  </View>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentValue}>EUR</Text>
                 </View>
-                
-                <View style={styles.cmrPaymentRow}>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentLabel}>Discount</Text>
-                    <Text style={styles.cmrCellLabelSmall}>Réductions</Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}></Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}>{data?.de_plata?.reduceri || ''}</Text>
-                  </View>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentValue}>{data?.de_plata?.pret_transport || ''}</Text>
                 </View>
-                
-                <View style={styles.cmrPaymentRow}>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentLabel}>Charges</Text>
-                    <Text style={styles.cmrCellLabelSmall}>Solde</Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}></Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}>{data?.de_plata?.sold || ''}</Text>
-                  </View>
+              </View>
+              
+              <View style={styles.cmrPaymentRow}>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentLabel}>Reduceri/Ermäßigungen</Text>
                 </View>
-                
-                <View style={styles.cmrPaymentRow}>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentLabel}>Supplements</Text>
-                    <Text style={styles.cmrCellLabelSmall}>Suppléments</Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}></Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}>{data?.de_plata?.suplimente || ''}</Text>
-                  </View>
+                <View style={styles.cmrPaymentCell}></View>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentValue}>{data?.de_plata?.reduceri || ''}</Text>
                 </View>
-                
-                <View style={styles.cmrPaymentRow}>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentLabel}>Additional costs</Text>
-                    <Text style={styles.cmrCellLabelSmall}>Frais accessoires</Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}></Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}>{data?.de_plata?.alte_cheltuieli || ''}</Text>
-                  </View>
+              </View>
+              
+              <View style={styles.cmrPaymentRow}>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentLabel}>Sold/Zwischensumme</Text>
                 </View>
-                
-                <View style={styles.cmrPaymentRow}>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentLabel}>TOTAL</Text>
-                    <Text style={styles.cmrCellLabelSmall}>Le / Au</Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}></Text>
-                  </View>
-                  <View style={styles.cmrPaymentCell}>
-                    <Text style={styles.cmrPaymentValue}>{data?.de_plata?.total || ''}</Text>
-                  </View>
+                <View style={styles.cmrPaymentCell}></View>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentValue}>{data?.de_plata?.sold || ''}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.cmrPaymentRow}>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentLabel}>Sporuri/Zuschläge</Text>
+                </View>
+                <View style={styles.cmrPaymentCell}></View>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentValue}>{data?.de_plata?.suplimente || ''}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.cmrPaymentRow}>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentLabel}>Accesori/Nebengebühren</Text>
+                </View>
+                <View style={styles.cmrPaymentCell}></View>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentValue}>{data?.de_plata?.alte_cheltuieli || ''}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.cmrPaymentRow}>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentLabel}>Diverse/Sonstiges</Text>
+                </View>
+                <View style={styles.cmrPaymentCell}></View>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentValue}></Text>
+                </View>
+              </View>
+              
+              <View style={styles.cmrPaymentRow}>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentLabel}>Total de plată</Text>
+                  <Text style={styles.cmrCellLabelSmall}>Zu zahlende Gesamtsumme</Text>
+                </View>
+                <View style={styles.cmrPaymentCell}></View>
+                <View style={styles.cmrPaymentCell}>
+                  <Text style={styles.cmrPaymentValue}>{data?.de_plata?.total || ''}</Text>
+                </View>
+              </View>
+
+              {/* Section 15 - Rambursare - in the black bar */}
+              <View style={styles.cmrReimbursementRow}>
+                <View style={styles.cmrReimbursementNumber}>
+                  <Text style={styles.cmrWhiteText}>15</Text>
+                </View>
+                <View style={styles.cmrReimbursementContent}>
+                  <Text style={styles.cmrWhiteText}>Rambursare</Text>
+                  <Text style={styles.cmrWhiteText}>Rückerstattung</Text>
                 </View>
               </View>
             </View>
           </View>
         </View>
+      </View>
 
-        {/* Table Section - Cargo details (6-12) */}
-        <View style={styles.cmrTableSection}>
-          <View style={styles.cmrTableHeader}>
-            <View style={styles.cmrTableHeaderCell}>
-              <Text style={styles.cmrTableHeaderNumber}>6</Text>
-              <Text style={styles.cmrTableHeaderText}>Marks and No's</Text>
-              <Text style={styles.cmrTableHeaderText}>Marques et</Text>
-              <Text style={styles.cmrTableHeaderText}>numéros</Text>
-            </View>
-            <View style={styles.cmrTableHeaderCell}>
-              <Text style={styles.cmrTableHeaderNumber}>7</Text>
-              <Text style={styles.cmrTableHeaderText}>Number of</Text>
-              <Text style={styles.cmrTableHeaderText}>packages</Text>
-              <Text style={styles.cmrTableHeaderText}>Nombre des</Text>
-              <Text style={styles.cmrTableHeaderText}>colis</Text>
-            </View>
-            <View style={styles.cmrTableHeaderCell}>
-              <Text style={styles.cmrTableHeaderNumber}>8</Text>
-              <Text style={styles.cmrTableHeaderText}>Method of</Text>
-              <Text style={styles.cmrTableHeaderText}>packing</Text>
-              <Text style={styles.cmrTableHeaderText}>Mode de</Text>
-              <Text style={styles.cmrTableHeaderText}>l'emballage</Text>
-            </View>
-            <View style={styles.cmrTableHeaderCell}>
-              <Text style={styles.cmrTableHeaderNumber}>9</Text>
-              <Text style={styles.cmrTableHeaderText}>Nature of the goods</Text>
-              <Text style={styles.cmrTableHeaderText}>Nature de la</Text>
-              <Text style={styles.cmrTableHeaderText}>marchandise</Text>
-            </View>
-            <View style={styles.cmrTableHeaderCell}>
-              <Text style={styles.cmrTableHeaderNumber}>10</Text>
-              <Text style={styles.cmrTableHeaderText}>Numero de tarif</Text>
-              <Text style={styles.cmrTableHeaderText}>No. de tarif</Text>
-            </View>
-            <View style={styles.cmrTableHeaderCell}>
-              <Text style={styles.cmrTableHeaderNumber}>11</Text>
-              <Text style={styles.cmrTableHeaderText}>Gross weight (kg)</Text>
-              <Text style={styles.cmrTableHeaderText}>Poids brut (kg)</Text>
-            </View>
-            <View style={styles.cmrTableHeaderCell}>
-              <Text style={styles.cmrTableHeaderNumber}>12</Text>
-              <Text style={styles.cmrTableHeaderText}>Volume m³</Text>
-              <Text style={styles.cmrTableHeaderText}>Cubage en</Text>
-            </View>
+      {/* Table Section - Cargo details (6-12) - EXACT labels */}
+      <View style={styles.cmrTableSection}>
+        <View style={styles.cmrTableHeader}>
+          <View style={styles.cmrTableHeaderCell}>
+            <Text style={styles.cmrTableHeaderNumber}>6</Text>
+            <Text style={styles.cmrTableHeaderText}>Mărci și numere</Text>
+            <Text style={styles.cmrTableHeaderTextSmall}>Marken und Nummern</Text>
           </View>
-          
-          <View style={styles.cmrTableData}>
-            <View style={styles.cmrTableDataCell}>
-              <Text style={styles.cmrTableCellText}>{data?.marci_numere || ''}</Text>
-            </View>
-            <View style={styles.cmrTableDataCell}>
-              <Text style={styles.cmrTableCellText}>{data?.numar_colete || ''}</Text>
-            </View>
-            <View style={styles.cmrTableDataCell}>
-              <Text style={styles.cmrTableCellText}>{data?.mod_ambalare || ''}</Text>
-            </View>
-            <View style={styles.cmrTableDataCell}>
-              <Text style={styles.cmrTableCellText}>{data?.natura_marfii || ''}</Text>
-            </View>
-            <View style={styles.cmrTableDataCell}>
-              <Text style={styles.cmrTableCellText}>{data?.nr_static || ''}</Text>
-            </View>
-            <View style={styles.cmrTableDataCell}>
-              <Text style={styles.cmrTableCellText}>{data?.greutate_bruta || ''}</Text>
-            </View>
-            <View style={styles.cmrTableDataCell}>
-              <Text style={styles.cmrTableCellText}>{data?.cubaj || ''}</Text>
-            </View>
+          <View style={styles.cmrTableHeaderCell}>
+            <Text style={styles.cmrTableHeaderNumber}>7</Text>
+            <Text style={styles.cmrTableHeaderText}>Nr. de colete</Text>
+            <Text style={styles.cmrTableHeaderTextSmall}>Anzahl der Packstücke</Text>
           </View>
-          
-          {/* Class and danger goods section */}
-          <View style={styles.cmrTableBottomSection}>
-            <View style={styles.cmrClassSection}>
-              <View style={styles.cmrClassRow}>
-                <Text style={styles.cmrClassLabel}>Class</Text>
-                <View style={styles.cmrClassBox}></View>
-                <Text style={styles.cmrClassLabel}>Number</Text>
-                <View style={styles.cmrClassBox}></View>
-                <Text style={styles.cmrClassLabel}>Letter</Text>
-                <View style={styles.cmrClassBox}></View>
-                <Text style={styles.cmrClassLabel}>ADR 8.5</Text>
-              </View>
-              <View style={styles.cmrClassRow}>
-                <Text style={styles.cmrClassLabel}>Classe</Text>
-                <View style={styles.cmrClassBox}></View>
-                <Text style={styles.cmrClassLabel}>Chiffre</Text>
-                <View style={styles.cmrClassBox}></View>
-                <Text style={styles.cmrClassLabel}>Lettre</Text>
-                <View style={styles.cmrClassBox}></View>
-              </View>
-              <View style={styles.cmrClassRow}>
-                <Text style={styles.cmrClassLabel}>Class</Text>
-                <View style={styles.cmrClassBox}></View>
-                <Text style={styles.cmrClassLabel}>Number</Text>
-                <View style={styles.cmrClassBox}></View>
-                <Text style={styles.cmrClassLabel}>Letter</Text>
-                <View style={styles.cmrClassBox}></View>
-                <Text style={styles.cmrClassLabel}>ADR 8.5</Text>
-              </View>
+          <View style={styles.cmrTableHeaderCell}>
+            <Text style={styles.cmrTableHeaderNumber}>8</Text>
+            <Text style={styles.cmrTableHeaderText}>Mod de ambalare</Text>
+            <Text style={styles.cmrTableHeaderTextSmall}>Art der Verpackung</Text>
+          </View>
+          <View style={styles.cmrTableHeaderCell}>
+            <Text style={styles.cmrTableHeaderNumber}>9</Text>
+            <Text style={styles.cmrTableHeaderText}>Natura mărfii</Text>
+            <Text style={styles.cmrTableHeaderTextSmall}>Bezeichnung des Gutes</Text>
+          </View>
+          <View style={styles.cmrTableHeaderCell}>
+            <Text style={styles.cmrTableHeaderNumber}>10</Text>
+            <Text style={styles.cmrTableHeaderText}>Nr. statistic</Text>
+            <Text style={styles.cmrTableHeaderTextSmall}>Statistic-nummer</Text>
+          </View>
+          <View style={styles.cmrTableHeaderCell}>
+            <Text style={styles.cmrTableHeaderNumber}>11</Text>
+            <Text style={styles.cmrTableHeaderText}>Greutatea brută kg</Text>
+            <Text style={styles.cmrTableHeaderTextSmall}>Bruttogewicht kg</Text>
+          </View>
+          <View style={styles.cmrTableHeaderCell}>
+            <Text style={styles.cmrTableHeaderNumber}>12</Text>
+            <Text style={styles.cmrTableHeaderText}>Cubaj</Text>
+            <Text style={styles.cmrTableHeaderTextSmall}>Umfang in m³</Text>
+          </View>
+        </View>
+        
+        {/* Table data rows */}
+        <View style={styles.cmrTableData}>
+          <View style={styles.cmrTableDataCell}>
+            <Text style={styles.cmrTableCellText}>{data?.marci_numere || ''}</Text>
+          </View>
+          <View style={styles.cmrTableDataCell}>
+            <Text style={styles.cmrTableCellText}>{data?.numar_colete || ''}</Text>
+          </View>
+          <View style={styles.cmrTableDataCell}>
+            <Text style={styles.cmrTableCellText}>{data?.mod_ambalare || ''}</Text>
+          </View>
+          <View style={styles.cmrTableDataCell}>
+            <Text style={styles.cmrTableCellText}>{data?.natura_marfii || ''}</Text>
+          </View>
+          <View style={styles.cmrTableDataCell}>
+            <Text style={styles.cmrTableCellText}>{data?.nr_static || ''}</Text>
+          </View>
+          <View style={styles.cmrTableDataCell}>
+            <Text style={styles.cmrTableCellText}>{data?.greutate_bruta || ''}</Text>
+          </View>
+          <View style={styles.cmrTableDataCell}>
+            <Text style={styles.cmrTableCellText}>{data?.cubaj || ''}</Text>
+          </View>
+        </View>
+        
+        {/* ADR Section - EXACT layout */}
+        <View style={styles.cmrTableBottomSection}>
+          <View style={styles.cmrClassSection}>
+            <View style={styles.cmrClassRow}>
+              <Text style={styles.cmrClassLabel}>Class</Text>
+              <View style={styles.cmrClassBox}></View>
+              <Text style={styles.cmrClassLabel}>Cifră</Text>
+              <View style={styles.cmrClassBox}></View>
+              <Text style={styles.cmrClassLabel}>Literă</Text>
+              <View style={styles.cmrClassBox}></View>
+              <Text style={styles.cmrClassLabel}>(ADR*)</Text>
             </View>
-            <View style={styles.cmrClassSection}>
-              <Text style={styles.cmrCellLabelSmall}>danger      substance</Text>
+            <View style={styles.cmrClassRow}>
+              <Text style={styles.cmrClassLabel}>Clase</Text>
+              <View style={styles.cmrClassBox}></View>
+              <Text style={styles.cmrClassLabel}>Ziffer</Text>
+              <View style={styles.cmrClassBox}></View>
+              <Text style={styles.cmrClassLabel}>Buchstabe</Text>
+              <View style={styles.cmrClassBox}></View>
             </View>
           </View>
         </View>
+      </View>
 
-        {/* Signature Section */}
-        <View style={styles.cmrSignatureSection}>
-          <View style={styles.cmrSignatureBox}>
-            <View style={styles.cmrSignatureHeader}>
-              <Text style={styles.cmrSignatureNumber}>22</Text>
-            </View>
-            <View style={styles.cmrSignatureContent}>
-              <Text style={styles.cmrSignatureText}>Signature and stamp of the sender</Text>
-              <Text style={styles.cmrSignatureText}>Signature et timbre de l'expéditeur</Text>
-              {data?.semnatura_expeditor === "signed-electronically" && (
-                <Text style={styles.cmrSignatureText}>Semnat electronic</Text>
-              )}
-            </View>
+      {/* Signature Section - EXACT layout like photo */}
+      <View style={styles.cmrSignatureSection}>
+        <View style={styles.cmrSignatureBox}>
+          <View style={styles.cmrSignatureHeader}>
+            <Text style={styles.cmrSignatureNumber}>22</Text>
           </View>
-          
-          <View style={styles.cmrSignatureBox}>
-            <View style={styles.cmrSignatureHeader}>
-              <Text style={styles.cmrSignatureNumber}>23</Text>
-            </View>
-            <View style={styles.cmrSignatureContent}>
-              <Text style={styles.cmrSignatureText}>Signature and stamp of the carrier</Text>
-              <Text style={styles.cmrSignatureText}>Signature et timbre du transporteur</Text>
-              {data?.semnatura_transportator === "signed-electronically" && (
-                <Text style={styles.cmrSignatureText}>Semnat electronic</Text>
-              )}
-            </View>
+          <View style={styles.cmrSignatureContent}>
+            <Text style={styles.cmrSignatureText}>Semnătura și ștampila expeditorului:</Text>
+            <Text style={styles.cmrSignatureText}>Unterschrift und Stempel des Absenders</Text>
+            {data?.semnatura_expeditor === "signed-electronically" && (
+              <Text style={styles.cmrElectronicSignature}>Semnat electronic</Text>
+            )}
           </View>
-          
-          <View style={styles.cmrSignatureBox}>
-            <View style={styles.cmrSignatureHeader}>
-              <Text style={styles.cmrSignatureNumber}>24</Text>
+        </View>
+        
+        <View style={styles.cmrSignatureBox}>
+          <View style={styles.cmrSignatureHeader}>
+            <Text style={styles.cmrSignatureNumber}>23</Text>
+          </View>
+          <View style={styles.cmrSignatureContent}>
+            <View style={styles.cmrStampArea}>
+              <Text style={styles.cmrStampText}>C & C</Text>
+              <Text style={styles.cmrStampText}>Logistic</Text>
+              <Text style={styles.cmrStampText}>S.R.L.</Text>
+              <Text style={styles.cmrStampText}>Cluj-Napoca</Text>
             </View>
-            <View style={styles.cmrSignatureContent}>
-              <Text style={styles.cmrSignatureText}>Goods received (location)</Text>
-              <Text style={styles.cmrSignatureText}>Marchandises reçues à (location)</Text>
-              <View style={styles.cmrDateLine}></View>
-              <Text style={styles.cmrDateText}>date</Text>
-              <Text style={styles.cmrSignatureText}>Signature and stamp of the consignee</Text>
-              <Text style={styles.cmrSignatureText}>Signature et timbre du destinataire</Text>
-              {data?.semnatura_destinatar === "signed-electronically" && (
-                <Text style={styles.cmrSignatureText}>Semnat electronic</Text>
-              )}
+            <Text style={styles.cmrSignatureText}>Semnătura și ștampila transportatorului:</Text>
+            <Text style={styles.cmrSignatureText}>Unterschrift und Stempel des Frachtführers</Text>
+            {data?.semnatura_transportator === "signed-electronically" && (
+              <Text style={styles.cmrElectronicSignature}>Semnat electronic</Text>
+            )}
+          </View>
+        </View>
+        
+        <View style={styles.cmrSignatureBox}>
+          <View style={styles.cmrSignatureHeader}>
+            <Text style={styles.cmrSignatureNumber}>24</Text>
+          </View>
+          <View style={styles.cmrSignatureContent}>
+            <Text style={styles.cmrSignatureText}>Recepția mărfii</Text>
+            <Text style={styles.cmrSignatureText}>Gut empfangen</Text>
+            <View style={styles.cmrSignatureRight}>
+              <Text style={styles.cmrSignatureText}>Data</Text>
+              <Text style={styles.cmrSignatureText}>Datum</Text>
             </View>
+            <View style={styles.cmrDateLine}></View>
+            <Text style={styles.cmrSignatureText}>Semnătura și ștampila destinatarului:</Text>
+            <Text style={styles.cmrSignatureText}>Unterschrift und Stempel des Empfängers</Text>
+            {data?.semnatura_destinatar === "signed-electronically" && (
+              <Text style={styles.cmrElectronicSignature}>Semnat electronic</Text>
+            )}
           </View>
         </View>
       </View>
     </View>
   );
 };
-
 // Also make sure to update the main render to include the conditional check:
 // Updated main render with proper error handling
 return (
