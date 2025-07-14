@@ -624,7 +624,7 @@ const FormPage = () => {
           {/* Submit Button */}
           <TouchableOpacity
             style={styles.submitButtonGradient}
-            onPress={handleSubmit}
+            onPress={() => navigation.navigate('Route')}
             disabled={submitted}
           >
             <View style={styles.submitButton}>
